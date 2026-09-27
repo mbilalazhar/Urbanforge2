@@ -1,0 +1,18 @@
+.page { min-height: 100svh; padding: 48px clamp(24px, 9vw, 150px) 80px; background: #f9fafb; color: #202124; font-family: var(--font-inter), Arial, sans-serif; }
+.card { width: min(100%, 680px); }
+.brand { display: block; margin-bottom: clamp(70px, 14vh, 140px); font-size: 24px; font-weight: 900; letter-spacing: -.8px; }
+.brand > span { color: #e3263b; }
+.brand small { display: block; margin-top: 7px; color: #8b8e96; font-size: 9px; font-weight: 500; letter-spacing: .2em; }
+.eyebrow { margin-bottom: 14px; color: #c52033; font-size: 11px; font-weight: 600; letter-spacing: .15em; }
+.card h1 { margin: 0; font-size: clamp(36px, 5vw, 48px); line-height: 1.15; font-weight: 700; letter-spacing: -1.7px; }
+.description { margin-top: 14px; color: #767b85; font-size: 15px; line-height: 1.6; }
+.form { display: flex; flex-direction: column; margin-top: 38px; }
+.form label { margin-bottom: 9px; font-size: 13px; font-weight: 600; }
+.form input { width: 100%; min-height: 58px; margin-bottom: 24px; padding: 15px 18px; border: 1px solid #dedfe4; border-radius: 8px; background: #fff; color: #202124; font-size: 16px; }
+.form input::placeholder { color: #a0a4ad; }
+.form button { min-height: 56px; margin-top: 8px; border: 0; border-radius: 8px; background: #df273c; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+.form button:hover { background: #c52033; }
+.form input:focus-visible, .form button:focus-visible { outline: 2px solid #df273c; outline-offset: 3px; }
+.feedback { margin-top: 16px; color: #bc2639; font-size: 13px; line-height: 1.6; }
+.feedback:empty { display: none; }
+.form button:disabled, .form input:disabled { opacity: .65; cursor: wait; }
