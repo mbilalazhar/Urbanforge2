@@ -13,24 +13,12 @@ export default function ProductQuickView({ product, onClose }: { product: Produc
   const closeRef = useRef<HTMLButtonElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const titleId = useId();
-  const defaults = getProductPreview(product.category);
-  const preview = { description: product.description ?? defaults.description, details: product.details ?? defaults.details, sizes: product.sizes ?? defaults.sizes };
+  const preview = getProductPreview(product.category);
   const colors = product.colors?.length ? product.colors : [{ name: "Black", hex: "#111111" }];
   const [color, setColor] = useState(colors[0].name);
   const [size, setSize] = useState(preview.sizes.includes("M") ? "M" : preview.sizes[0]);
   const [quantity, setQuantity] = useState(1);
   const [feedback, setFeedback] = useState("");
-  const selectedVariant = product.variants?.find(variant => (!variant.color || variant.color === color) && (!variant.size || variant.size === size));
-  const stock = product.variants?.length ? selectedVariant?.stock ?? 0 : product.stock;
-
-  useEffect(() => {
-    if (!product.managed) return;
-    try {
-      let visitorId = localStorage.getItem("urbanforge_catalog_visitor");
-      if (!visitorId) { visitorId = crypto.randomUUID(); localStorage.setItem("urbanforge_catalog_visitor", visitorId); }
-      void fetch(`/api/catalog/${encodeURIComponent(product.id)}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId }) }).catch(() => undefined);
-    } catch { /* Views are optional when browser storage is unavailable. */ }
-  }, [product.id, product.managed]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -87,14 +75,14 @@ export default function ProductQuickView({ product, onClose }: { product: Produc
     >
       <button ref={closeRef} type="button" aria-label="Close product details" className={styles.close} onClick={onClose}><X size={20} strokeWidth={1.5} /></button>
       <div className={styles.photo}>
-        <Image unoptimized={product.managed} src={product.image} alt={product.name} fill sizes="(min-width: 768px) 440px, 100vw" className={styles.image} />
+        <Image src={product.image} alt={product.name} fill sizes="(min-width: 768px) 440px, 100vw" className={styles.image} />
         <span className={styles.photoLabel}>UrbanForge / Everyday Utility</span>
         {product.tag && <span className={styles.tag}>{product.tag}</span>}
       </div>
       <div className={styles.content}>
         <p className={styles.eyebrow}>Product Preview <span>/</span> {product.category}</p>
         <h2 id={titleId}>{product.name}</h2>
-        <div className={styles.priceRow}><span className={styles.price}>{product.price}</span><span className={styles.stock}><span />{stock === undefined || stock > 0 ? "In stock" : "Out of stock"}</span></div>
+        <div className={styles.priceRow}><span className={styles.price}>{product.price}</span><span className={styles.stock}><span />In stock</span></div>
         <p className={styles.description}>{preview.description}</p>
         <ul className={styles.details}>{preview.details.map(detail => <li key={detail}><Check size={13} />{detail}</li>)}</ul>
 
@@ -119,12 +107,12 @@ export default function ProductQuickView({ product, onClose }: { product: Produc
           <div className={styles.quantity} role="group" aria-labelledby={`${titleId}-quantity`}>
             <button type="button" aria-label="Decrease quantity" disabled={quantity === 1} onClick={() => { setQuantity(quantity - 1); clearFeedback(); }}><Minus size={14} /></button>
             <output aria-live="polite">{quantity}</output>
-            <button type="button" aria-label="Increase quantity" disabled={quantity >= Math.min(9, stock ?? 9)} onClick={() => { setQuantity(quantity + 1); clearFeedback(); }}><Plus size={14} /></button>
+            <button type="button" aria-label="Increase quantity" disabled={quantity === 9} onClick={() => { setQuantity(quantity + 1); clearFeedback(); }}><Plus size={14} /></button>
           </div>
         </div>
         <div className={styles.actions}>
-          <button type="button" className={styles.add} disabled={stock !== undefined && (stock === 0 || quantity > stock)} onClick={() => setFeedback(`Cart preview: ${quantity} × ${product.name}, ${color}, size ${size}.`)}><ShoppingBag size={17} strokeWidth={1.5} />Add to Cart</button>
-          <button type="button" className={styles.shop} disabled={stock !== undefined && (stock === 0 || quantity > stock)} onClick={() => setFeedback("Your selection is ready. Checkout will be available soon.")}>Shop Now<ArrowRight size={17} strokeWidth={1.5} /></button>
+          <button type="button" className={styles.add} onClick={() => setFeedback(`Cart preview: ${quantity} × ${product.name}, ${color}, size ${size}.`)}><ShoppingBag size={17} strokeWidth={1.5} />Add to Cart</button>
+          <button type="button" className={styles.shop} onClick={() => setFeedback("Your selection is ready. Checkout will be available soon.")}>Shop Now<ArrowRight size={17} strokeWidth={1.5} /></button>
         </div>
         <p className={styles.feedback} role="status" aria-live="polite">{feedback}</p>
         <p className={styles.note}>Made for your everyday. Built for the streets.</p>

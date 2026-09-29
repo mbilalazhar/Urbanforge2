@@ -242,11 +242,14 @@ export function orderCreate(request: Request) { return adminRoute(request, async
       items.push({ productId: product.id, ...(item.variantId ? { variantId: item.variantId } : {}), name: product.name, sku: variant?.sku ?? product.sku, quantity: item.quantity, price: effectivePrice(product, promotions), image: product.images[0] ?? "" });
     }
     const subtotal = round(items.reduce((total, item) => total + item.quantity * item.price, 0));
+    if (subtotal > 1_000_000_000) throw new AuthError("Order subtotal exceeds the maximum supported amount.", 400);
     if (input.discount > subtotal) throw new AuthError("Discount cannot exceed the product subtotal.", 400);
     const { couponCode, ...orderInput } = input;
     const coupon = couponCode ? await redeemCoupon(db, session, couponCode, input, items, categories, subtotal) : undefined;
     const discount = coupon?.discount ?? input.discount;
-    const created: OrderDoc = { ...orderInput, discount, ...(coupon ? { coupon } : {}), items, _id: id, id, number, subtotal, total: round(subtotal + input.shipping - discount), status: "new", returnStatus: "none", courier: "", trackingNumber: "", stockRestored: false, createdAt: timestamp, updatedAt: timestamp };
+    const total = round(subtotal + input.shipping - discount);
+    if (total > 1_000_000_000) throw new AuthError("Order total exceeds the maximum supported amount.", 400);
+    const created: OrderDoc = { ...orderInput, discount, ...(coupon ? { coupon } : {}), items, _id: id, id, number, subtotal, total, status: "new", returnStatus: "none", courier: "", trackingNumber: "", stockRestored: false, createdAt: timestamp, updatedAt: timestamp };
     await c.orders.insertOne(created, { session });
     return created;
   });

@@ -39,6 +39,7 @@ the session. Each account supports up to five sessions.
 | GET | `/api/auth/session` | Returns `{ "account": ... }` or `{ "account": null }` |
 | POST | `/api/auth/logout` | Revokes the user session |
 | POST | `/api/admin/create` | `{ "name", "email", "password" }`; requires provisioning header |
+| POST | `/api/admin/signup` | Alias for `/api/admin/create`; requires the same provisioning header |
 | POST | `/api/admin/login` | `{ "email", "password" }`; signs in an admin |
 | GET | `/api/admin/session` | Returns the current admin or null |
 | POST | `/api/admin/logout` | Revokes the admin session |
@@ -52,8 +53,13 @@ role, and action per 15-minute window, backed by the `auth_attempts` collection.
 The login/signup forms use TanStack Query mutations, show API errors and pending
 states, and take signed-in users to `/account`. That page checks the user session
 on the server. Type `/adminroute` manually to sign in as an admin; successful
-login displays the admin account and logout button there. No navigation link or
-admin creation UI is provided. User sessions cannot authenticate admin requests.
+login opens the admin portal, with dashboard, product, inventory, order, customer,
+coupon, and promotion screens. The portal currently uses an in-memory static
+preview: management changes reset on page refresh and do not call the prepared
+commerce APIs. Admin login, signup, sessions, and logout remain real MongoDB-backed
+authentication. The storefront navbar and footer are hidden throughout the admin
+route. No public navigation link or admin creation UI is provided. User sessions
+cannot authenticate admin requests.
 For future protected API routes, call `getCurrentAccount("user")` or
 `getCurrentAccount("admin")` from `lib/auth/session.ts` and reject a null result.
 Password reset and Google/Apple sign-in remain unimplemented.
@@ -120,16 +126,20 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-### Admin store data and database requirements
+### Admin preview and prepared commerce APIs
 
 The admin portal uses the existing `urbanforge_admin_session` cookie. `/api/admin/signup` is an alias for the provisioning endpoint at `/api/admin/create`: both require the server's `ADMIN_PROVISIONING_KEY` in the `x-admin-provisioning-key` header. Public signup cannot create administrators.
 
-Product, inventory, order, coupon, and promotion data are persisted in MongoDB. **Use MongoDB Atlas or a MongoDB replica set**: product stock edits, order creation, inventory audit records, returns, and coupon redemptions use transactions to prevent partial writes and overselling. A standalone MongoDB server returns an explicit configuration error for transaction-dependent writes. The existing `MONGODB_URI` and optional `MONGODB_DB` configure the connection. No example products, revenue, or orders are inserted automatically.
+The portal currently displays sample data from `lib/admin/preview.ts`. Its management controls update only browser-memory preview state, which resets on refresh. The storefront retains its static catalog. The commerce APIs below are implemented and protected but are not connected to the current portal or storefront UI. No sample commerce records are inserted into MongoDB.
 
-`GET /api/catalog` publishes active managed products and currently effective promotion prices. Once a managed product has been created, the storefront uses managed catalog data, even if every product is later deactivated or deleted. Scheduled promotions take effect from their start timestamp until their end timestamp without a background job. Product view counts record one browser visitor per product per UTC day; they are approximate analytics, not unique verified people.
+When called directly, the prepared product, inventory, order, coupon, and promotion APIs persist data in MongoDB. **Use MongoDB Atlas or a MongoDB replica set for these commerce APIs**: product stock edits, order creation, inventory audit records, returns, and coupon redemptions use transactions to prevent partial writes and overselling. A standalone MongoDB server returns an explicit configuration error for transaction-dependent writes. The existing `MONGODB_URI` and optional `MONGODB_DB` configure the connection. Authentication and the static portal preview do not require a replica set.
 
-Manual orders snapshot catalog prices and decrement stock atomically. Optional `couponCode` applies percentage, fixed, or shipping offers with dates, limits, minimum purchases, maximum discounts, product/category eligibility, customer eligibility, and first-order rules enforced by the server. Product/category scopes form a union. A coupon cannot be combined with an additional manual order discount. Successful order creation consumes one redemption; cancellation does not restore that redemption.
+`GET /api/catalog` is available for future storefront integration and returns active managed products with effective promotion prices. Its `managed` flag indicates whether any managed product has been created, including products later deactivated or archived. The current storefront does not call this API. Scheduled promotions take effect from their start timestamp until their end timestamp without a background job. Product view counts record one browser visitor per product per UTC day; they are approximate analytics, not unique verified people.
+
+Orders created through the prepared API snapshot catalog prices and decrement stock atomically. Optional `couponCode` applies percentage, fixed, or shipping offers with dates, limits, minimum purchases, maximum discounts, product/category eligibility, customer eligibility, and first-order rules enforced by the server. Product/category scopes form a union. A coupon cannot be combined with an additional manual order discount. Successful order creation consumes one redemption; cancellation does not restore that redemption.
 
 Order cancellation restores stock once. Return approval records a decision; setting the order to returned records physical receipt and restores stock once. Refunding a delivered order alone does not imply that goods were returned. Refund actions **record an already completed manual refund** and require an explanatory note; there is no payment provider integration and these actions do not transfer money. Product deletion archives its record so historical order and return records remain valid. SKUs remain reserved after deletion.
 
-The current portal reads complete store records to calculate its dashboard and client-side filters. A larger store should move these queries to paginated lists and server aggregates. Run `npm run build` followed by `node --test tests/admin.integration.mjs` to exercise the commerce APIs against an isolated disposable replica set. Existing authentication coverage remains in `tests/auth.integration.mjs`.
+The prepared dashboard/list APIs return complete store records. Before connecting a larger store, move these queries to paginated lists and server aggregates. Run `npm run build` followed by `node --test tests/admin.integration.mjs` to exercise the commerce APIs against an isolated disposable replica set. Existing authentication coverage remains in `tests/auth.integration.mjs`.
+
+Run `npm run test:admin-preview` for local sample-data checks, including the guarantee that management actions make no network requests.

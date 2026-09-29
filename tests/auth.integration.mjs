@@ -145,7 +145,8 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     const admin = await (await fetch(base + '/adminroute')).text();
     assert.match(admin, /Admin Login/);
     assert.match(admin, /type="password"/);
-    assert.match(await (await fetch(base + '/adminroute', { headers: { Cookie: adminCookie } })).text(), /Welcome back/);
+    assert.doesNotMatch(admin, /<nav\b|<footer\b/);
+    assert.match(await (await fetch(base + '/adminroute', { headers: { Cookie: adminCookie } })).text(), /ADMIN PORTAL/);
     assert.doesNotMatch(await (await fetch(base + '/')).text(), /href="\/adminroute/);
   });
 

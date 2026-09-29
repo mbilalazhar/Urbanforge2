@@ -1,22 +1,9 @@
-"use client";
-/* eslint-disable @next/next/no-img-element */
-import Link from "next/link";
 import ProductCard from "@/components/product/ProductCard";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-import { useCatalog } from "@/lib/catalog-client";
+import { featuredProducts as products } from "@/lib/products";
 
-export default function FeaturedProducts({ category }: { category?: string }) {
-  const catalog = useCatalog();
-  const products = catalog.products.filter(product => {
-    if (!catalog.managed || !category) return true;
-    const record = catalog.data?.products.find(item => item.id === product.id);
-    if (category === "men" || category === "women") return record?.gender.toLowerCase() === category || ["unisex", "all"].includes(record?.gender.toLowerCase() ?? "");
-    if (category === "new-in") return record?.newArrival;
-    if (category === "sale") return record?.salePrice !== null && (record?.salePrice ?? Infinity) < (record?.price ?? 0);
-    if (category === "accessories") return ["accessories", "bags", "watches"].includes(product.category.toLowerCase());
-    return product.category.toLowerCase() === category;
-  });
+export default function FeaturedProducts() {
   return (
     <section id="new-arrivals" className="w-full scroll-mt-24 bg-white py-16 sm:py-20 lg:py-24 px-6 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-[1700px]">
@@ -67,10 +54,6 @@ export default function FeaturedProducts({ category }: { category?: string }) {
           </div>
         </div>
 
-        {catalog.data?.promotions.filter(promotion => promotion.banner).map(promotion => <Link key={promotion.id} href="/sale" className="relative mb-8 flex min-h-32 overflow-hidden rounded-lg bg-neutral-950 p-7 text-white"><img src={promotion.banner} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" /><span className="relative"><strong className="block text-2xl">{promotion.name}</strong><span className="mt-2 block text-sm">Up to {promotion.discountPercent}% off selected products</span></span></Link>)}
-        {catalog.isPending && <p className="py-12 text-center text-sm text-neutral-500" role="status">Loading products…</p>}
-        {catalog.error && <p className="py-12 text-center text-sm text-red-700" role="alert">{catalog.error.message} <button onClick={() => catalog.refetch()} className="underline">Try again</button></p>}
-        {catalog.data && !products.length && <p className="py-12 text-center text-sm text-neutral-500">New products are on their way. Check back soon.</p>}
         {/* Product grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10 sm:gap-x-5 lg:gap-x-6">
         {products.map((product) => (

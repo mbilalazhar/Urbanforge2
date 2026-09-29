@@ -30,7 +30,7 @@ export default function Newsletter() {
 
         {submitted ? (
           <p className="mt-10 text-sm font-medium text-emerald-400">
-            Thanks! You're subscribed. 🎉
+            Thanks! You&apos;re subscribed. 🎉
           </p>
         ) : (
           <form

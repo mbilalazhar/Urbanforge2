@@ -7,30 +7,24 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import ProductCard from "@/components/product/ProductCard";
 import { getProductPreview } from "@/components/product/preview-data";
-import { productPrice } from "@/lib/products";
-import { useCatalog } from "@/lib/catalog-client";
+import { products, productPrice } from "@/lib/products";
 import { catalogSections } from "@/lib/catalog-sections";
 import styles from "./search.module.css";
 
+const categories = [...new Set(products.map(product => product.category))];
+const colors = [...new Map(products.flatMap(product => product.colors ?? []).map(color => [color.name, color])).values()];
+const sizes = [...new Set(products.flatMap(product => getProductPreview(product.category).sizes))];
 const tabs = ["All", "Products", "Collections", "Categories"] as const;
 type Tab = typeof tabs[number];
 
 export default function SearchPage({ query }: { query: string }) {
   const router = useRouter();
-  const catalog = useCatalog();
-  const products = catalog.products;
-  const categories = [...new Set(products.map(product => product.category))];
-  const colors = [...new Map(products.flatMap(product => product.colors ?? []).map(color => [color.name, color])).values()];
-  const sizes = [...new Set(products.flatMap(product => product.sizes ?? getProductPreview(product.category).sizes))];
-  const priceLimit = Math.max(catalog.managed ? 1000 : 300, ...products.map(product => Math.ceil(productPrice(product) / 100) * 100));
-  const currency = catalog.managed ? "Rs. " : "$";
   const [draft, setDraft] = useState(query);
   const [tab, setTab] = useState<Tab>("All");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [priceCap, setPriceCap] = useState<number | null>(null);
-  const maxPrice = priceCap ?? priceLimit;
+  const [maxPrice, setMaxPrice] = useState(300);
   const [sort, setSort] = useState("relevance");
   const [showFilters, setShowFilters] = useState(false);
   const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -38,20 +32,20 @@ export default function SearchPage({ query }: { query: string }) {
   const matchingProducts = products.filter(product => matches(`${product.name} ${product.category} ${product.tag ?? ""} ${product.colors?.map(color => color.name).join(" ")}`));
   const filteredProducts = matchingProducts.filter(product =>
     (!selectedCategories.length || selectedCategories.includes(product.category)) &&
-    (!selectedSizes.length || selectedSizes.some(size => (product.sizes ?? getProductPreview(product.category).sizes).includes(size))) &&
+    (!selectedSizes.length || selectedSizes.some(size => getProductPreview(product.category).sizes.includes(size))) &&
     (!selectedColors.length || product.colors?.some(color => selectedColors.includes(color.name))) &&
     productPrice(product) <= maxPrice
   ).sort((a, b) => sort === "price-low" ? productPrice(a) - productPrice(b) : sort === "price-high" ? productPrice(b) - productPrice(a) : sort === "newest" ? Number(b.tag === "NEW") - Number(a.tag === "NEW") : 0);
   const matchingCollections = catalogSections.filter(section => matches(`${section.label} ${section.hero.description.join(" ")}`));
   const matchingCategories = categories.filter(category => matches(category) || matchingProducts.some(product => product.category === category));
   const counts = { All: filteredProducts.length + matchingCollections.length + matchingCategories.length, Products: filteredProducts.length, Collections: matchingCollections.length, Categories: matchingCategories.length };
-  const activeFilters = selectedCategories.length + selectedSizes.length + selectedColors.length + Number(maxPrice < priceLimit);
+  const activeFilters = selectedCategories.length + selectedSizes.length + selectedColors.length + Number(maxPrice < 300);
 
   function toggle(value: string, current: string[], update: (values: string[]) => void) {
     update(current.includes(value) ? current.filter(item => item !== value) : [...current, value]);
   }
   function clearFilters() {
-    setSelectedCategories([]); setSelectedSizes([]); setSelectedColors([]); setPriceCap(null);
+    setSelectedCategories([]); setSelectedSizes([]); setSelectedColors([]); setMaxPrice(300);
   }
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,8 +82,6 @@ export default function SearchPage({ query }: { query: string }) {
           {(tab === "All" || tab === "Products") && <label className={styles.sort}>Sort by<select aria-label="Sort products" value={sort} onChange={event => setSort(event.target.value)}><option value="relevance">Relevance</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="newest">New arrivals</option></select></label>}
         </div>
 
-        {catalog.isPending && <p role="status">Loading products…</p>}
-        {catalog.error && <p role="alert">{catalog.error.message} <button onClick={() => catalog.refetch()}>Try again</button></p>}
         <div className={styles.layout}>
           {(tab === "All" || tab === "Products") && <>
             <button className={styles.filterToggle} type="button" aria-expanded={showFilters} aria-controls="search-filters" onClick={() => setShowFilters(!showFilters)}><SlidersHorizontal size={16} />Filters {activeFilters > 0 && `(${activeFilters})`}<ChevronDown size={16} /></button>
@@ -98,7 +90,7 @@ export default function SearchPage({ query }: { query: string }) {
               <details open><summary>Category<ChevronDown size={14} /></summary><div className={styles.checkboxes}>{categories.map(category => <label key={category}><input type="checkbox" checked={selectedCategories.includes(category)} onChange={() => toggle(category, selectedCategories, setSelectedCategories)} /><span>{category}</span><small>{matchingProducts.filter(product => product.category === category).length}</small></label>)}</div></details>
               <details><summary>Size<ChevronDown size={14} /></summary><div className={styles.sizes}>{sizes.map(size => <button type="button" key={size} aria-pressed={selectedSizes.includes(size)} onClick={() => toggle(size, selectedSizes, setSelectedSizes)}>{size}</button>)}</div></details>
               <details open><summary>Color<ChevronDown size={14} /></summary><div className={styles.colors}>{colors.map(color => <button type="button" key={color.name} title={color.name} aria-label={`Filter by ${color.name}`} aria-pressed={selectedColors.includes(color.name)} onClick={() => toggle(color.name, selectedColors, setSelectedColors)}><span style={{ background: color.hex }} /></button>)}</div></details>
-              <details open><summary>Price range<ChevronDown size={14} /></summary><div className={styles.priceRange}><label htmlFor="max-price">Up to <strong>{currency}{maxPrice.toLocaleString()}</strong></label><input id="max-price" type="range" min="0" max={priceLimit} step="1" value={maxPrice} onChange={event => setPriceCap(Number(event.target.value))} /><div><span>{currency}0</span><span>{currency}{priceLimit.toLocaleString()}</span></div></div></details>
+              <details open><summary>Price range<ChevronDown size={14} /></summary><div className={styles.priceRange}><label htmlFor="max-price">Up to <strong>${maxPrice}</strong></label><input id="max-price" type="range" min="0" max="300" step="1" value={maxPrice} onChange={event => setMaxPrice(Number(event.target.value))} /><div><span>$0</span><span>$300</span></div></div></details>
               <p className={styles.filterNote}>Your style. Your rules.<br />Find the pieces that fit.</p>
             </aside>
           </>}

@@ -94,6 +94,7 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
     assert.equal((await createOrder([{ productId: product.id, quantity: 1 }, { productId: 'missing', quantity: 1 }])).status, 404);
     assert.equal(await stockOf(product.id), before);
     assert.equal((await createOrder([{ productId: product.id, quantity: 1 }], { discount: 99999 })).status, 400);
+    assert.equal((await createOrder([{ productId: product.id, quantity: 1 }], { shipping: 1_000_000_000 })).status, 400, 'aggregate order total is bounded');
     assert.equal(await stockOf(product.id), before);
     const results = await Promise.all([1, 2].map(() => createOrder([{ productId: product.id, quantity: 6 }])));
     assert.deepEqual(results.map(result => result.status).sort(), [201, 409]);

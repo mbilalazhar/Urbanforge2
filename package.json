@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:auth": "npm run build && node --test tests/auth.integration.mjs"
+    "test:auth": "npm run build && node --test tests/auth.integration.mjs",
+    "test:admin-preview": "node --test tests/admin-preview.test.mjs",
+    "test:admin": "npm run build && node --test tests/admin.integration.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",

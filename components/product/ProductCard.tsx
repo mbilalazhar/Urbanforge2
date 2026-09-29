@@ -19,12 +19,7 @@ export type Product = {
   tag?: string;
   colors?: ProductColor[];
   href?: string;
-  managed?: boolean;
-  description?: string;
-  details?: string[];
-  sizes?: string[];
-  stock?: number;
-  variants?: import("@/lib/admin/types").ProductVariant[];
+
 };
 
 type ProductCardProps = {
@@ -89,7 +84,7 @@ export default function ProductCard({
           className="block w-full cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c8202d]"
         >
           <span className="relative block aspect-[4/5] w-full overflow-hidden bg-neutral-200">
-            <Image unoptimized={product.managed} src={product.image} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none" />
+            <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none" />
             {showTag && product.tag && (
               <span className="absolute left-3 top-3 bg-[#e53e3e] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white">{product.tag}</span>
             )}
