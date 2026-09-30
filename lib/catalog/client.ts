@@ -17,3 +17,7 @@ export function useCatalog() {
 export function useProduct(id: string, initialData: ProductResponse) {
   return useQuery({ queryKey: ["catalog", id], queryFn: () => request<ProductResponse>(`/api/catalog/${encodeURIComponent(id)}`), initialData, staleTime: 0, retry: false });
 }
+
+export function useProductPreview(id: string) {
+  return useQuery({ queryKey: ["catalog", id], queryFn: () => request<ProductResponse>(`/api/catalog/${encodeURIComponent(id)}`), staleTime: 0, retry: false });
+}
