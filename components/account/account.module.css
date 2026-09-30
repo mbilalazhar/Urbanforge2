@@ -205,3 +205,5 @@
 @media (prefers-reduced-motion: reduce) {
   .editProfile { transition: none; }
 }
+
+.addressForm { max-width: 620px; padding: 24px; background: #fff; border: 1px solid #e7e8eb; border-radius: 9px; }

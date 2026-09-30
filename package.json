@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test:auth": "npm run build && node --test tests/auth.integration.mjs",
     "test:admin-preview": "node --test tests/admin-preview.test.mjs",
-    "test:admin": "npm run build && node --test tests/admin.integration.mjs"
+    "test:admin": "npm run build && node --test tests/admin.integration.mjs tests/admin-products-client.test.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",
@@ -20,7 +20,8 @@
     "react-dom": "19.2.8",
     "react-icons": "^5.7.0",
     "server-only": "^0.0.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

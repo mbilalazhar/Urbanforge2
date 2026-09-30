@@ -55,7 +55,7 @@ export default function AdminPortal({ account }: { account: PublicAccount }) {
       </header>
       <main className={styles.main}>
         <div className={styles.utility}><label className={styles.search}><Search size={17} /><input type="search" placeholder="Search products, orders, customers…" aria-label="Search admin records" value={search} onChange={event => setSearch(event.target.value)} />{search && <button onClick={() => setSearch("")} aria-label="Clear search"><X size={15} /></button>}</label><span className={styles.date}><CalendarDays size={15} />{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Karachi" })}</span></div>
-        <div className={styles.previewNotice}><span><strong>Preview mode</strong> Sample store data · Changes reset when you reload.</span><button onClick={() => { resetPreview(); void client.invalidateQueries({ queryKey: ["admin"] }); }}>Reset preview</button></div>
+        {!(["products", "inventory"] as string[]).includes(section) && <div className={styles.previewNotice}><span><strong>Preview mode</strong> This section uses sample data. Products and inventory are saved permanently.</span><button onClick={() => { resetPreview(); void client.invalidateQueries({ queryKey: ["admin"] }); }}>Reset preview</button></div>}
         {logout.error && <p className={styles.error} role="alert">{logout.error.message}</p>}
         {section === "overview" && <Dashboard name={account.name} navigate={navigate} search={search} />}
         {section === "products" && <ProductsPanel search={search} />}

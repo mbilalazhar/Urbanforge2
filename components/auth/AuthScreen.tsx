@@ -80,7 +80,8 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
         form.reset();
         login.reset();
         signup.reset();
-        router.replace("/account");
+        const next = new URLSearchParams(window.location.search).get("next");
+        router.replace(next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/account");
         router.refresh();
       },
     };

@@ -1,76 +1,17 @@
 import type { Product } from "@/components/product/ProductCard";
-
-export const featuredProducts: Product[] = [
-  {
-    id: 1,
-    name: "Urban Windbreaker Jacket",
-    category: "Outerwear",
-    price: "$129.00",
-    image: "/jacket.png",
-    tag: "NEW",
-    colors: [
-      { name: "Black", hex: "#111111" },
-      { name: "Charcoal", hex: "#4a4a4a" },
-      { name: "Off-white", hex: "#d9d9d9" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Oversized Crop Hoodie",
-    category: "Hoodies",
-    price: "$89.00",
-    image: "/hoodie.png",
-    colors: [
-      { name: "Black", hex: "#111111" },
-      { name: "Red", hex: "#e53e3e" },
-      { name: "Grey", hex: "#8a8a8a" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Shadow Graphic Tee",
-    category: "T-Shirts",
-    price: "$49.00",
-    image: "/tee.png",
-    colors: [
-      { name: "Black", hex: "#111111" },
-      { name: "Charcoal", hex: "#5a5a5a" },
-      { name: "Bone", hex: "#d5cdbf" },
-    ],
-  },
-  {
-    id: 4,
-    name: "Tactical Cargo Pants",
-    category: "Bottoms",
-    price: "$109.00",
-    image: "/bottoms.png",
-    colors: [
-      { name: "Black", hex: "#111111" },
-      { name: "Olive", hex: "#4a4a35" },
-      { name: "Khaki", hex: "#8b8060" },
-    ],
-  },
-    {
-    id: 5,
-    name: "Tactical Cargo Watches",
-    category: "Watches",
-    price: "$159.00",
-    image: "/watch.png",
-    colors: [
-      { name: "Black", hex: "#111111" },
-      { name: "Olive", hex: "#4a4a35" },
-      { name: "Khaki", hex: "#8b8060" },
-    ],
-  },
-];
-
-export const products: Product[] = [
-  ...featuredProducts,
-  { id: "high-top-sneakers", name: "Urban High-Top Sneakers", category: "Shoes", price: "$120.00", image: "/shoes.png", tag: "NEW", colors: [{ name: "Black", hex: "#111111" }, { name: "Off-white", hex: "#d9d9d9" }] },
-  { id: "utility-hoodie", name: "Oversized Utility Hoodie", category: "Hoodies", price: "$79.00", image: "/hoodie.png", colors: [{ name: "Black", hex: "#111111" }, { name: "Grey", hex: "#8a8a8a" }] },
-  { id: "crossbody-bag", name: "Everyday Crossbody Bag", category: "Bags", price: "$65.00", image: "/accessories.png", colors: [{ name: "Black", hex: "#111111" }] },
-];
-
-export function productPrice(product: Product) {
-  return Number(product.price.replace(/^[^0-9]*/, "").replace(/[^0-9.]/g, ""));
+import type { AdminProduct } from "@/lib/admin/types";
+export const formatProductPrice = (value: number) => `Rs. ${new Intl.NumberFormat("en-PK", { maximumFractionDigits: 2 }).format(value)}`;
+export function productPrice(product: Product) { return product.amount ?? Number(product.price.replace(/[^0-9.]/g, "")); }
+export function colorHex(name: string) {
+  const colors: Record<string, string> = { black: "#171717", white: "#fafafa", red: "#c82032", blue: "#385f9b", green: "#496449", olive: "#737447", beige: "#d7c6a5", sand: "#d7c6a5", grey: "#929292", gray: "#929292", pink: "#df9dae", brown: "#795b47", navy: "#253247", cream: "#eee8d6", yellow: "#e6cd57", orange: "#d88745", purple: "#80628a" };
+  return /^#[0-9a-f]{3,8}$/i.test(name) ? name : colors[name.toLowerCase()] ?? "#b7b7b7";
+}
+export function toProductCard(product: AdminProduct): Product {
+  const amount = product.salePrice ?? product.price;
+  return { id: product.id, name: product.name, category: product.category, price: formatProductPrice(amount), amount,
+    image: product.images[0] ?? "", href: `/products/${encodeURIComponent(product.id)}`,
+    tag: product.bestseller ? "BESTSELLER" : amount < product.price ? "SALE" : product.newArrival ? "NEW" : undefined,
+    colors: [...new Set(product.variants?.length ? product.variants.map(variant => variant.color).filter(Boolean) : product.colors)].map(name => ({ name, hex: colorHex(name) })),
+    sizes: [...new Set(product.variants?.length ? product.variants.map(variant => variant.size).filter(Boolean) : product.sizes)],
+  };
 }

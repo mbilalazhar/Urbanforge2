@@ -47,9 +47,9 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
   }
   assert.ok(ready, output);
 
-  async function api(path, { body, cookie, headers = {}, raw } = {}) {
+  async function api(path, { body, cookie, headers = {}, raw, method } = {}) {
     const response = await fetch(base + path, {
-      method: body !== undefined || raw !== undefined ? 'POST' : 'GET',
+      method: method ?? (body !== undefined || raw !== undefined ? 'POST' : 'GET'),
       headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}), ...headers },
       body: raw ?? (body === undefined ? undefined : JSON.stringify(body)),
     });
@@ -83,6 +83,11 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.match(document.passwordHash, /^scrypt\$/);
     assert.notEqual(document.passwordHash, input.password);
     assert.equal(document.password, undefined);
+    assert.equal(document.contact, '');
+    assert.equal(document.defaultAddress, null);
+    assert.deepEqual(document.currentOrderIds, []);
+    assert.deepEqual(document.pastOrderIds, []);
+    assert.equal(document.paymentMethods, undefined);
     assert.equal(document.sessions.length, 1);
     assert.notEqual(document.sessions[0].tokenHash, userCookie.split('=')[1]);
     assert.equal((await api('/api/auth/session', { cookie: userCookie })).body.account.id, result.body.account.id);
@@ -135,13 +140,71 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.equal((await api('/api/admin/session', { cookie: 'urbanforge_admin_session=forged' })).body.account, null);
   });
 
+  await t.test('user profile and delivery address persist, are private, and reject protected fields', async () => {
+    const path = '/api/account/profile';
+    const patch = (body, cookie = userCookie, headers = {}) => api(path, { method: 'PATCH', body, cookie, headers });
+    assert.equal((await api(path)).status, 401);
+    assert.equal((await api(path, { cookie: adminCookie })).status, 401);
+    assert.equal((await patch({ contact: '+92 300 1234567' }, adminCookie)).status, 401);
+    const initial = await api(path, { cookie: userCookie });
+    assert.equal(initial.body.profile.name, input.name);
+    assert.equal(initial.body.profile.contact, '');
+    assert.equal(initial.body.profile.defaultAddress, null);
+    assert.deepEqual(initial.body.profile.currentOrderIds, []);
+    assert.deepEqual(initial.body.profile.pastOrderIds, []);
+    assert.equal(initial.headers.get('cache-control'), 'no-store');
+    assert.equal(initial.body.profile.passwordHash, undefined);
+    assert.equal(initial.body.profile.sessions, undefined);
+    for (const invalid of [{ currentOrderIds: ['fake'] }, { pastOrderIds: ['fake'] }, { email: 'other@example.com' }, { role: 'admin' }, { id: 'other' }, { paymentMethods: [] }, { contact: 'invalid' }, { name: ' ' }, { defaultAddress: {} }, {}]) {
+      assert.equal((await patch(invalid)).status, 400, JSON.stringify(invalid));
+    }
+    assert.equal((await patch({ name: 'Changed' }, userCookie, { Origin: 'https://other.example' })).status, 403);
+    const address = { recipient: 'Test User', contact: '+92 300 1234567', line1: '123 Test Street', line2: 'Apartment 4', city: 'Lahore', region: 'Punjab', postalCode: '54000', country: 'Pakistan' };
+    const updated = await patch({ name: 'Updated User', contact: '+92 300 1234567', defaultAddress: address, preferences: { orders: false, news: true } });
+    assert.equal(updated.status, 200, JSON.stringify(updated.body));
+    assert.deepEqual(updated.body.profile.defaultAddress, address);
+    assert.equal((await api('/api/auth/session', { cookie: userCookie })).body.account.name, 'Updated User');
+    const document = await db.collection('users').findOne({ email: 'user@example.com' });
+    assert.equal(document.contact, '+92 300 1234567');
+    assert.deepEqual(document.defaultAddress, address);
+    assert.deepEqual((await api(path, { cookie: userCookie })).body.profile.defaultAddress, address);
+    assert.equal((await patch({ contact: '' })).body.profile.contact, '');
+    assert.deepEqual((await api(path, { cookie: userCookie })).body.profile.defaultAddress, address, 'partial edits preserve the address');
+    const other = await api('/api/auth/login', { body: { email: 'race@example.com', password: input.password } });
+    const otherCookie = other.cookie.split(';')[0];
+    assert.equal((await api(path, { cookie: otherCookie })).body.profile.defaultAddress, null);
+    await patch({ contact: '03001234567' }, otherCookie);
+    assert.equal((await api(path, { cookie: userCookie })).body.profile.contact, '');
+    assert.equal((await patch({ defaultAddress: null })).body.profile.defaultAddress, null);
+    assert.equal((await api(path, { cookie: userCookie })).body.profile.defaultAddress, null);
+  });
+
+  await t.test('legacy user defaults are initialized on sign-in without overwriting saved information', async () => {
+    await db.collection('users').updateOne({ email: 'user@example.com' }, {
+      $set: { contact: '+92 300 7654321', pastOrderIds: ['future-order-reference'] },
+      $unset: { defaultAddress: '', currentOrderIds: '', preferences: '' },
+    });
+    const result = await api('/api/auth/login', { body: { email: input.email, password: input.password }, cookie: userCookie });
+    assert.equal(result.status, 200); userCookie = result.cookie.split(';')[0];
+    const document = await db.collection('users').findOne({ email: 'user@example.com' });
+    assert.equal(document.contact, '+92 300 7654321');
+    assert.equal(document.defaultAddress, null);
+    assert.deepEqual(document.currentOrderIds, []);
+    assert.deepEqual(document.pastOrderIds, ['future-order-reference']);
+    assert.deepEqual(document.preferences, { orders: true, news: false });
+  });
+
   await t.test('pages show login or authenticated account and do not link to the admin route', async () => {
     const anonymousAccount = await fetch(base + '/account', { redirect: 'manual' });
     assert.equal(anonymousAccount.status, 307);
     assert.equal(anonymousAccount.headers.get('location'), '/login');
     const account = await fetch(base + '/account', { headers: { Cookie: userCookie } });
     assert.equal(account.status, 200);
-    assert.match(await account.text(), /My account/);
+    const accountHtml = await account.text();
+    assert.match(accountHtml, /My account/);
+    assert.match(accountHtml, /Updated User/);
+    assert.doesNotMatch(accountHtml, /Payment Methods|Visa ending|House 24|Bilal Azhar/);
+    assert.match(accountHtml, /No orders yet/);
     const admin = await (await fetch(base + '/adminroute')).text();
     assert.match(admin, /Admin Login/);
     assert.match(admin, /type="password"/);

@@ -1,11 +1,12 @@
 import "server-only";
 
 import { ObjectId, type Collection } from "mongodb";
+import { emptyUserDetails, type UserDetails } from "@/lib/user-profile";
 import dbConnect from "@/lib/dbconnect";
 import type { AccountRole, PublicAccount } from "@/lib/auth/types";
 
 export type AccountSession = { tokenHash: string; expiresAt: Date };
-export type AccountDocument = {
+export type AccountDocument = Partial<UserDetails> & {
   _id: ObjectId;
   name: string;
   email: string;
@@ -38,6 +39,7 @@ export function createAccountModel(collectionName: "users" | "admins", role: Acc
     async create(input: { name: string; email: string; passwordHash: string }, session?: AccountSession) {
       const now = new Date();
       const account: AccountDocument = {
+        ...(role === "user" ? emptyUserDetails() : {}),
         _id: new ObjectId(),
         name: input.name.trim(),
         email: input.email.trim().toLowerCase(),

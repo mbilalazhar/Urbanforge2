@@ -1,4 +1,7 @@
 import "server-only";
+import { subcategoriesFor, productTypesFor } from "@/lib/product-categories";
+import { readProductBody } from "./product-upload";
+import { readInventoryHistory, summarizeInventory } from "./inventory";
 
 import { randomUUID } from "node:crypto";
 import { MongoServerError, type ClientSession, type Db } from "mongodb";
@@ -20,9 +23,9 @@ const timestamp = z.string().max(40).refine(value => value === "" || Number.isFi
 const variant = z.object({ id: identifier, sku, color: short, size: short, stock: quantity }).strict();
 export const productSchema = z.object({
   name: short.min(1), description: text.default(""), shortDescription: text.default(""),
-  category: short.default(""), subcategory: short.default(""), brand: short.default(""), gender: short.default(""),
+  category: short.min(1), subcategory: short.min(1), productType: short.default(""), brand: short.default(""), gender: short.default(""),
   price: money, salePrice: money.nullable().default(null), sku,
-  images: z.array(media).max(30).default([]), videos: z.array(media).max(10).default([]),
+  images: z.array(media).min(1, "Add at least one product image.").max(30), videos: z.array(media).max(10).default([]),
   colors: strings.default([]), sizes: strings.default([]), material: short.default(""), stock: quantity.default(0), tags: strings.default([]),
   status: z.enum(["active", "inactive"]).default("inactive"), featured: z.boolean().default(false), newArrival: z.boolean().default(false), bestseller: z.boolean().default(false),
   seoTitle: short.default(""), seoDescription: text.default(""), variants: z.array(variant).max(200).default([]),
@@ -39,7 +42,7 @@ const orderPatchSchema = z.object({
 }).strict();
 const inventorySchema = z.object({
   productId: identifier, variantId: identifier.optional(), quantity: z.number().int().min(-1_000_000).max(1_000_000).refine(value => value !== 0, "Enter a nonzero stock change."),
-  type: z.enum(["added", "sold", "returned", "adjustment"]), reason: text.min(1),
+  type: z.enum(["added", "sold", "returned", "adjustment"]), reason: text.min(1), expectedStock: quantity.optional(),
 }).strict();
 const couponSchema = z.object({
   code: z.string().trim().min(1).max(60).regex(/^[a-zA-Z0-9_-]+$/).toUpperCase(), type: z.enum(["percentage", "fixed", "free_shipping"]), value: money,
@@ -67,6 +70,7 @@ async function database() {
       db.collection("admin_orders").createIndex({ email: 1, createdAt: -1 }),
       db.collection("admin_coupons").createIndex({ code: 1 }, { unique: true }),
       db.collection("admin_stock_movements").createIndex({ productId: 1, createdAt: -1 }),
+      db.collection("admin_stock_movements").createIndex({ createdAt: -1, _id: -1 }),
       db.collection("catalog_views").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     ]);
     return db;
@@ -130,7 +134,12 @@ async function transaction<T>(db: Db, action: (session: ClientSession) => Promis
 const now = () => new Date().toISOString();
 const round = (value: number) => Math.round(value * 100) / 100;
 function mustExist<T>(value: T | null): T { if (!value) throw new AuthError("Record not found.", 404); return value; }
-function validateProduct(product: z.infer<typeof productSchema>) {
+function validateProduct(product: Omit<z.infer<typeof productSchema>, "productType"> & { productType?: string }) {
+  if (!subcategoriesFor(product.category).includes(product.subcategory)) throw new AuthError("Select a valid category and subcategory.", 400);
+  const types = productTypesFor(product.category, product.subcategory);
+  if (types.length ? !types.includes(product.productType ?? "") : Boolean(product.productType)) throw new AuthError("Select a valid product type for this subcategory.", 400);
+  if (product.category === "Brands" && !product.brand) throw new AuthError("Enter a brand name for the Brands category.", 400);
+  if (!product.images.length) throw new AuthError("Add at least one product image.", 400);
   if (product.salePrice !== null && product.salePrice > product.price) throw new AuthError("Sale price cannot exceed the regular price.", 400);
   const skus = [product.sku, ...product.variants.map(item => item.sku)];
   if (new Set(skus).size !== skus.length) throw new AuthError("Product and variant SKUs must be unique.", 400);
@@ -141,7 +150,10 @@ function validateProduct(product: z.infer<typeof productSchema>) {
 async function audit(db: Db, session: ClientSession, product: AdminProduct, variantId: string, before: number, after: number, type: StockMovement["type"], reason: string, adminId: string) {
   if (before === after) return;
   const id = randomUUID();
-  await collections(db).movements.insertOne({ _id: id, id, productId: product.id, productName: product.name, variantId, type, quantity: after - before, before, after, reason, createdAt: now(), adminId }, { session });
+  const variant = product.variants.find(item => item.id === variantId);
+  const sku = variant?.sku ?? (variantId ? "" : product.sku);
+  const variantLabel = variant ? [variant.color, variant.size].filter(Boolean).join(" / ") : variantId;
+  await collections(db).movements.insertOne({ _id: id, id, productId: product.id, productName: product.name, sku, variantLabel, variantId, type, quantity: after - before, before, after, reason, createdAt: now(), adminId }, { session });
 }
 async function auditProductEdit(db: Db, session: ClientSession, before: AdminProduct | null, after: AdminProduct, adminId: string) {
   const previous = new Map(before?.variants.map(item => [item.id, item.stock]) ?? []);
@@ -149,32 +161,38 @@ async function auditProductEdit(db: Db, session: ClientSession, before: AdminPro
   if (!before?.variants.length && !after.variants.length) await audit(db, session, after, "", before?.stock ?? 0, after.stock, before ? "adjustment" : "added", before ? "Product stock edited" : "Opening stock", adminId);
   else {
     if (before && !before.variants.length && before.stock) await audit(db, session, after, "", before.stock, 0, "adjustment", "Stock moved to variants", adminId);
-    for (const id of new Set([...previous.keys(), ...next.keys()])) await audit(db, session, after, id, previous.get(id) ?? 0, next.get(id) ?? 0, before ? "adjustment" : "added", before ? "Variant stock edited" : "Opening variant stock", adminId);
+    for (const id of new Set([...previous.keys(), ...next.keys()])) await audit(db, session, next.has(id) ? after : { ...after, variants: before?.variants ?? [] }, id, previous.get(id) ?? 0, next.get(id) ?? 0, before ? "adjustment" : "added", before ? "Variant stock edited" : "Opening variant stock", adminId);
     if (!after.variants.length && after.stock) await audit(db, session, after, "", 0, after.stock, "adjustment", "Stock moved from variants", adminId);
   }
 }
 export function productList(request: Request) { return adminRoute(request, async db => ({ products: (await collections(db).products.find({ deletedAt: { $exists: false } }).sort({ createdAt: -1 }).toArray()).map(clean) })); }
 export function productCreate(request: Request) { return adminRoute(request, async (db, adminId) => {
-  const input = await body(request, productSchema);
-  const skuKeys = validateProduct(input), id = randomUUID(), timestamp = now();
-  const product: ProductDoc = { ...input, _id: id, id, skuKeys, views: 0, createdAt: timestamp, updatedAt: timestamp };
-  await transaction(db, async session => { await collections(db).products.insertOne(product, { session }); await auditProductEdit(db, session, null, product, adminId); });
-  return { product: clean(product) };
+  const upload = await readProductBody(request, db, productSchema, body);
+  try {
+    const input = upload.input;
+    const skuKeys = validateProduct(input), id = randomUUID(), timestamp = now();
+    const product: ProductDoc = { ...input, _id: id, id, skuKeys, views: 0, createdAt: timestamp, updatedAt: timestamp };
+    await transaction(db, async session => { await collections(db).products.insertOne(product, { session }); await auditProductEdit(db, session, null, product, adminId); });
+    return { product: clean(product) };
+  } catch (error) { await upload.cleanup(); throw error; }
 }, 201); }
 export function productUpdate(request: Request, id: string) { return adminRoute(request, async (db, adminId) => {
-  const input = await body(request, productSchema.partial());
-  const product = await transaction(db, async session => {
-    const current = mustExist(await collections(db).products.findOne({ _id: id, deletedAt: { $exists: false } }, { session }));
-    const updated = { ...current, ...input, updatedAt: now() };
-    updated.skuKeys = validateProduct(updated);
-    if (!current.variants.length && updated.variants.length && await collections(db).orders.findOne({ "items.productId": id, stockRestored: false }, { session })) throw new AuthError("This product has orders using its base SKU. Create a separate product for variants so returns can still restore the original stock.", 409);
-    const removedVariantIds = current.variants.filter(item => !updated.variants.some(next => next.id === item.id)).map(item => item.id);
-    if (removedVariantIds.length && await collections(db).orders.findOne({ "items.productId": id, "items.variantId": { $in: removedVariantIds }, stockRestored: false }, { session })) throw new AuthError("A variant used by an order cannot be removed; set its stock to zero instead.", 409);
-    await collections(db).products.replaceOne({ _id: id }, updated, { session });
-    await auditProductEdit(db, session, current, updated, adminId);
-    return updated;
-  });
-  return { product: clean(product) };
+  const upload = await readProductBody(request, db, productSchema.partial(), body);
+  try {
+    const input = upload.input;
+    const product = await transaction(db, async session => {
+      const current = mustExist(await collections(db).products.findOne({ _id: id, deletedAt: { $exists: false } }, { session }));
+      const updated = { ...current, ...input, updatedAt: now() };
+      updated.skuKeys = validateProduct(updated);
+      if (!current.variants.length && updated.variants.length && await collections(db).orders.findOne({ "items.productId": id, stockRestored: false }, { session })) throw new AuthError("This product has orders using its base SKU. Create a separate product for variants so returns can still restore the original stock.", 409);
+      const removedVariantIds = current.variants.filter(item => !updated.variants.some(next => next.id === item.id)).map(item => item.id);
+      if (removedVariantIds.length && await collections(db).orders.findOne({ "items.productId": id, "items.variantId": { $in: removedVariantIds }, stockRestored: false }, { session })) throw new AuthError("A variant used by an order cannot be removed; set its stock to zero instead.", 409);
+      await collections(db).products.replaceOne({ _id: id }, updated, { session });
+      await auditProductEdit(db, session, current, updated, adminId);
+      return updated;
+    });
+    return { product: clean(product) };
+  } catch (error) { await upload.cleanup(); throw error; }
 }); }
 export function productDelete(request: Request, id: string) { return adminRoute(request, async db => {
   const result = await collections(db).products.updateOne({ _id: id, deletedAt: { $exists: false } }, { $set: { deletedAt: now(), status: "inactive", updatedAt: now() } });
@@ -191,15 +209,21 @@ export function productDuplicate(request: Request, id: string) { return adminRou
 }, 201); }
 export function inventoryList(request: Request) { return adminRoute(request, async db => {
   const c = collections(db);
-  const [products, movements] = await Promise.all([c.products.find({ deletedAt: { $exists: false } }).sort({ name: 1 }).toArray(), c.movements.find().sort({ createdAt: -1 }).toArray()]);
-  return { products: products.map(clean), movements: movements.map(clean) };
+  const includeHistory = new URL(request.url).searchParams.get("includeHistory") ?? "true";
+  if (!["true", "false"].includes(includeHistory)) throw new AuthError("includeHistory must be true or false.", 400);
+  const products = await c.products.find({ deletedAt: { $exists: false } }).sort({ name: 1, _id: 1 }).toArray();
+  // Preserve the existing API response for callers; the UI uses paginated history.
+  const movements = includeHistory === "true" ? (await c.movements.find().sort({ createdAt: -1, _id: -1 }).toArray()).map(clean) : undefined;
+  return { products: products.map(clean), summary: summarizeInventory(products), ...(movements ? { movements } : {}) };
 }); }
+export function inventoryHistory(request: Request) { return adminRoute(request, db => readInventoryHistory(db, request)); }
 async function changeStock(db: Db, session: ClientSession, input: z.infer<typeof inventorySchema>, adminId: string, allowDeleted = false) {
   const products = collections(db).products;
   const product = mustExist(await products.findOne({ _id: input.productId, ...(allowDeleted ? {} : { deletedAt: { $exists: false } }) }, { session }));
   const selected = input.variantId ? product.variants.find(item => item.id === input.variantId) : undefined;
   if (product.variants.length && !selected || input.variantId && !selected) throw new AuthError("Select an existing product variant.", 400);
   const before = selected ? selected.stock : product.stock, after = before + input.quantity;
+  if (input.expectedStock !== undefined && input.expectedStock !== before) throw new AuthError("Stock changed since you loaded this product. Review the refreshed quantity and try again.", 409);
   if (after < 0) throw new AuthError(`Insufficient stock for ${product.name}${selected ? ` (${selected.color} ${selected.size})` : ""}.`, 409);
   if (after > 1_000_000) throw new AuthError("Stock exceeds the allowed quantity.", 400);
   if (selected) selected.stock = after;
@@ -396,6 +420,18 @@ export function catalog() { return apiRoute(async () => {
   const db = await database(), c = collections(db);
   const [products, promotions, count] = await Promise.all([c.products.find({ status: "active", deletedAt: { $exists: false } }).sort({ createdAt: -1 }).toArray(), activePromotions(db), c.products.countDocuments({})]);
   return json({ managed: count > 0, products: products.map(product => { const price = effectivePrice(product, promotions); return { ...clean(product), salePrice: price < product.price ? price : product.salePrice }; }), promotions: promotions.map(publicPromotion) });
+}); }
+export function catalogProduct(id: string) { return apiRoute(async () => {
+  if (!identifier.safeParse(id).success) throw new AuthError("Product not found.", 404);
+  const db = await database(), c = collections(db);
+  const product = await c.products.findOne({ _id: id, status: "active", deletedAt: { $exists: false } });
+  if (!product) throw new AuthError("Product not found.", 404);
+  const [related, promotions] = await Promise.all([
+    c.products.find({ _id: { $ne: id }, category: product.category, status: "active", deletedAt: { $exists: false } }).sort({ createdAt: -1 }).limit(6).toArray(),
+    activePromotions(db),
+  ]);
+  const present = (item: ProductDoc) => { const price = effectivePrice(item, promotions); return { ...clean(item), salePrice: price < item.price ? price : item.salePrice }; };
+  return json({ product: present(product), related: related.map(present) });
 }); }
 export function recordView(request: Request, id: string) { return apiRoute(async () => {
   checkOrigin(request);

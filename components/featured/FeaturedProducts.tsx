@@ -1,68 +1,25 @@
+"use client";
+import Link from "next/link";
 import ProductCard from "@/components/product/ProductCard";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowRight, Package } from "lucide-react";
+import { useCatalog } from "@/lib/catalog/client";
+import { toProductCard } from "@/lib/products";
 
-import { featuredProducts as products } from "@/lib/products";
-
-export default function FeaturedProducts() {
-  return (
-    <section id="new-arrivals" className="w-full scroll-mt-24 bg-white py-16 sm:py-20 lg:py-24 px-6 sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-[1700px]">
-        {/* Section header */}
-        <div className="mb-10 sm:mb-14 flex items-end justify-between gap-6">
-          {/* Left: eyebrow + title + subtitle */}
-          <div>
-            {/* Eyebrow with red dash */}
-            <div className="flex items-center gap-3 mb-3">
-              <span className="block h-[2px] w-8 bg-[#e53e3e]" />
-              <span className="text-[11px] sm:text-xs tracking-[0.3em] uppercase text-neutral-600 font-medium">
-                Featured Products
-              </span>
-            </div>
-
-            {/* Main headline */}
-            <h2 className="text-4xl italic sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight uppercase leading-[0.9] text-black">
-              New <span className="text-[#e53e3e]">Arrivals</span>
-            </h2>
-
-            {/* Subtitle */}
-            <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-neutral-500 font-normal">
-              Fresh drops. Bold fits. Built for what&apos;s next.
-            </p>
-          </div>
-
-          {/* Right: pagination arrows */}
-          <div className="hidden sm:flex items-center gap-4 shrink-0 pb-2">
-            <button
-              type="button"
-              aria-label="Previous"
-              className="flex h-8 w-8 items-center justify-center text-neutral-400 hover:text-black transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
-            </button>
-
-            <span className="text-xs tracking-[0.2em] text-neutral-500 font-medium">
-              01 / 04
-            </span>
-
-            <button
-              type="button"
-              aria-label="Next"
-              className="flex h-8 w-8 items-center justify-center text-neutral-700 hover:text-black transition-colors"
-            >
-              <ArrowRight className="h-5 w-5" strokeWidth={1.5} />
-            </button>
-          </div>
-        </div>
-
-        {/* Product grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10 sm:gap-x-5 lg:gap-x-6">
-        {products.map((product) => (
-            <div key={product.id} id={`featured-product-${product.id}`} className="scroll-mt-24">
-              <ProductCard product={product} />
-            </div>
-        ))}
-        </div>
+export default function FeaturedProducts({ category }: { category?: string }) {
+  const query = useCatalog();
+  const products = (query.data?.products ?? []).filter(product => !category ? true : category === "new-in" ? product.newArrival : category === "sale" ? product.salePrice !== null && product.salePrice < product.price : product.category.toLowerCase() === category);
+  return <section id="new-arrivals" className="w-full scroll-mt-24 bg-white px-6 py-16 text-black sm:px-10 sm:py-20 lg:px-16">
+    <div className="mx-auto max-w-[1700px]">
+      <div className="mb-10 flex items-end justify-between gap-6 sm:mb-14">
+        <div><div className="mb-3 flex items-center gap-3"><span className="block h-[2px] w-8 bg-[#e53e3e]" /><span className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-600">The UrbanForge collection</span></div>
+          <h2 className="text-4xl font-black uppercase italic leading-[0.95] tracking-tight sm:text-5xl lg:text-6xl">{category ? "Shop the " : "New "}<span className="text-[#e53e3e]">{category ? "collection" : "Arrivals"}</span></h2>
+          <p className="mt-4 text-sm text-neutral-500">Fresh drops. Bold fits. Built for what&apos;s next.</p></div>
+        <Link href="/search" className="hidden shrink-0 items-center gap-2 text-sm sm:flex">View all <ArrowRight size={16} /></Link>
       </div>
-    </section>
-  );
+      {query.isPending ? <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5" role="status" aria-label="Loading products">{Array.from({ length: 5 }, (_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded bg-neutral-100" />)}</div>
+        : query.error ? <div role="alert" className="py-12 text-center"><p>{query.error.message}</p><button type="button" className="mt-4 underline" onClick={() => query.refetch()}>Try again</button></div>
+        : !products.length ? <div className="flex flex-col items-center gap-3 rounded-lg border border-neutral-200 py-16 text-center"><Package size={32} strokeWidth={1.3} /><h3 className="text-xl font-semibold">No products yet</h3><p className="text-sm text-neutral-500">New pieces will appear here when they’re available.</p></div>
+        : <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{products.map(product => <ProductCard key={product.id} product={toProductCard(product)} />)}</div>}
+    </div>
+  </section>;
 }

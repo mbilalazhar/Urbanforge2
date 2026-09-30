@@ -1,7 +1,7 @@
 export type ProductVariant = { id: string; sku: string; color: string; size: string; stock: number };
 export type AdminProduct = {
   id: string; name: string; description: string; shortDescription: string;
-  category: string; subcategory: string; brand: string; gender: string;
+  category: string; subcategory: string; productType?: string; brand: string; gender: string;
   price: number; salePrice: number | null; sku: string; images: string[]; videos: string[];
   colors: string[]; sizes: string[]; material: string; stock: number; tags: string[];
   status: "active" | "inactive"; featured: boolean; newArrival: boolean; bestseller: boolean;
@@ -20,7 +20,10 @@ export type AdminOrder = {
   createdAt: string; updatedAt: string;
 };
 export type AdminCustomer = { id: string; name: string; email: string; createdAt: string; orders: number; spent: number };
-export type StockMovement = { id: string; productId: string; productName: string; variantId: string; type: "added" | "sold" | "returned" | "adjustment"; quantity: number; before: number; after: number; reason: string; createdAt: string };
+export type InventorySummary = { units: number; trackedSkus: number; lowStockSkus: number; outOfStockSkus: number };
+export type InventoryData = { products: AdminProduct[]; summary: InventorySummary };
+export type InventoryHistory = { movements: StockMovement[]; products: { id: string; name: string }[]; total: number; page: number; pages: number; limit: number };
+export type StockMovement = { sku?: string; variantLabel?: string; id: string; productId: string; productName: string; variantId: string; type: "added" | "sold" | "returned" | "adjustment"; quantity: number; before: number; after: number; reason: string; createdAt: string };
 export type AdminCoupon = {
   id: string; code: string; type: "percentage" | "fixed" | "free_shipping"; value: number;
   minimumPurchase: number; maximumDiscount: number | null; startsAt: string; endsAt: string;

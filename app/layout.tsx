@@ -16,7 +16,8 @@ const inter = Inter({
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable}`}>
-      <body className="bg-[#111111] text-white antialiased">
+      {/* Browser extensions can inject attributes on body before React hydrates. */}
+      <body suppressHydrationWarning className="bg-[#111111] text-white antialiased">
         <QueryProvider>
         <CartProvider>
           {children}

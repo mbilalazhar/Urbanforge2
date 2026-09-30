@@ -1,21 +1,29 @@
 export type CartItem = {
-  id: string;
-  name: string;
-  details: string;
-  size: string;
-  price: number;
-  image: string;
-  imageStyle?: "shoes" | "sunglasses";
-  quantity: number;
+  id: string; productId?: string; variantId?: string;
+  name: string; details: string; size: string;
+  /** Price in paisa (PKR / 100). */
+  price: number; image: string; imageStyle?: "shoes" | "sunglasses";
+  quantity: number; maxQuantity?: number;
 };
+export function formatCartPrice(paisa: number) {
+  return `Rs. ${new Intl.NumberFormat("en-PK", { maximumFractionDigits: 2 }).format(paisa / 100)}`;
+}
 
-// Prices are in cents. Replace these sample items with the cart API later.
-export const initialCartItems: CartItem[] = [
-  { id: "utility-hoodie-black-l", name: "Oversized Utility Hoodie", details: "Men / Hoodies / Black", size: "Size: L", price: 7900, image: "/hoodie.png", quantity: 1 },
-  { id: "high-top-phantom-9", name: "Urban High-Top Sneakers", details: "Men / Shoes / Phantom", size: "Size: 9 (US)", price: 12000, image: "/shoes.png", imageStyle: "shoes", quantity: 1 },
-  { id: "stealth-sunglasses-black", name: "Stealth Sunglasses", details: "Accessories / Eyewear / Black", size: "One Size", price: 4500, image: "/footer.png", imageStyle: "sunglasses", quantity: 1 },
-];
-
-export function formatCartPrice(cents: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
+const sameStock = (a: CartItem, b: CartItem) => a.productId && b.productId ? a.productId === b.productId && a.variantId === b.variantId : a.id === b.id;
+export function addCartItem(items: CartItem[], item: CartItem): CartItem[] {
+  const existing = items.find(entry => entry.id === item.id);
+  const otherQuantity = items.filter(entry => entry.id !== item.id && sameStock(entry, item)).reduce((sum, entry) => sum + entry.quantity, 0);
+  const limit = Math.max(0, Math.min(99, (item.maxQuantity ?? 99) - otherQuantity));
+  const quantity = Math.min(limit, (existing?.quantity ?? 0) + item.quantity);
+  if (quantity <= 0 || !Number.isInteger(item.quantity) || item.quantity <= 0) return items;
+  const next = { ...item, quantity };
+  return existing ? items.map(entry => entry.id === item.id ? next : entry) : [...items, next];
+}
+export function changeCartQuantity(items: CartItem[], id: string, change: number): CartItem[] {
+  if (!Number.isInteger(change)) return items;
+  return items.map(item => {
+    if (item.id !== id) return item;
+    const otherQuantity = items.filter(entry => entry.id !== id && sameStock(entry, item)).reduce((sum, entry) => sum + entry.quantity, 0);
+    return { ...item, quantity: Math.max(1, Math.min(99, (item.maxQuantity ?? 99) - otherQuantity, item.quantity + change)) };
+  });
 }

@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useLogout, useSession } from "@/lib/auth/client";
+import type { UserProfile } from "@/lib/user-profile";
 import type { PublicAccount } from "@/lib/auth/types";
 import ProfilePage from "@/components/account/ProfilePage";
 import styles from "@/app/adminroute/admin.module.css";
 
-export default function AccountPanel({ account }: { account: PublicAccount }) {
+export default function AccountPanel({ account, profile }: { account: PublicAccount; profile: UserProfile }) {
   const router = useRouter();
   const session = useSession(account.role, { account });
   const logout = useLogout(account.role);
@@ -22,6 +23,7 @@ export default function AccountPanel({ account }: { account: PublicAccount }) {
 
   if (account.role === "user") {
     return <ProfilePage
+      initialProfile={profile}
       loggingOut={logout.isPending}
       error={logout.error?.message || session.error?.message}
       onLogout={() => logout.mutate(undefined, {

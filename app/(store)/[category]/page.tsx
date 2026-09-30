@@ -23,7 +23,7 @@ export default async function CategoryPage({ params }: Props) {
   return (
     <main>
       <HeroSection content={section.hero} />
-      <FeaturedProducts />
+      <FeaturedProducts category={section.slug} />
     </main>
   );
 }

@@ -5,11 +5,14 @@ import Image from "next/image";
 import { AlertCircle, ArrowLeft, CheckCircle2, Copy, Layers3, Package, PackageCheck, PackageX, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { useAdminMutation, useAdminQuery } from "@/lib/admin/client";
 import type { AdminProduct } from "@/lib/admin/types";
+import { productCategories, subcategoriesFor, productTypesFor } from "@/lib/product-categories";
+import { IMAGE_TYPES, VIDEO_TYPES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, MAX_MEDIA_BYTES } from "@/lib/product-media";
+import ProductMediaFiles from "./ProductMediaFiles";
 import styles from "./catalog.module.css";
 
 type VariantDraft = { id: string; sku: string; color: string; size: string; stock: string };
 type ProductDraft = {
-  name: string; description: string; shortDescription: string; category: string; subcategory: string;
+  name: string; description: string; shortDescription: string; category: string; subcategory: string; productType: string;
   brand: string; gender: string; price: string; salePrice: string; sku: string; images: string; videos: string;
   colors: string; sizes: string; material: string; stock: string; tags: string; status: "active" | "inactive";
   featured: boolean; newArrival: boolean; bestseller: boolean; seoTitle: string; seoDescription: string;
@@ -24,7 +27,7 @@ const PER_PAGE = 20;
 function makeDraft(product?: AdminProduct): ProductDraft {
   return {
     name: product?.name ?? "", description: product?.description ?? "", shortDescription: product?.shortDescription ?? "",
-    category: product?.category ?? "", subcategory: product?.subcategory ?? "", brand: product?.brand ?? "", gender: product?.gender ?? "unisex",
+    category: product?.category ?? "", subcategory: product?.subcategory ?? "", productType: product?.productType ?? "", brand: product?.brand ?? "", gender: product?.gender ?? "unisex",
     price: String(product?.price ?? ""), salePrice: product?.salePrice == null ? "" : String(product.salePrice), sku: product?.sku ?? "",
     images: product?.images.join("\n") ?? "", videos: product?.videos.join("\n") ?? "", colors: product?.colors.join(", ") ?? "",
     sizes: product?.sizes.join(", ") ?? "", material: product?.material ?? "", stock: String(product?.stock ?? 0), tags: product?.tags.join(", ") ?? "",
@@ -41,13 +44,31 @@ function Field({ label, children, wide = false, hint }: { label: string; childre
 function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; onClose: () => void; onSaved: (message: string) => void }) {
   const [draft, setDraft] = useState<ProductDraft>(() => makeDraft(product));
   const [localError, setLocalError] = useState("");
-  const save = useAdminMutation("products");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const productTypes = productTypesFor(draft.category, draft.subcategory);
+  const save = useAdminMutation("products", "api");
   const set = <K extends keyof ProductDraft>(key: K, value: ProductDraft[K]) => setDraft(current => ({ ...current, [key]: value }));
   const totalStock = draft.variants.length ? draft.variants.reduce((total, variant) => total + (Number(variant.stock) || 0), 0) : Number(draft.stock);
   const discount = Number(draft.price) > 0 && draft.salePrice !== "" ? Math.max(0, Number(((1 - Number(draft.salePrice) / Number(draft.price)) * 100).toFixed(2))) : "";
 
   function updateVariant(id: string, field: keyof VariantDraft, value: string) {
     setDraft(current => ({ ...current, variants: current.variants.map(variant => variant.id === id ? { ...variant, [field]: value } : variant) }));
+  }
+
+  function addFiles(kind: "images" | "videos", selected: FileList | null) {
+    if (!selected) return;
+    const added = Array.from(selected);
+    const allowed = kind === "images" ? IMAGE_TYPES : VIDEO_TYPES;
+    const limit = kind === "images" ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES;
+    if (added.some(file => !allowed.includes(file.type) || !file.size || file.size > limit)) {
+      setLocalError(kind === "images" ? "Choose JPEG, PNG, WebP, or GIF images, up to 10 MB each." : "Choose MP4, WebM, or MOV videos, up to 50 MB each."); return;
+    }
+    if ([...imageFiles, ...videoFiles, ...added].reduce((total, file) => total + file.size, 0) > MAX_MEDIA_BYTES) {
+      setLocalError("Uploads must total no more than 100 MB."); return;
+    }
+    setLocalError("");
+    (kind === "images" ? setImageFiles : setVideoFiles)(files => [...files, ...added]);
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -60,18 +81,24 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
     }
     const images = mediaList(draft.images);
     const videos = mediaList(draft.videos);
+    if (!images.length && !imageFiles.length) { setLocalError("Add at least one product image."); return; }
+    if (images.length + imageFiles.length > 30 || videos.length + videoFiles.length > 10) { setLocalError("Use at most 30 images and 10 videos."); return; }
+    if (!subcategoriesFor(draft.category).includes(draft.subcategory) || (productTypes.length && !productTypes.includes(draft.productType))) { setLocalError("Select a valid category, subcategory, and product type."); return; }
     if ([...images, ...videos].some(url => !/^https?:\/\//i.test(url) && !/^\/(?!\/)/.test(url))) {
       setLocalError("Use an https:// URL or a local /path for every image and video.");
       return;
     }
-    save.mutate({
-      path: product ? `products/${product.id}` : "products", method: product ? "PATCH" : "POST",
-      body: { ...draft, name: draft.name.trim(), sku: draft.sku.trim(), category: draft.category.trim(), brand: draft.brand.trim(),
+    const data = { ...draft, name: draft.name.trim(), sku: draft.sku.trim(), category: draft.category.trim(), brand: draft.brand.trim(),
         price: Number(draft.price), salePrice: draft.salePrice === "" ? null : Number(draft.salePrice), stock: totalStock,
         images, videos, colors: list(draft.colors), sizes: list(draft.sizes), tags: list(draft.tags),
         variants: draft.variants.map(variant => ({ ...variant, sku: variant.sku.trim(), stock: Number(variant.stock) })),
-      },
-    }, { onSuccess: () => onSaved(product ? "Product updated successfully." : "Product added successfully.") });
+      };
+    const body = new FormData();
+    body.set("data", JSON.stringify(data));
+    imageFiles.forEach(file => body.append("images", file));
+    videoFiles.forEach(file => body.append("videos", file));
+    save.mutate({ path: product ? `products/${product.id}` : "products", method: product ? "PATCH" : "POST", body },
+      { onSuccess: () => onSaved(product ? "Product updated successfully." : "Product added successfully.") });
   }
 
   return (
@@ -87,19 +114,24 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
               <Field label="Product name *" wide><input required maxLength={150} value={draft.name} onChange={event => set("name", event.target.value)} placeholder="e.g. Everyday oversized tee" /></Field>
               <Field label="Short description" wide><textarea rows={2} maxLength={500} value={draft.shortDescription} onChange={event => set("shortDescription", event.target.value)} placeholder="A quick introduction to your product" /></Field>
               <Field label="Description" wide><textarea rows={6} maxLength={2000} value={draft.description} onChange={event => set("description", event.target.value)} placeholder="Describe the fit, feel, features, and care instructions" /></Field>
-              <Field label="Category *"><input required maxLength={100} value={draft.category} onChange={event => set("category", event.target.value)} placeholder="e.g. Clothing" /></Field>
-              <Field label="Subcategory"><input maxLength={100} value={draft.subcategory} onChange={event => set("subcategory", event.target.value)} placeholder="e.g. T-shirts" /></Field>
-              <Field label="Brand"><input maxLength={100} value={draft.brand} onChange={event => set("brand", event.target.value)} placeholder="e.g. UrbanForge" /></Field>
+              <Field label="Category *"><select required value={draft.category} onChange={event => setDraft(current => ({ ...current, category: event.target.value, subcategory: "", productType: "" }))}><option value="">Select category</option>{Object.keys(productCategories).map(category => <option key={category}>{category}</option>)}</select></Field>
+              <Field label="Subcategory *"><select required disabled={!draft.category} value={draft.subcategory} onChange={event => setDraft(current => ({ ...current, subcategory: event.target.value, productType: "" }))}><option value="">Select subcategory</option>{subcategoriesFor(draft.category).map(category => <option key={category}>{category}</option>)}</select></Field>
+              {productTypes.length > 0 && <Field label="Product type *"><select required value={draft.productType} onChange={event => set("productType", event.target.value)}><option value="">Select product type</option>{productTypes.map(type => <option key={type}>{type}</option>)}</select></Field>}
+              <Field label={draft.category === "Brands" ? "Brand *" : "Brand"}><input required={draft.category === "Brands"} maxLength={100} value={draft.brand} onChange={event => set("brand", event.target.value)} placeholder="e.g. UrbanForge" /></Field>
               <Field label="Gender"><input list="product-genders" maxLength={60} value={draft.gender} onChange={event => set("gender", event.target.value)} /><datalist id="product-genders"><option value="unisex" /><option value="men" /><option value="women" /><option value="kids" /></datalist></Field>
               <Field label="Material"><input maxLength={150} value={draft.material} onChange={event => set("material", event.target.value)} placeholder="e.g. 100% organic cotton" /></Field>
               <Field label="Tags" hint="Separate tags with commas."><input value={draft.tags} onChange={event => set("tags", event.target.value)} placeholder="summer, casual, essentials" /></Field>
             </div>
           </section>
           <section className={styles.card}>
-            <div className={styles.sectionHeading}><h2>Media</h2><p>Add image and video URLs, one per line. The first image is the product cover.</p></div>
+            <div className={styles.sectionHeading}><h2>Media</h2><p>At least one image is required. Videos are optional. The first image is the cover; image URLs come before uploaded files.</p></div>
             <div className={styles.fields}>
-              <Field label="Product images" wide><textarea rows={3} value={draft.images} onChange={event => set("images", event.target.value)} placeholder="https://example.com/product-front.jpg" /></Field>
-              <Field label="Product videos" wide><textarea rows={2} value={draft.videos} onChange={event => set("videos", event.target.value)} placeholder="https://example.com/product-video.mp4" /></Field>
+              <Field label="Upload product images *" wide hint="JPEG, PNG, WebP, GIF. Up to 10 MB each; 30 images total."><input type="file" multiple accept={IMAGE_TYPES.join(",")} disabled={save.isPending} onChange={event => { addFiles("images", event.target.files); event.target.value = ""; }} /></Field>
+              <div className={styles.wide}><ProductMediaFiles files={imageFiles} disabled={save.isPending} onRemove={index => setImageFiles(files => files.filter((_, i) => i !== index))} /></div>
+              <Field label="Image URLs (optional if uploading)" wide hint="One URL or existing local path per line."><textarea rows={3} value={draft.images} onChange={event => set("images", event.target.value)} placeholder="https://example.com/product-front.jpg" /></Field>
+              <Field label="Upload product videos (optional)" wide hint="MP4, WebM, MOV. Up to 50 MB each; 10 videos total. All uploads combined: 100 MB."><input type="file" multiple accept={VIDEO_TYPES.join(",")} disabled={save.isPending} onChange={event => { addFiles("videos", event.target.files); event.target.value = ""; }} /></Field>
+              <div className={styles.wide}><ProductMediaFiles files={videoFiles} disabled={save.isPending} onRemove={index => setVideoFiles(files => files.filter((_, i) => i !== index))} /></div>
+              <Field label="Video URLs (optional)" wide><textarea rows={2} value={draft.videos} onChange={event => set("videos", event.target.value)} placeholder="https://example.com/product-video.mp4" /></Field>
             </div>
           </section>
           <section className={styles.card}>
@@ -128,7 +160,7 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
               <Field label="Sale price (Rs.)"><input type="number" min="0" step="0.01" max={draft.price || undefined} value={draft.salePrice} onChange={event => set("salePrice", event.target.value)} placeholder="Optional" /></Field>
               <Field label="Discount (%)"><input type="number" min="0" max="100" step="0.01" value={discount} disabled={!Number(draft.price)} onChange={event => set("salePrice", event.target.value === "" ? "" : (Number(draft.price) * (1 - Number(event.target.value) / 100)).toFixed(2))} placeholder="Optional" /></Field>
               <Field label="Product SKU *" wide><input required maxLength={100} value={draft.sku} onChange={event => set("sku", event.target.value)} placeholder="UF-TEE-001" /></Field>
-              <Field label="Stock quantity *" wide hint={draft.variants.length ? "Calculated from the stock of all variants." : "After saving, use Inventory to record stock movements."}><input type="number" required min="0" step="1" disabled={draft.variants.length > 0} value={draft.variants.length ? totalStock : draft.stock} onChange={event => set("stock", event.target.value)} /></Field>
+              <Field label="Stock quantity *" wide hint={draft.variants.length ? "Calculated from the stock of all variants." : "Enter the available quantity for this product."}><input type="number" required min="0" step="1" disabled={draft.variants.length > 0} value={draft.variants.length ? totalStock : draft.stock} onChange={event => set("stock", event.target.value)} /></Field>
             </div>
           </section>
           <section className={styles.card}>
@@ -155,8 +187,8 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
 }
 
 export default function ProductsPanel({ search = "" }: { search?: string }) {
-  const query = useAdminQuery<{ products: AdminProduct[] }>("products");
-  const action = useAdminMutation("products");
+  const query = useAdminQuery<{ products: AdminProduct[] }>("products", "api");
+  const action = useAdminMutation("products", "api");
   const [editor, setEditor] = useState<AdminProduct | "new" | null>(null);
   const [localSearch, setLocalSearch] = useState("");
   const [category, setCategory] = useState("");

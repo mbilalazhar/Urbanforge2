@@ -17,7 +17,7 @@ const benefits = [
 ];
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, changeQuantity, removeItem, clearCart } = useCart();
+  const { items, itemCount, subtotal, changeQuantity, removeItem, clearCart, isLoading, error, retry } = useCart();
   const [promoMessage, setPromoMessage] = useState("");
   const [checkoutMessage, setCheckoutMessage] = useState("");
 
@@ -39,7 +39,7 @@ export default function CartPage() {
 
         <div className={styles.layout}>
           <div className={styles.cartColumn}>
-            {items.length ? (
+            {isLoading ? <div className={styles.empty} role="status"><ShoppingBag size={38} strokeWidth={1} /><h2>Loading your cart…</h2></div> : error ? <div className={styles.empty} role="alert"><h2>Unable to load your cart</h2><p>{error}</p><button type="button" className={styles.checkout} onClick={retry}>Try again</button></div> : items.length ? (
               <div className={styles.products}>
                 <div className={styles.tableHeading} aria-hidden="true"><span>Product</span><span>Price</span><span>Quantity</span><span>Total</span></div>
                 <ul>
@@ -47,7 +47,7 @@ export default function CartPage() {
                     <li key={item.id} className={styles.product}>
                       <div className={styles.productInfo}>
                         <div className={`${styles.productImage} ${item.imageStyle ? styles[item.imageStyle] : ""}`}>
-                          <Image src={item.image} alt={item.name} fill sizes={item.imageStyle === "sunglasses" ? "1300px" : item.imageStyle === "shoes" ? "260px" : "(max-width: 767px) 90px, 130px"} />
+                          <Image src={item.image} alt={item.name} fill unoptimized sizes={item.imageStyle === "sunglasses" ? "1300px" : item.imageStyle === "shoes" ? "260px" : "(max-width: 767px) 90px, 130px"} />
                         </div>
                         <div className={styles.productDetails}>
                           <h2>{item.name}</h2><p>{item.details}</p><p>{item.size}</p>
@@ -60,7 +60,7 @@ export default function CartPage() {
                         <div className={styles.quantity} role="group" aria-label={`Quantity for ${item.name}`}>
                         <button type="button" disabled={item.quantity === 1} onClick={() => changeQuantity(item.id, -1)} aria-label={`Decrease quantity of ${item.name}`}><Minus size={14} /></button>
                         <output aria-label={`${item.name} quantity`}>{item.quantity}</output>
-                        <button type="button" disabled={item.quantity === 99} onClick={() => changeQuantity(item.id, 1)} aria-label={`Increase quantity of ${item.name}`}><Plus size={14} /></button>
+                        <button type="button" disabled={item.quantity >= (item.maxQuantity ?? 99)} onClick={() => changeQuantity(item.id, 1)} aria-label={`Increase quantity of ${item.name}`}><Plus size={14} /></button>
                       </div>
                       </div>
                       <span className={styles.lineTotal}><span className={styles.mobileLabel}>Total </span>{formatCartPrice(item.price * item.quantity)}</span>
