@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, Check, ChevronRight, Heart, Hourglass, LogOut, Pencil, Phone, Truck, X } from "lucide-react";
-import { currentOrders, money, orderTotal, pastOrders, wishlistItems, type Order, type OrderItem } from "./account-data";
+import { ArrowRight, Check, ChevronRight, Hourglass, LogOut, Pencil, Phone, Truck, X } from "lucide-react";
+import { currentOrders, money, orderTotal, pastOrders, type Order, type OrderItem } from "./account-data";
 import type { UserProfile } from "@/lib/user-profile";
 import { useProfile, useSaveProfile } from "@/lib/account/client";
+import WishlistContents from "@/components/wishlist/WishlistContents";
 import SavedAddress from "./SavedAddress";
 import styles from "./account.module.css";
 
@@ -56,7 +57,6 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [showPast, setShowPast] = useState(false);
-  const [wishlist, setWishlist] = useState(wishlistItems);
   const [notice, setNotice] = useState("");
   const preferences = profile.preferences;
   const historyRef = useRef<HTMLElement>(null);
@@ -99,7 +99,7 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
 
       {activeTab === "Addresses" && <SavedAddress profile={profile} pending={save.isPending} save={async defaultAddress => { await save.mutateAsync({ defaultAddress }); setNotice(defaultAddress ? "Delivery address saved." : "Delivery address removed."); }} />}
 
-      {activeTab === "Wishlist" && <section className={styles.tabContent}><div className={styles.sectionHeading}><div><h2>Your Wishlist</h2><p>The pieces you have your eye on.</p></div><span className={styles.itemCount}>{wishlist.length} items</span></div>{wishlist.length ? <div className={styles.wishlist}>{wishlist.map(item => <article key={item.name} className={styles.wishlistCard}><ProductImage item={item} /><div><h3>{item.name}</h3><p>{money(item.price)}</p><Link href="/search">Explore the collection <ArrowRight size={14} /></Link></div><button type="button" className={styles.iconButton} onClick={() => setWishlist(wishlist.filter(saved => saved.name !== item.name))} aria-label={`Remove ${item.name} from wishlist`}><Heart size={19} fill="currentColor" /></button></article>)}</div> : <div className={styles.emptyState}><Heart size={30} /><h3>Your wishlist is ready for a fresh start.</h3><Link href="/search">Explore the collection <ArrowRight size={16} /></Link></div>}</section>}
+      {activeTab === "Wishlist" && <section className={styles.tabContent}><div className={styles.sectionHeading}><div><h2>Your Wishlist</h2><p>The pieces you have your eye on.</p></div><Link href="/wishlist">View wishlist <ArrowRight size={14} /></Link></div><WishlistContents /></section>}
       {activeTab === "Settings" && <section className={styles.tabContent}><div className={styles.sectionHeading}><div><h2>Account Settings</h2><p>Make yourself at home.</p></div></div><div className={styles.settingsCard}><div className={styles.settingRow}><div><h3>Profile details</h3><p>Update your name and contact information.</p></div><button type="button" className={styles.outlineButton} onClick={() => { save.reset(); setEditing(true); }}>Edit Profile</button></div><label className={styles.settingRow}><span><strong>Order updates</strong><small>Keep me posted on my deliveries.</small></span><input type="checkbox" checked={preferences.orders} disabled={save.isPending} onChange={event => save.mutate({ preferences: { ...preferences, orders: event.target.checked } }, { onSuccess: () => setNotice("Preferences saved.") })} /></label><label className={styles.settingRow}><span><strong>New drops & offers</strong><small>Send me the latest from UrbanForge.</small></span><input type="checkbox" checked={preferences.news} disabled={save.isPending} onChange={event => save.mutate({ preferences: { ...preferences, news: event.target.checked } }, { onSuccess: () => setNotice("Preferences saved.") })} /></label><div className={styles.settingRow}><div><h3>Sign out</h3><p>See you on your next visit.</p></div><button type="button" className={styles.outlineButton} onClick={onLogout} disabled={loggingOut}><LogOut size={15} />{loggingOut ? "Logging out…" : "Log Out"}</button></div></div><p className={styles.demoNote}>Your profile and preferences are saved to your account.</p></section>}
       <p className={styles.feedback} role="status">{error || profileQuery.error?.message || save.error?.message || notice}</p>
     </div>

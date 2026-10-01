@@ -82,3 +82,11 @@
   .dialog[open] { animation: none; }
   .actions button { transition: none; }
 }
+.price del { display: block; margin-top: 5px; font-size: 12px; color: #9a9fa1; font-weight: 400; }
+.stock.outOfStock { color: #f28c95; }
+.stock.outOfStock > span { background: #f28c95; }
+.sizes button:disabled, .actions button:disabled { opacity: .4; cursor: not-allowed; }
+.actions a { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 47px; padding: 10px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; text-decoration: none; }
+.fullDetails { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 22px; font-size: 12px; text-underline-offset: 4px; }
+.fullDetails:hover { text-decoration: underline; }
+.dialog a:focus-visible { outline: 2px solid white; outline-offset: 3px; }

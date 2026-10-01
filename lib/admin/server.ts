@@ -444,3 +444,17 @@ export function recordView(request: Request, id: string) { return apiRoute(async
   if (result.upsertedCount) await c.products.updateOne({ _id: id }, { $inc: { views: 1 } });
   return json({ recorded: Boolean(result.upsertedCount) });
 }); }
+
+// Wishlist entries use the same visibility and promotion pricing as the catalog.
+export async function catalogProductsByIds(ids: string[]) {
+  if (!ids.length) return [];
+  const db = await database();
+  const [products, promotions] = await Promise.all([
+    collections(db).products.find({ _id: { $in: ids }, status: "active", deletedAt: { $exists: false } }).toArray(),
+    activePromotions(db),
+  ]);
+  return products.map(product => {
+    const price = effectivePrice(product, promotions);
+    return { ...clean(product), salePrice: price < product.price ? price : product.salePrice } as AdminProduct;
+  });
+}

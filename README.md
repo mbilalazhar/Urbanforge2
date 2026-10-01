@@ -221,7 +221,7 @@ lookup, preserving saved fields. Signing in again does not clear contact details
 
 The Addresses tab starts with an empty state and offers a form to save, edit,
 or remove the default delivery address. Checkout can reuse this address when
-its order flow is implemented. Wishlist items remain part of the existing preview.
+its order flow is implemented. Wishlist items are stored per user in MongoDB.
 Run `npm run test:auth` for profile validation, persistence, role and user isolation,
 legacy defaults, and account-page coverage.
 
@@ -240,8 +240,11 @@ quantities, product descriptions/specifications, and related products. Reviews
 and shipping/return information have honest empty states until implemented.
 
 The homepage, category listings, and search use `/api/catalog` with loading,
-error/retry, and empty states. Sample product arrays and hover-preview navigation
-have been removed from these screens. Uploaded and external product images are
+error/retry, and empty states. Product cards open a live details modal after a
+700 ms mouse hover; leaving the card, scrolling, or clicking cancels the timer.
+The Quick View button opens the same modal for keyboard and touch users. Card
+clicks still navigate to the full product page. The modal uses real descriptions,
+prices, variants, stock limits, and the persisted cart. Uploaded and external product images are
 rendered without requiring Next.js remote image host configuration.
 
 Add to Cart stores the selected live product/variant in the guest or signed-in account's
@@ -308,3 +311,32 @@ revalidate prices and stock on the server when implemented.
 Run `node --test tests/cart-store.test.mjs tests/storefront.test.mjs` for account
 isolation, reload restoration, quantity limits, mutations, storage synchronization,
 and malformed/blocked storage coverage.
+
+
+Run `npm run build` followed by `node --test tests/product-preview.browser.mjs`
+to check the delayed hover, cancellation, live options, cart persistence, keyboard
+close/focus, and product-page navigation in Chrome against a disposable database.
+Set `CHROME_PATH` if Chrome is not installed at `/usr/bin/google-chrome`; this
+browser test skips when the executable is unavailable.
+
+
+### Saved wishlists
+
+`/wishlist` and the account's Wishlist tab show the signed-in user's saved
+products. Hearts on product cards and product pages add or remove products using
+the same wishlist. Guests see an account-creation modal with **Create your
+account** linking to `/account`. No guest wishlist is stored.
+
+- `GET /api/wishlist`: returns the current user's product references and visible
+  catalog products with current promotion pricing.
+- `POST /api/wishlist`: accepts `{ "productId": "..." }`; atomically adds a unique
+  reference to `users.wishlistProductIds`.
+- `DELETE /api/wishlist/:productId`: removes that reference, including references
+  to products that have since become unavailable.
+
+All endpoints require a user session. The server obtains the user ID from that
+session; client-supplied account IDs cannot change ownership. Wishlist writes
+persist in MongoDB and work across devices. Browser caches are scoped by account;
+other tabs refresh on wishlist changes. Archived/inactive products are not exposed,
+and unavailable saved entries can still be removed. Profile edits cannot replace
+wishlist references. Existing accounts initialize an empty list automatically.

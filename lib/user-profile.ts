@@ -10,6 +10,7 @@ export type UserAddress = {
 };
 export type UserDetails = {
   contact: string;
+  wishlistProductIds: string[];
   defaultAddress: UserAddress | null;
   /** References to order IDs; populated by future order workflows, never by profile edits. */
   currentOrderIds: string[];
@@ -19,6 +20,6 @@ export type UserDetails = {
 export type UserProfile = UserDetails & { id: string; name: string; email: string };
 export type UserProfileUpdate = Partial<Pick<UserProfile, "name" | "contact" | "defaultAddress" | "preferences">>;
 export const emptyUserDetails = (): UserDetails => ({
-  contact: "", defaultAddress: null, currentOrderIds: [], pastOrderIds: [],
+  contact: "", wishlistProductIds: [], defaultAddress: null, currentOrderIds: [], pastOrderIds: [],
   preferences: { orders: true, news: false },
 });

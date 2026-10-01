@@ -1,0 +1,23 @@
+.page { min-height: 65vh; background: #fff; color: #171717; padding: 140px 5vw 70px; }
+.container { max-width: 1240px; margin: auto; }
+.heading { margin-bottom: 30px; }
+.heading h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 750; }
+.heading p, .count { margin-top: 10px; color: #737373; font-size: 14px; }
+.count { margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 28px 20px; }
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 60px 20px; text-align: center; color: #5a5a5a; }
+.empty h2 { font-size: 22px; color: #171717; }
+.primary { display: inline-flex; align-items: center; justify-content: center; gap: 16px; padding: 13px 22px; background: #c82032; color: white; border-radius: 4px; font-size: 14px; text-decoration: none; cursor: pointer; }
+.dialog { position: fixed; inset: 0; margin: auto; width: min(440px,calc(100% - 32px)); max-height: calc(100svh - 40px); padding: 42px 30px 32px; border: 0; border-radius: 12px; background: white; color: #171717; text-align: center; box-shadow: 0 25px 100px #0005; }
+.dialog::backdrop { background: #0009; backdrop-filter: blur(4px); }
+.dialog h2 { font-size: 24px; font-weight: 700; margin: 18px 0 12px; }
+.dialog p { color: #666; font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+.heart { margin: auto; color: #c82032; }
+.close { position: absolute; right: 12px; top: 12px; padding: 6px; cursor: pointer; }
+.toast { position: fixed; z-index: 100; bottom: 24px; left: 50%; transform: translateX(-50%); width: min(460px,calc(100% - 32px)); display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 8px; background: #202020; color: white; box-shadow: 0 8px 30px #0003; }
+.toast button { margin-left: auto; cursor: pointer; }
+.unavailable { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; border: 1px solid #ddd; padding: 20px; margin-top: 20px; font-size: 14px; }
+.unavailable button { text-decoration: underline; cursor: pointer; }
+.primary:focus-visible, .dialog button:focus-visible { outline: 2px solid #c82032; outline-offset: 4px; }
+@media(max-width: 900px) { .grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media(max-width: 600px) { .grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px 12px; } .page { padding: 100px 20px 40px; } }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
+import { WishlistProvider } from "@/components/wishlist/WishlistProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Inter } from 'next/font/google';
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body suppressHydrationWarning className="bg-[#111111] text-white antialiased">
         <QueryProvider>
         <CartProvider>
-          {children}
+          <WishlistProvider>{children}</WishlistProvider>
         </CartProvider>
         </QueryProvider>
       </body>

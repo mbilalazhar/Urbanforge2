@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Heart, MapPin, Minus, Package, Play, Plus, Share2, ShoppingBag, X, Zap, ZoomIn } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, MapPin, Minus, Package, Play, Plus, Share2, ShoppingBag, X, Zap, ZoomIn } from "lucide-react";
 import { CatalogError, useProduct, type ProductResponse } from "@/lib/catalog/client";
 import { colorHex, formatProductPrice, toProductCard } from "@/lib/products";
 import { useCart } from "@/components/cart/CartProvider";
+import WishlistButton from "@/components/wishlist/WishlistButton";
 import ProductCard from "./ProductCard";
 import styles from "./product-page.module.css";
 
@@ -34,7 +35,6 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState<typeof tabs[number]>("Description");
   const [zoom, setZoom] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
   const media = [...product.images.map(src => ({ src, video: false })), ...product.videos.map(src => ({ src, video: true }))];
   const activeIndex = Math.min(mediaIndex, Math.max(0, media.length - 1));
@@ -104,7 +104,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
         </div>
       </section>
       <section className={styles.details} aria-label="Product details">
-        <div className={styles.titleRow}><div>{(product.bestseller || product.newArrival || product.featured) && <p className={styles.badge}>{product.bestseller ? "Bestseller" : product.newArrival ? "New arrival" : "Featured"}</p>}<h1>{product.name}</h1><p className={styles.subtitle}>{[product.category, product.subcategory].filter(Boolean).join(" / ")}</p></div><div className={styles.utilities}><button type="button" aria-label={saved ? "Remove from wishlist" : "Save to wishlist"} aria-pressed={saved} onClick={() => { setSaved(!saved); setNotice(saved ? "Removed from this visit’s saved items." : "Saved for this visit."); }}><Heart size={20} fill={saved ? "currentColor" : "none"} /></button><button type="button" aria-label="Share product" onClick={share}><Share2 size={18} /></button></div></div>
+        <div className={styles.titleRow}><div>{(product.bestseller || product.newArrival || product.featured) && <p className={styles.badge}>{product.bestseller ? "Bestseller" : product.newArrival ? "New arrival" : "Featured"}</p>}<h1>{product.name}</h1><p className={styles.subtitle}>{[product.category, product.subcategory].filter(Boolean).join(" / ")}</p></div><div className={styles.utilities}><WishlistButton productId={product.id} name={product.name} size={20} /><button type="button" aria-label="Share product" onClick={share}><Share2 size={18} /></button></div></div>
         {product.brand && <p className={styles.brand}>By <strong>{product.brand}</strong></p>}
         <div className={styles.price}><strong>{formatProductPrice(price)}</strong>{discount > 0 && <><del>{formatProductPrice(product.price)}</del><span>{discount}% OFF</span></>}</div>
         {product.shortDescription && <p className={styles.summary}>{product.shortDescription}</p>}

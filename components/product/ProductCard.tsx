@@ -2,8 +2,9 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Eye, Heart, Package } from "lucide-react";
+import { ArrowRight, Eye, Package } from "lucide-react";
 
+import WishlistButton from "@/components/wishlist/WishlistButton";
 import ProductQuickView from "./ProductQuickView";
 
 const QUICK_VIEW_DELAY = 700;
@@ -16,7 +17,6 @@ export type Product = {
 export default function ProductCard({ product, showTag = true, showColors = true, showArrow = true }: {
   product: Product; showTag?: boolean; showColors?: boolean; showArrow?: boolean;
 }) {
-  const [isSaved, setIsSaved] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closedAt = useRef(0);
@@ -57,6 +57,6 @@ export default function ProductCard({ product, showTag = true, showColors = true
       </span>
     </Link>
     <button type="button" aria-label={`Quick view ${product.name}`} aria-haspopup="dialog" onClick={openPreview} className="absolute right-2.5 top-12 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-black hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8202d]"><Eye size={16} strokeWidth={1.5} /></button>
-    <button type="button" aria-label={isSaved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`} aria-pressed={isSaved} onClick={() => setIsSaved(!isSaved)} className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-black hover:bg-white"><Heart size={16} fill={isSaved ? "currentColor" : "none"} strokeWidth={1.5} /></button>
+    <WishlistButton productId={String(product.id)} name={product.name} className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-black hover:bg-white disabled:opacity-50" />
   </article>{isOpen && <ProductQuickView product={product} onClose={closePreview} />}</>;
 }

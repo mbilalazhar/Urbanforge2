@@ -5,7 +5,7 @@ import { emptyUserDetails, type UserProfile, type UserProfileUpdate } from "@/li
 import { createAccountModel, type AccountDocument, type AccountSession } from "./account";
 
 const account = createAccountModel("users", "user");
-const profileProjection = { _id: 1, name: 1, email: 1, contact: 1, defaultAddress: 1, currentOrderIds: 1, pastOrderIds: 1, preferences: 1 };
+const profileProjection = { wishlistProductIds: 1, _id: 1, name: 1, email: 1, contact: 1, defaultAddress: 1, currentOrderIds: 1, pastOrderIds: 1, preferences: 1 };
 
 async function initializeDetails(id: ObjectId) {
   const defaults = emptyUserDetails();
@@ -18,7 +18,7 @@ async function initializeDetails(id: ObjectId) {
 function toProfile(document: AccountDocument): UserProfile {
   return {
     id: document._id.toHexString(), name: document.name, email: document.email,
-    contact: document.contact ?? "", defaultAddress: document.defaultAddress ?? null,
+    contact: document.contact ?? "", wishlistProductIds: document.wishlistProductIds ?? [], defaultAddress: document.defaultAddress ?? null,
     currentOrderIds: document.currentOrderIds ?? [], pastOrderIds: document.pastOrderIds ?? [],
     preferences: document.preferences ?? { orders: true, news: false },
   };
@@ -33,6 +33,20 @@ const User = {
     const document = await account.findBySession(tokenHash);
     if (document && Object.keys(emptyUserDetails()).some(key => !(key in document))) await initializeDetails(document._id);
     return document;
+  },
+  async getWishlist(id: string) {
+    const db = await dbConnect();
+    const user = await db.collection<AccountDocument>("users").findOne({ _id: new ObjectId(id) }, { projection: { wishlistProductIds: 1 } });
+    return user ? user.wishlistProductIds ?? [] : null;
+  },
+  async setWishlistProduct(id: string, productId: string, saved: boolean) {
+    const db = await dbConnect();
+    const user = await db.collection<AccountDocument>("users").findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { ...(saved ? { $addToSet: { wishlistProductIds: productId } } : { $pull: { wishlistProductIds: productId } }), $set: { updatedAt: new Date() } },
+      { returnDocument: "after", projection: { wishlistProductIds: 1 } },
+    );
+    return user ? user.wishlistProductIds ?? [] : null;
   },
   async getProfile(id: string) {
     const db = await dbConnect();

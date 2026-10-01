@@ -86,6 +86,7 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.equal(document.contact, '');
     assert.equal(document.defaultAddress, null);
     assert.deepEqual(document.currentOrderIds, []);
+    assert.deepEqual(document.wishlistProductIds, []);
     assert.deepEqual(document.pastOrderIds, []);
     assert.equal(document.paymentMethods, undefined);
     assert.equal(document.sessions.length, 1);
@@ -155,7 +156,7 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.equal(initial.headers.get('cache-control'), 'no-store');
     assert.equal(initial.body.profile.passwordHash, undefined);
     assert.equal(initial.body.profile.sessions, undefined);
-    for (const invalid of [{ currentOrderIds: ['fake'] }, { pastOrderIds: ['fake'] }, { email: 'other@example.com' }, { role: 'admin' }, { id: 'other' }, { paymentMethods: [] }, { contact: 'invalid' }, { name: ' ' }, { defaultAddress: {} }, {}]) {
+    for (const invalid of [{ wishlistProductIds: ['fake'] }, { currentOrderIds: ['fake'] }, { pastOrderIds: ['fake'] }, { email: 'other@example.com' }, { role: 'admin' }, { id: 'other' }, { paymentMethods: [] }, { contact: 'invalid' }, { name: ' ' }, { defaultAddress: {} }, {}]) {
       assert.equal((await patch(invalid)).status, 400, JSON.stringify(invalid));
     }
     assert.equal((await patch({ name: 'Changed' }, userCookie, { Origin: 'https://other.example' })).status, 403);
@@ -211,6 +212,50 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.doesNotMatch(admin, /<nav\b|<footer\b/);
     assert.match(await (await fetch(base + '/adminroute', { headers: { Cookie: adminCookie } })).text(), /ADMIN PORTAL/);
     assert.doesNotMatch(await (await fetch(base + '/')).text(), /href="\/adminroute/);
+  });
+
+  await t.test('wishlists persist per user, reject guests and spoofing, and handle duplicates and archived products', async () => {
+    const fixture = { _id: 'wishlist-shoe', id: 'wishlist-shoe', name: 'Wishlist Shoe', sku: 'WISH', skuKeys: ['WISH'], price: 2000, salePrice: null, category: 'Shoes', subcategory: 'Sneakers & Athletic', productType: '', images: ['/shoes.png'], videos: [], variants: [], colors: [], sizes: [], stock: 5, status: 'active', description: 'Saved shoe', shortDescription: '', brand: 'UrbanForge', gender: 'unisex', material: '', tags: [], featured: false, newArrival: false, bestseller: false, views: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    await db.collection('admin_products').insertOne(fixture);
+    const path = '/api/wishlist', productPath = '/api/wishlist/wishlist-shoe';
+    for (const cookie of [undefined, adminCookie, 'urbanforge_user_session=forged']) {
+      assert.equal((await api(path, { cookie })).status, 401);
+      assert.equal((await api(path, { cookie, body: { productId: fixture.id } })).status, 401);
+      assert.equal((await api(productPath, { cookie, method: 'DELETE' })).status, 401);
+    }
+    const other = await api('/api/auth/signup', { body: { ...input, email: 'wishlist-other@example.com' } });
+    assert.equal(other.status, 201); const otherCookie = other.cookie.split(';')[0];
+    const initial = await api(path, { cookie: userCookie });
+    assert.deepEqual(initial.body.productIds, []); assert.deepEqual(initial.body.products, []);
+    assert.equal(initial.headers.get('cache-control'), 'no-store');
+    for (const body of [{ productId: '' }, { productId: '$bad' }, { productId: fixture.id, userId: other.body.account.id }, { productId: fixture.id, accountId: other.body.account.id }]) assert.equal((await api(path, { body, cookie: userCookie })).status, 400);
+    assert.equal((await api(path, { body: { productId: 'missing' }, cookie: userCookie })).status, 404);
+    assert.equal((await api(path, { body: { productId: fixture.id }, cookie: userCookie, headers: { Origin: 'https://other.example' } })).status, 403);
+    const added = await Promise.all([1, 2, 3].map(() => api(path, { body: { productId: fixture.id }, cookie: userCookie })));
+    for (const result of added) { assert.equal(result.status, 200); assert.deepEqual(result.body.productIds, [fixture.id]); }
+    const saved = await api(path, { cookie: userCookie });
+    assert.equal(saved.body.accountId, initial.body.accountId);
+    assert.equal(saved.body.products[0].name, fixture.name);
+    assert.equal(saved.body.products[0]._id, undefined); assert.equal(saved.body.products[0].skuKeys, undefined);
+    const user = await db.collection('users').findOne({ email: 'user@example.com' });
+    assert.deepEqual(user.wishlistProductIds, [fixture.id]);
+    assert.deepEqual((await api(path + '?userId=' + user._id, { cookie: otherCookie })).body.productIds, []);
+    assert.equal((await api(productPath, { method: 'DELETE', cookie: otherCookie })).status, 200);
+    assert.deepEqual((await api(path, { cookie: userCookie })).body.productIds, [fixture.id]);
+    const relogin = await api('/api/auth/login', { body: { email: input.email, password: input.password } });
+    assert.equal(relogin.status, 200); userCookie = relogin.cookie.split(';')[0];
+    assert.deepEqual((await api(path, { cookie: userCookie })).body.productIds, [fixture.id]);
+    await db.collection('admin_promotions').insertOne({ _id: 'wishlist-promo', id: 'wishlist-promo', active: true, startsAt: new Date(Date.now() - 60000).toISOString(), endsAt: new Date(Date.now() + 60000).toISOString(), productIds: [fixture.id], discountPercent: 20 });
+    assert.equal((await api(path, { cookie: userCookie })).body.products[0].salePrice, 1600);
+    await db.collection('admin_products').updateOne({ _id: fixture.id }, { $set: { status: 'inactive' } });
+    assert.deepEqual((await api(path, { cookie: userCookie })).body.products, []);
+    assert.equal((await api(path, { body: { productId: fixture.id }, cookie: otherCookie })).status, 404);
+    await db.collection('admin_products').updateOne({ _id: fixture.id }, { $set: { status: 'active', deletedAt: new Date().toISOString() } });
+    assert.deepEqual((await api(path, { cookie: userCookie })).body.products, []);
+    assert.equal((await api(productPath, { cookie: userCookie, method: 'DELETE', headers: { Origin: 'https://other.example' } })).status, 403);
+    assert.equal((await api(productPath, { cookie: userCookie, method: 'DELETE' })).status, 200);
+    assert.equal((await api(productPath, { cookie: userCookie, method: 'DELETE' })).status, 200);
+    assert.deepEqual((await api(path, { cookie: userCookie })).body.productIds, []);
   });
 
   await t.test('rejects expired sessions and revokes sessions on logout', async () => {
