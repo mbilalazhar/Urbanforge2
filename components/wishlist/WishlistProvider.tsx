@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Heart, X } from "lucide-react";
@@ -10,6 +10,7 @@ import { wishlistRequest, WishlistError, WISHLIST_EVENT, type WishlistData } fro
 import styles from "./wishlist.module.css";
 
 type WishlistContextValue = {
+  subscribe: () => () => void;
   data: WishlistData | undefined; isSignedIn: boolean; isLoading: boolean;
   pending: boolean; error: string | null; retry: () => void;
   toggle: (productId: string) => void;
@@ -23,7 +24,12 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<{ accountId: string | null; text: string } | null>(null);
   const busy = useRef(false);
-  const query = useQuery({ queryKey: ["wishlist", accountId], queryFn: ({ signal }) => wishlistRequest(accountId!, undefined, undefined, signal), enabled: Boolean(accountId), staleTime: 0, retry: false });
+  const [consumers, setConsumers] = useState(0);
+  const subscribe = useCallback(() => {
+    setConsumers(count => count + 1);
+    return () => setConsumers(count => count - 1);
+  }, []);
+  const query = useQuery({ queryKey: ["wishlist", accountId], queryFn: ({ signal }) => wishlistRequest(accountId!, undefined, undefined, signal), enabled: Boolean(accountId) && consumers > 0, staleTime: 5 * 60_000, refetchOnWindowFocus: false, retry: false });
   const data = accountId && query.data?.accountId === accountId ? query.data : undefined;
   const error = session.error?.message ?? (accountId ? query.error?.message : null) ?? null;
 
@@ -46,7 +52,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       const result = await wishlistRequest(accountId, productId, !data.productIds.includes(productId));
       await client.cancelQueries({ queryKey: ["wishlist", accountId] });
       client.setQueryData(["wishlist", accountId], result);
-      try { localStorage.setItem(WISHLIST_EVENT, crypto.randomUUID()); } catch { /* Focus also refreshes saved products. */ }
+      try { localStorage.setItem(WISHLIST_EVENT, crypto.randomUUID()); } catch { /* Saving still updates this tab when cross-tab storage is unavailable. */ }
     } catch (caught) {
       const currentId = client.getQueryData<SessionResponse>(["session", "user"])?.account?.id;
       if (currentId === accountId) {
@@ -60,7 +66,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     } finally { busy.current = false; setPending(false); }
   }
 
-  return <WishlistContext.Provider value={{ data, isSignedIn: Boolean(accountId), isLoading: session.isPending || Boolean(accountId && query.isPending), pending, error, retry: () => { void session.refetch(); if (accountId) void query.refetch(); }, toggle: id => { void toggle(id); } }}>
+  return <WishlistContext.Provider value={{ subscribe, data, isSignedIn: Boolean(accountId), isLoading: session.isPending || Boolean(accountId && query.isPending), pending, error, retry: () => { void session.refetch(); if (accountId) void query.refetch(); }, toggle: id => { void toggle(id); } }}>
     {children}
     {prompt && !accountId && <AccountRequiredModal onClose={() => setPrompt(false)} />}
     {notice && notice.accountId === accountId && <div className={styles.toast} role="alert"><p>{notice.text}</p><button type="button" aria-label="Dismiss wishlist message" onClick={() => setNotice(null)}><X size={16} /></button></div>}
@@ -68,6 +74,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 }
 export function useWishlist() {
   const value = useContext(WishlistContext);
+  const subscribe = value?.subscribe;
+  useEffect(() => subscribe?.(), [subscribe]);
   if (!value) throw new Error("useWishlist must be used within WishlistProvider");
   return value;
 }

@@ -7,7 +7,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, BarChart3, Boxes, CalendarDays, ChevronRight, ExternalLink, LayoutDashboard, LogOut, Menu, Package, Percent, Search, ShoppingBag, Tag, Users, X } from "lucide-react";
 import type { PublicAccount } from "@/lib/auth/types";
 import { useLogout } from "@/lib/auth/client";
-import { resetPreview } from "@/lib/admin/preview";
 import Dashboard from "./Dashboard";
 import ProductsPanel from "./ProductsPanel";
 import InventoryPanel from "./InventoryPanel";
@@ -50,11 +49,10 @@ export default function AdminPortal({ account }: { account: PublicAccount }) {
       <header className={styles.topbar}>
         <button className={styles.mobileMenu} aria-label={menu ? "Close menu" : "Open menu"} onClick={() => setMenu(!menu)}>{menu ? <X size={22} /> : <Menu size={22} />}</button>
         <div className={styles.breadcrumb}>Workspace <ChevronRight size={13} /><span>{current.label}</span></div>
-        <div className={styles.account}><div className={styles.avatar}>{account.name.slice(0, 2).toUpperCase()}</div><span>{account.name}<small>Administrator</small></span><button title="Sign out" aria-label="Sign out of admin account" disabled={logout.isPending} onClick={() => logout.mutate(undefined, { onSuccess: () => { resetPreview(); client.removeQueries({ queryKey: ["admin"] }); router.refresh(); } })}><LogOut size={17} /></button></div>
+        <div className={styles.account}><div className={styles.avatar}>{account.name.slice(0, 2).toUpperCase()}</div><span>{account.name}<small>Administrator</small></span><button title="Sign out" aria-label="Sign out of admin account" disabled={logout.isPending} onClick={() => logout.mutate(undefined, { onSuccess: () => { client.removeQueries({ queryKey: ["admin"] }); router.refresh(); } })}><LogOut size={17} /></button></div>
       </header>
       <main className={styles.main}>
         <div className={styles.utility}><label className={styles.search}><Search size={17} /><input type="search" placeholder="Search products, orders, customers…" aria-label="Search admin records" value={search} onChange={event => setSearch(event.target.value)} />{search && <button onClick={() => setSearch("")} aria-label="Clear search"><X size={15} /></button>}</label><span className={styles.date}><CalendarDays size={15} />{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Karachi" })}</span></div>
-        {section === "overview" && <div className={styles.previewNotice}><span><strong>Preview mode</strong> This overview uses sample data. All management sections use live store data.</span><button onClick={() => { resetPreview(); void client.invalidateQueries({ queryKey: ["admin"] }); }}>Reset preview</button></div>}
         {logout.error && <p className={styles.error} role="alert">{logout.error.message}</p>}
         {section === "overview" && <Dashboard name={account.name} navigate={navigate} search={search} />}
         {section === "products" && <ProductsPanel search={search} />}

@@ -18,7 +18,8 @@ test('live product queries and mutations use authenticated API requests and pres
     return Response.json({ products: [], product: { id: 'saved' } });
   };
   const live = useAdminQuery('products', 'api');
-  const preview = useAdminQuery('products');
+  assert.deepEqual(useAdminQuery('products').queryKey, live.queryKey, 'admin queries default to live data');
+  const preview = useAdminQuery('products', 'preview');
   assert.notDeepEqual(live.queryKey, preview.queryKey);
   assert.deepEqual(await preview.queryFn(), { preview: 'products' });
   assert.equal(requests.length, 0);
@@ -69,6 +70,9 @@ test('live inventory uses filtered API requests, polls, and refreshes admin and 
   assert.deepEqual(globalThis.__adminInvalidations, [['admin'], ['catalog']]);
   globalThis.__adminInvalidations = [];
   await useAdminMutation('inventory').onSuccess();
+  assert.deepEqual(globalThis.__adminInvalidations, [['admin'], ['catalog']], 'default mutations invalidate live admin and catalog data');
+  globalThis.__adminInvalidations = [];
+  await useAdminMutation('inventory', 'preview').onSuccess();
   assert.deepEqual(globalThis.__adminInvalidations, [['admin']]);
   globalThis.fetch = async () => Response.json({ message: 'Stock changed since you loaded this product.' }, { status: 409 });
   await assert.rejects(mutation.mutationFn({ body: adjustment }), /Stock changed/);

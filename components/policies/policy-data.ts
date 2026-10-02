@@ -1,0 +1,50 @@
+export type PolicySection = { id: string; title: string; paragraphs: string[]; bullets?: string[] };
+export type Policy = { title: string; eyebrow: string; description: string; summary: string; sections: PolicySection[] };
+export const policyLinks = [
+  { key: "privacy", title: "Privacy Policy", href: "/privacy-policy" },
+  { key: "terms", title: "Terms & Conditions", href: "/terms" },
+  { key: "cookies", title: "Cookie Policy", href: "/cookie-policy" },
+] as const;
+export type PolicyKey = typeof policyLinks[number]["key"];
+
+export const policies: Record<PolicyKey, Policy> = {
+  privacy: {
+    title: "Privacy Policy", eyebrow: "YOUR INFORMATION, EXPLAINED", description: "A closer look at the information behind your shopping experience, and the choices available to you.",
+    summary: "Your account, orders and saved favourites help us make your experience personal. Here’s how that information fits into your time with UrbanForge.",
+    sections: [
+      { id: "information", title: "Information you share", paragraphs: ["When you create an account, we ask for your name, email address and password. When you place an order, we also collect contact details, a delivery address and the items you choose."], bullets: ["Account details and saved delivery information.", "Order history, payment status and delivery updates.", "Products you save to your wishlist and items in your cart.", "Information you include when contacting us."] },
+      { id: "use", title: "How information is used", paragraphs: ["Information supports the everyday operation of the store: signing you in, keeping your saved products together, preparing orders and showing delivery updates.", "Order and product activity also helps us understand demand, manage stock and improve the shopping experience. Store administrators can view the customer and order details needed to manage these services."] },
+      { id: "orders", title: "Orders and delivery", paragraphs: ["The contact and address details you provide are used to prepare and deliver your order. Please check them before placing an order and contact us if a correction is needed.", "Order records include the products purchased, totals, payment status and fulfilment history. Information needed to arrange delivery may be shared with the delivery provider handling your order."] },
+      { id: "choices", title: "Your account and choices", paragraphs: ["You can review your profile, update saved contact and address details, manage your wishlist and view your orders from My Account.", "For questions about access to your information, corrections or account deletion, contact us using the details below. Some order information may need to be retained for outstanding deliveries, returns or recordkeeping."] },
+      { id: "security", title: "Account security", paragraphs: ["Passwords are stored as hashes, and signed-in sessions use cookies designed to keep account access separate from other visitors. Choose a unique password and sign out when using a shared device.", "No online service can promise absolute security. If you believe someone has accessed your account without permission, contact us promptly."] },
+      { id: "storage", title: "Cookies and browser storage", paragraphs: ["The store uses cookies to keep you signed in and browser storage for features such as your cart. Our Cookie Policy explains these technologies and how to manage them."] },
+      { id: "contact", title: "Questions and updates", paragraphs: ["For privacy questions, email info@urbanforge.com with enough detail for us to understand your request. Avoid including your password or other sensitive credentials.", "This page may be updated as the store’s features change. The date above identifies the latest version displayed here."] },
+    ],
+  },
+  terms: {
+    title: "Terms & Conditions", eyebrow: "A LITTLE CLARITY BEFORE CHECKOUT", description: "The essentials for using our store, placing an order and getting help along the way.",
+    summary: "From finding your next favourite to receiving your order, these terms explain what to expect when shopping with UrbanForge.",
+    sections: [
+      { id: "using-store", title: "Using the store", paragraphs: ["Use the UrbanForge website for personal shopping and legitimate account activity. Please provide accurate details and use the store in a way that respects other customers and the service."], bullets: ["Do not misuse accounts, attempt unauthorised access or interfere with the website.", "Do not submit fraudulent orders or misleading contact information.", "Keep your account credentials private and contact us about unexpected activity."] },
+      { id: "products", title: "Products and availability", paragraphs: ["Product pages describe available sizes, colours, materials and prices. Images are intended to help you choose; colours can appear differently across screens.", "Availability can change while items are in your cart. Stock and current prices are checked again at checkout before an order is placed."] },
+      { id: "pricing", title: "Prices and discount codes", paragraphs: ["Review the final order summary before submitting your order. It shows the product subtotal, any shipping charges, applicable discounts and the total.", "Coupons and promo codes are subject to their displayed eligibility, dates and usage limits. A code may apply to the entire store or selected main categories. Adding an item to your cart does not reserve a price or a discount."] },
+      { id: "placing-orders", title: "Placing an order", paragraphs: ["Check your product selections, quantities, contact information and delivery address before placing an order. Use the payment and delivery methods offered at checkout.", "Keep your order number for reference. Signed-in customers can review their order history and fulfilment status in My Account. Contact us if an order detail needs correcting."] },
+      { id: "delivery", title: "Delivery", paragraphs: ["Delivery options, charges and estimated times are shown during checkout. Estimates can be affected by location, courier availability and circumstances outside the store’s control.", "Provide a complete address and a contact number where you can be reached. If a delivery is delayed or a parcel arrives damaged, contact us with your order number and the relevant details."] },
+      { id: "returns", title: "Cancellations, returns and refunds", paragraphs: ["Contact us with your order number if you need to request a cancellation, return or refund. Available options depend on the order’s fulfilment stage, the item and the circumstances of the request.", "Wait for return instructions before sending an item back. An approved return and a completed refund are separate steps; contact us if you need an update on either."] },
+      { id: "content", title: "Website content", paragraphs: ["UrbanForge branding, images, design and product descriptions are presented for browsing and shopping. Please obtain permission before reusing store content for commercial purposes.", "Links to third-party sites may take you outside UrbanForge. Review the terms and privacy information provided by those sites when using them."] },
+      { id: "contact", title: "Contact and changes", paragraphs: ["For help with these terms or an order, email info@urbanforge.com. Include your order number where relevant, but never send your password.", "These terms may be updated as the store changes. Review this page before placing a new order. Nothing on this page is intended to exclude rights that cannot be excluded under applicable law."] },
+    ],
+  },
+  cookies: {
+    title: "Cookie Policy", eyebrow: "SMALL FILES. USEFUL DETAILS.", description: "Understand how cookies and browser storage support sign-in, saved carts and a consistent shopping experience.",
+    summary: "Some information stays in your browser so the store can remember your session and cart. Cookies and local storage serve different purposes—here’s the difference.",
+    sections: [
+      { id: "what", title: "What are cookies?", paragraphs: ["Cookies are small pieces of information stored by your browser and sent with requests to a website. Local storage is a separate browser feature that lets a site keep information on your device without sending it with every request."] },
+      { id: "storage-used", title: "Storage used by the store", paragraphs: ["The store uses session cookies for sign-in and browser storage for shopping features. The table below describes the main types."] },
+      { id: "wishlist", title: "Your wishlist and account", paragraphs: ["Your saved wishlist belongs to your account and is stored on the server. It is not kept only in a cookie. Small browser-storage signals let open tabs know when a wishlist or account session has changed.", "Signing out removes the active sign-in cookie. Clearing browser storage does not delete the wishlist saved to your account."] },
+      { id: "controls", title: "Your browser, your controls", paragraphs: ["You can inspect, block or delete cookies and stored site data through your browser’s privacy or site-settings controls. Options vary by browser and device."], bullets: ["Deleting sign-in cookies signs you out of the store.", "Clearing local storage can remove the cart saved on that device.", "Blocking essential storage can prevent sign-in or cart features from working as expected.", "Use a private browsing window when you do not want site data to remain after the session."] },
+      { id: "third-party", title: "External websites", paragraphs: ["Following a social or other external link may take you to a website with its own cookies and storage practices. Those settings are managed by that website and your browser."] },
+      { id: "contact", title: "Questions and updates", paragraphs: ["Email info@urbanforge.com if you have a question about storage used by the store. You can also read our Privacy Policy for more information about your account and order details.", "We may update this page as website features change. Check the date above for the latest version displayed here."] },
+    ],
+  },
+};

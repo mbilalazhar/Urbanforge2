@@ -46,14 +46,15 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   let target;
   await until(async () => { try { target = (await (await fetch(`http://127.0.0.1:${debugPort}/json`)).json()).find(page => page.type === 'page'); return !!target; } catch { return false; } }, 'browser startup');
   ws = new WebSocket(target.webSocketDebuggerUrl); await once(ws, 'open');
-  let sequence = 0; const pending = new Map(), errors = [];
+  let sequence = 0; const pending = new Map(), errors = [], wishlistGets = [];
   ws.addEventListener('message', event => {
     const message = JSON.parse(event.data);
     if (message.id) {
       const callback = pending.get(message.id); if (!callback) return;
       pending.delete(message.id); clearTimeout(callback.timer);
       if (message.error) callback.reject(new Error(JSON.stringify(message.error))); else callback.resolve(message.result);
-    } else if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails);
+    } else if (message.method === 'Network.requestWillBeSent' && message.params.request.method === 'GET' && new URL(message.params.request.url).pathname === '/api/wishlist') wishlistGets.push(message.params.request.url);
+    else if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails);
     else if (message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') errors.push(message.params.args.map(arg => arg.value));
   });
   function call(method, params = {}) {
@@ -73,7 +74,7 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   const quick = 'document.querySelector(\'button[aria-label="Quick view Preview Sneaker"]\')';
   const move = (x, y) => call('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
   async function point() { await evaluate(`${card}.scrollIntoView({block:'center'})`); await delay(150); return evaluate(`(()=>{const r=${card}.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+80};})()`); }
-  await call('Page.enable'); await call('Runtime.enable');
+  await call('Page.enable'); await call('Runtime.enable'); await call('Network.enable');
   await call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await call('Page.navigate', { url: base + '/search?q=Preview' });
   await until(() => evaluate(`!!${card}`), 'product card'); await delay(500);
@@ -128,6 +129,17 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   const firstAccount = await signup('wishlist-a@example.com');
   await call('Page.navigate', { url: base + '/search?q=Preview' });
   await until(() => evaluate(`!!${saveHeart} && !${saveHeart}.disabled`), 'signed-in heart');
+  const beforeFocus = wishlistGets.length;
+  assert.equal(beforeFocus, 1, 'all product hearts share one initial wishlist request');
+  await evaluate("window.__originalNow = Date.now; Date.now = () => window.__originalNow() + 360000");
+  for (let i = 0; i < 3; i++) {
+    await evaluate("Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' }); window.dispatchEvent(new Event('visibilitychange'))");
+    await evaluate("Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' }); window.dispatchEvent(new Event('visibilitychange'))");
+    await delay(150);
+  }
+  await evaluate("Date.now = window.__originalNow; delete document.visibilityState");
+  assert.equal(wishlistGets.length, beforeFocus, 'switching browser tabs does not refetch even when wishlist data is stale');
+
   await evaluate(`${saveHeart}.click()`);
   await until(() => evaluate(`!!${removeHeart} && !${removeHeart}.disabled`), 'saved heart');
   assert.deepEqual((await client.db('preview_browser_test').collection('users').findOne({email:firstAccount.email})).wishlistProductIds, ['preview-shoe']);
@@ -152,5 +164,29 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   await call('Page.navigate', { url: base + '/wishlist' });
   await until(() => evaluate("document.body.innerText.includes('Your wishlist is empty')"), 'another account has its own wishlist');
   assert.deepEqual((await client.db('preview_browser_test').collection('users').findOne({email:firstAccount.email})).wishlistProductIds, ['preview-shoe']);
+  const beforePolicy = wishlistGets.length;
+  assert.equal(await evaluate("document.querySelectorAll('header a[href=\"/wishlist\"]').length"), 0, 'wishlist removed from navbar');
+  await evaluate("document.querySelector('footer a[href=\"/privacy-policy\"]').click()");
+  for (const [path, heading] of [['/privacy-policy', 'Privacy Policy'], ['/terms', 'Terms & Conditions'], ['/cookie-policy', 'Cookie Policy']]) {
+    if (path !== '/privacy-policy') await evaluate(`document.querySelector('nav[aria-label="Store policies"] a[href="${path}"]').click()`);
+    await until(() => evaluate(`document.querySelector('h1')?.textContent===${JSON.stringify(heading)}`), heading);
+    assert.equal(await evaluate("document.querySelectorAll('nav[aria-label=\"On this page\"] a').length > 0"), true);
+    assert.equal(await evaluate("Array.from(document.querySelectorAll('nav[aria-label=\"On this page\"] a')).every(a=>!!document.getElementById(a.hash.slice(1)))"), true);
+    assert.equal(await evaluate("document.querySelectorAll('header a[href=\"/wishlist\"]').length"), 0);
+  }
+  await delay(300);
+  assert.equal(wishlistGets.length, beforePolicy, 'policy navigation never fetches wishlist');
+  await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  assert.equal(await evaluate("document.querySelector('main').scrollWidth <= innerWidth"), true, 'policy fits mobile viewport');
+  await evaluate("document.querySelector('button[aria-label=\"Open menu\"]').click()");
+  await until(() => evaluate("!!document.querySelector('#mobile-menu[open]')"), 'mobile menu');
+  assert.equal(await evaluate("document.querySelectorAll('#mobile-menu a[href=\"/wishlist\"]').length"), 0, 'wishlist removed from mobile menu');
+  await evaluate("document.querySelector('button[aria-label=\"Close menu\"]').click()");
+  const policyShot = await call('Page.captureScreenshot', { format: 'png' });
+  await writeFile('/tmp/urbanforge-cookie-policy-mobile.png', Buffer.from(policyShot.data, 'base64'));
+  await call('Page.navigate', { url: base + '/adminroute' });
+  await until(() => evaluate("document.querySelector('h1')?.textContent==='Admin Login'"), 'admin route');
+  await delay(400);
+  assert.equal(wishlistGets.length, beforePolicy, 'admin route never fetches customer wishlist');
   assert.deepEqual(errors, []);
 });

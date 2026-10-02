@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, User, ShoppingBag, Heart } from "lucide-react";
+import { Search, User, ShoppingBag } from "lucide-react";
 import MobileMenu from "./mobileMenu";
 import { menuItems } from "@/lib/catalog-sections";
 import { useCart } from "@/components/cart/CartProvider";
@@ -15,7 +15,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const isCart = pathname === "/cart";
-  const isLightPage = pathname.startsWith("/products/") || ["/search", "/cart", "/checkout", "/wishlist", "/account", "/login", "/signup", "/forgot-password"].includes(pathname);
+  const isLightPage = pathname.startsWith("/products/") || ["/search", "/cart", "/checkout", "/wishlist", "/account", "/login", "/signup", "/forgot-password", "/privacy-policy", "/terms", "/cookie-policy"].includes(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -130,7 +130,6 @@ export default function Navbar() {
             />
           </Link>
 
-          <Link href="/wishlist" aria-label="Your wishlist" className={`transition-opacity hover:opacity-70 ${isScrolled || isLightPage ? "text-neutral-700" : "text-white/90"}`}><Heart size={21} strokeWidth={1.75} /></Link>
           <Link
             href="/account"
             aria-label="Account"

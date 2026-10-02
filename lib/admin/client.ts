@@ -12,11 +12,11 @@ export async function adminRequest<T>(path: string, options: RequestInit = {}): 
   return data as T;
 }
 
-export function useAdminQuery<T>(resource: string, source: "preview" | "api" = "preview", options: { refetchInterval?: number } = {}) {
+export function useAdminQuery<T>(resource: string, source: "preview" | "api" = "api", options: { refetchInterval?: number } = {}) {
   return useQuery({ queryKey: ["admin", source, resource], queryFn: () => source === "api" ? adminRequest<T>(resource) : previewRequest<T>(resource), staleTime: 20_000, retry: false, refetchInterval: options.refetchInterval });
 }
 
-export function useAdminMutation(resource: string, source: "preview" | "api" = "preview") {
+export function useAdminMutation(resource: string, source: "preview" | "api" = "api") {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ path = resource, method = "POST", body }: { path?: string; method?: string; body?: unknown }) =>

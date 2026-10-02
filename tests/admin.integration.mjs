@@ -56,7 +56,9 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
     assert.equal((await api('/api/admin/products', { cookie: user.cookie.split(';')[0] })).status, 401);
     const login = await api('/api/admin/login', { body: { email: account.email, password: account.password } });
     assert.equal(login.status, 200); adminCookie = login.cookie.split(';')[0];
-    assert.deepEqual((await api('/api/admin/dashboard')).body.products, []);
+    const emptyDashboard = (await api('/api/admin/dashboard')).body;
+    assert.deepEqual(emptyDashboard.products, []); assert.equal(emptyDashboard.metrics.revenue, 0); assert.equal(emptyDashboard.metrics.average, 0); assert.deepEqual(emptyDashboard.metrics.categories, []);
+    assert.equal(emptyDashboard.metrics.months.length, 12); assert.ok(emptyDashboard.metrics.months.every(month => month.revenue === 0 && month.orders === 0));
     assert.equal((await api('/api/catalog')).body.managed, false);
     const empty = await api('/api/admin/inventory?includeHistory=false');
     assert.deepEqual(empty.body.summary, { units: 0, trackedSkus: 0, lowStockSkus: 0, outOfStockSkus: 0 });
@@ -433,6 +435,75 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
     assert.equal((await quote(items, 'LEGACY')).status, 400);
     assert.equal((await patch('/api/admin/coupons/legacy-code', { productIds: [], categories: ['Men'] })).status, 200);
     assert.equal((await quote(items, 'LEGACY')).body.quote.discount, 160);
+  });
+
+  await t.test('forward fulfilment and payment updates immediately recalculate customer spending', async () => {
+    const customer = (await api('/api/admin/customers')).body.customers.find(item => item.email === 'no-orders@example.com');
+    const fixture = await api('/api/admin/products', { body: { name: 'Payment update fixture', sku: 'PAYMENT-UPDATE', price: 8500, stock: 3, status: 'active', category: 'Shoes', subcategory: 'Boots', images: ['/test.png'] } });
+    assert.equal(fixture.status, 201);
+    const created = await createOrder([{ productId: fixture.body.product.id, quantity: 1 }], { email: customer.email });
+    assert.equal(created.status, 201);
+    const id = created.body.order.id;
+    const spent = async () => (await api('/api/admin/customers')).body.customers.find(item => item.id === customer.id).spent;
+    assert.equal(await spent(), 0);
+    const delivered = await patch(`/api/admin/orders/${id}`, { status: 'delivered', paymentStatus: 'paid', courier: 'TCS', trackingNumber: 'TRACK-8500', notes: 'Cash collected on delivery.' });
+    assert.equal(delivered.status, 200, JSON.stringify(delivered.body));
+    assert.equal(delivered.body.order.status, 'delivered'); assert.equal(delivered.body.order.paymentStatus, 'paid');
+    assert.equal(await spent(), created.body.order.total);
+    assert.equal((await patch(`/api/admin/orders/${id}`, { paymentStatus: 'paid' })).status, 200);
+    assert.equal(await spent(), created.body.order.total, 'saving paid twice must not double-count spending');
+    assert.equal((await patch(`/api/admin/orders/${id}`, { paymentStatus: 'pending' })).status, 409);
+    assert.equal((await patch(`/api/admin/orders/${id}`, { status: 'new' })).status, 409);
+    assert.equal((await patch(`/api/admin/orders/${id}`, { status: 'returned' })).status, 400, 'return approval is still required');
+    assert.equal(await spent(), created.body.order.total);
+    assert.equal((await patch(`/api/admin/orders/${id}`, { status: 'refunded', paymentStatus: 'refunded', notes: 'Manual refund reference PAYMENT-8500' })).status, 200);
+    assert.equal(await spent(), 0);
+    const next = await createOrder([{ productId: fixture.body.product.id, quantity: 1 }], { email: customer.email });
+    assert.equal((await patch(`/api/admin/orders/${next.body.order.id}`, { paymentStatus: 'paid' })).status, 200);
+    assert.equal(await spent(), next.body.order.total, 'payment alone counts before fulfilment');
+    assert.equal((await patch(`/api/admin/orders/${next.body.order.id}`, { status: 'cancelled' })).status, 200);
+    assert.equal(await spent(), 0);
+    assert.equal((await patch(`/api/admin/orders/${next.body.order.id}`, { status: 'delivered' })).status, 409, 'cancelled orders cannot be reactivated');
+  });
+
+  await t.test('dashboard metrics use live orders, variant inventory and archived sales history', async () => {
+    const baseline = (await api('/api/admin/dashboard')).body;
+    assert.equal(baseline.metrics.months.length, 12);
+    assert.equal(baseline.metrics.revenue, Math.round(baseline.orders.filter(order => order.paymentStatus === 'paid' && !['cancelled', 'returned', 'refunded'].includes(order.status)).reduce((sum, order) => sum + order.total, 0) * 100) / 100);
+    assert.equal(baseline.metrics.pending, baseline.orders.filter(order => ['new', 'processing', 'confirmed', 'packed', 'shipped'].includes(order.status)).length);
+    assert.deepEqual(baseline.inventory, (await api('/api/admin/inventory?includeHistory=false')).body.summary);
+    assert.ok(Number.isFinite(Date.parse(baseline.generatedAt)));
+    const fixture = await api('/api/admin/products', { body: { name: 'Live dashboard shoe', sku: 'DASHBOARD', price: 1000, category: 'Shoes', subcategory: 'Boots', images: ['/test.png'], status: 'active', variants: [
+      { id: 'zero', sku: 'DASH-ZERO', color: 'Black', size: 'S', stock: 0 },
+      { id: 'low', sku: 'DASH-LOW', color: 'Black', size: 'M', stock: 2 },
+      { id: 'available', sku: 'DASH-AVAILABLE', color: 'Black', size: 'L', stock: 10 },
+    ] } });
+    assert.equal(fixture.status, 201);
+    const productId = fixture.body.product.id;
+    const created = await createOrder([{ productId, variantId: 'available', quantity: 1 }], { email: 'dashboard-buyer@example.com' });
+    assert.equal(created.status, 201);
+    const unpaid = (await api('/api/admin/dashboard')).body;
+    assert.equal(unpaid.metrics.revenue, baseline.metrics.revenue);
+    assert.equal(unpaid.orders.length, baseline.orders.length + 1);
+    assert.equal(unpaid.inventory.trackedSkus, baseline.inventory.trackedSkus + 3);
+    assert.equal(unpaid.inventory.lowStockSkus, baseline.inventory.lowStockSkus + 1);
+    assert.equal(unpaid.inventory.outOfStockSkus, baseline.inventory.outOfStockSkus + 1);
+    assert.equal((await patch(`/api/admin/orders/${created.body.order.id}`, { paymentStatus: 'paid' })).status, 200);
+    const paid = (await api('/api/admin/dashboard')).body;
+    assert.equal(paid.metrics.revenue, baseline.metrics.revenue + created.body.order.total);
+    assert.equal(paid.customers.find(customer => customer.email === 'dashboard-buyer@example.com').spent, created.body.order.total);
+    assert.equal(paid.metrics.bestsellers.find(product => product.id === productId).units, 1);
+    assert.equal(paid.metrics.bestsellers.find(product => product.id === productId).category, 'Shoes');
+    assert.equal((await api(`/api/admin/products/${productId}`, { method: 'DELETE' })).status, 200);
+    const archived = (await api('/api/admin/dashboard')).body;
+    assert.equal(archived.products.some(product => product.id === productId), false);
+    assert.equal(archived.metrics.revenue, paid.metrics.revenue);
+    assert.equal(archived.metrics.bestsellers.find(product => product.id === productId).category, 'Shoes', 'archiving preserves the sales category');
+    assert.deepEqual(archived.inventory, baseline.inventory);
+    assert.equal((await patch(`/api/admin/orders/${created.body.order.id}`, { status: 'cancelled' })).status, 200);
+    const cancelled = (await api('/api/admin/dashboard')).body;
+    assert.equal(cancelled.metrics.revenue, baseline.metrics.revenue);
+    assert.equal(cancelled.metrics.bestsellers.some(product => product.id === productId), false);
   });
 
 });

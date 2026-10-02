@@ -4,6 +4,8 @@ import { shippingCost, type CheckoutInput, type CheckoutQuote, type CustomerOrde
 import type { AccountDocument } from "@/models/account";
 import { subcategoriesFor, productTypesFor } from "@/lib/product-categories";
 import { mainCategory, matchesOfferCategory, validOfferScope } from "./offer-scope";
+import { dashboardMetrics } from "./analytics";
+import { orderTransitions } from "./order-workflow";
 import { readProductBody } from "./product-upload";
 import { readInventoryHistory, summarizeInventory } from "./inventory";
 
@@ -308,17 +310,12 @@ async function redeemCoupon(db: Db, session: ClientSession | undefined, code: st
   if (reserve) await c.coupons.updateOne({ _id: coupon.id }, { $inc: { usedCount: 1 } }, { session });
   return { id: coupon.id, code: coupon.code, discount: round(discount) };
 }
-const transitions: Record<AdminOrder["status"], AdminOrder["status"][]> = {
-  new: ["processing", "confirmed", "cancelled"], processing: ["confirmed", "packed", "cancelled"],
-  confirmed: ["processing", "packed", "shipped", "cancelled"], packed: ["shipped", "cancelled"],
-  shipped: ["delivered"], delivered: ["returned", "refunded"], cancelled: ["refunded"], returned: ["refunded"], refunded: [],
-};
 export function orderUpdate(request: Request, id: string) { return adminRoute(request, async (db, adminId) => {
   const input = await body(request, orderPatchSchema);
   const order = await transaction(db, async session => {
     const c = collections(db), current = mustExist(await c.orders.findOne({ _id: id }, { session }));
     const updated = { ...current, ...input, updatedAt: now() };
-    if (updated.status !== current.status && !transitions[current.status].includes(updated.status)) throw new AuthError(`Cannot move an order from ${current.status} to ${updated.status}.`, 409);
+    if (updated.status !== current.status && !orderTransitions[current.status].includes(updated.status)) throw new AuthError(`Cannot move an order from ${current.status} to ${updated.status}.`, 409);
     if (input.returnStatus && input.returnStatus !== current.returnStatus) {
       if (current.status !== "delivered") throw new AuthError("Returns can only be reviewed for delivered orders.", 409);
       if (input.returnStatus === "none") throw new AuthError("A return decision cannot be cleared.", 409);
@@ -353,10 +350,10 @@ export function orderUpdate(request: Request, id: string) { return adminRoute(re
   });
   return { order: clean(order) };
 }); }
-async function customers(db: Db): Promise<AdminCustomer[]> {
+async function customers(db: Db, existingOrders?: OrderDoc[]): Promise<AdminCustomer[]> {
   const [accounts, orders] = await Promise.all([
     db.collection<AccountDocument>("users").find({}, { projection: { _id: 1, name: 1, email: 1, contact: 1, defaultAddress: 1, createdAt: 1 } }).toArray(),
-    collections(db).orders.find({}, { projection: { id: 1, userId: 1, customerName: 1, email: 1, phone: 1, address: 1, createdAt: 1, paymentStatus: 1, status: 1, total: 1 } }).sort({ createdAt: -1 }).toArray(),
+    existingOrders ?? collections(db).orders.find({}, { projection: { id: 1, userId: 1, customerName: 1, email: 1, phone: 1, address: 1, createdAt: 1, paymentStatus: 1, status: 1, total: 1 } }).sort({ createdAt: -1 }).toArray(),
   ]);
   const result = new Map<string, AdminCustomer>();
   const byId = new Map<string, AdminCustomer>();
@@ -389,8 +386,19 @@ async function customers(db: Db): Promise<AdminCustomer[]> {
 export function customerList(request: Request) { return adminRoute(request, async db => ({ customers: await customers(db) })); }
 export function dashboard(request: Request) { return adminRoute(request, async db => {
   const c = collections(db);
-  const [products, orders, customerRecords] = await Promise.all([c.products.find({ deletedAt: { $exists: false } }).sort({ createdAt: -1 }).toArray(), c.orders.find().sort({ createdAt: -1 }).toArray(), customers(db)]);
-  return { products: products.map(clean), orders: orders.map(clean), customers: customerRecords };
+  const [allProducts, orders] = await Promise.all([
+    c.products.find().sort({ createdAt: -1 }).toArray(),
+    c.orders.find().sort({ createdAt: -1 }).toArray(),
+  ]);
+  const products = allProducts.filter(product => !product.deletedAt);
+  const customerRecords = await customers(db, orders);
+  const generatedAt = now();
+  const data = { products, orders, customers: customerRecords };
+  return {
+    products: products.map(clean), orders: orders.map(clean), customers: customerRecords,
+    metrics: dashboardMetrics(data, new Date(generatedAt), allProducts),
+    inventory: summarizeInventory(products), generatedAt,
+  };
 }); }
 function dateRange<T extends { startsAt: string; endsAt: string }>(input: T) {
   if (input.startsAt) input.startsAt = new Date(input.startsAt).toISOString();

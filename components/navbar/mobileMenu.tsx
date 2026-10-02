@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu, Heart, Search, ShoppingBag, User, X } from "lucide-react";
+import { ArrowRight, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useCart } from "@/components/cart/CartProvider";
 import styles from "./mobileMenu.module.css";
 
@@ -110,7 +110,6 @@ export default function MobileMenu({ menuItems }: { menuItems: MenuItem[] }) {
 
           <div className={styles.footer}>
             <Link href="/account" onClick={closeMenu}><User size={19} strokeWidth={1.5} /><span>My account</span><ArrowRight size={16} aria-hidden="true" /></Link>
-            <Link href="/wishlist" onClick={closeMenu}><Heart size={19} strokeWidth={1.5} /><span>Your wishlist</span><ArrowRight size={16} aria-hidden="true" /></Link>
             <Link href="/cart" onClick={closeMenu}><ShoppingBag size={19} strokeWidth={1.5} /><span>Your cart</span><span className={styles.count}>{itemCount}</span></Link>
             <p>UrbanForge · Built for the streets</p>
           </div>
