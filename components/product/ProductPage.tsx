@@ -72,14 +72,21 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
     }
   }
   function addToCart(buyNow = false) {
+    if (buyNow) {
+      if (!validSelection || stock < 1 || query.error) return;
+      const params = new URLSearchParams({ productId: product.id, color, size, quantity: String(Math.min(quantity, stock, 99)) });
+      if (variant) params.set("variantId", variant.id);
+      router.push(`/checkout?${params}`);
+      return;
+    }
     if (!canBuy) return;
-    const added = cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id,
+    const added = cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id, color, selectedSize: size,
       name: product.name, details: [product.category, product.subcategory, color].filter(Boolean).join(" / "), size: size ? `Size: ${size}` : "One size",
       price: Math.round(price * 100), image: product.images[0], quantity: purchaseQuantity, maxQuantity: stock,
     });
     if (!added) { setNotice("Unable to add this quantity. Check your cart and try again."); return; }
     setNotice(`${purchaseQuantity} ${purchaseQuantity === 1 ? "item" : "items"} added to your cart.`);
-    if (buyNow) router.push("/cart");
+
   }
   async function share() {
     try {
@@ -111,7 +118,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
         {colors.length > 0 && <fieldset className={styles.options}><legend>Color: <span>{color}</span></legend><div className={styles.colorOptions}>{colors.map(option => <button type="button" key={option} aria-pressed={color === option} onClick={() => selectColor(option)}><span style={{ backgroundColor: colorHex(option) }} />{option}</button>)}</div></fieldset>}
         {sizes.length > 0 && <fieldset className={styles.options}><legend>Size: <span>{size || "Select a size"}</span></legend><div className={styles.sizeOptions}>{sizes.map(option => <button type="button" key={option} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); setNotice(""); }}>{option}</button>)}</div></fieldset>}
         <p className={`${styles.stock} ${stock === 0 ? styles.outOfStock : ""}`}>{stock > 0 ? <><Check size={14} />In stock · {stock} available{cartQuantity > 0 ? ` (${cartQuantity} in your cart)` : ""}</> : <><Package size={14} />Out of stock{product.variants.length ? " for this selection" : ""}</>}</p>
-        <div className={styles.purchase}><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" disabled={purchaseQuantity <= 1} aria-label="Decrease quantity" onClick={() => setQuantity(purchaseQuantity - 1)}><Minus size={15} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" disabled={!canBuy || purchaseQuantity >= available} aria-label="Increase quantity" onClick={() => setQuantity(purchaseQuantity + 1)}><Plus size={15} /></button></div><button type="button" className={styles.addToCart} disabled={!canBuy} onClick={() => addToCart()}><ShoppingBag size={17} />Add to Cart</button><button type="button" className={styles.buyNow} disabled={!canBuy} onClick={() => addToCart(true)}><Zap size={16} />Buy Now</button></div>
+        <div className={styles.purchase}><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" disabled={purchaseQuantity <= 1} aria-label="Decrease quantity" onClick={() => setQuantity(purchaseQuantity - 1)}><Minus size={15} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" disabled={!canBuy || purchaseQuantity >= available} aria-label="Increase quantity" onClick={() => setQuantity(purchaseQuantity + 1)}><Plus size={15} /></button></div><button type="button" className={styles.addToCart} disabled={!canBuy} onClick={() => addToCart()}><ShoppingBag size={17} />Add to Cart</button><button type="button" className={styles.buyNow} disabled={!validSelection || stock < 1 || !!query.error} onClick={() => addToCart(true)}><Zap size={16} />Buy Now</button></div>
         <p className={styles.notice} role="status">{cart.error ? <>Unable to load your cart. <button type="button" onClick={cart.retry}>Try again</button></> : cart.isLoading ? "Loading your cart…" : notice}{notice.includes("added to your cart") && <> <Link href="/cart">View cart <ArrowRight size={13} /></Link></>}</p>
         <div className={styles.benefits}><div><Package size={21} /><span>Product details<small>See materials & specifications</small></span></div><Link href="/account"><MapPin size={21} /><span>Saved addresses<small>Keep your delivery details ready</small></span></Link></div>
       </section>
@@ -120,7 +127,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
       <div className={styles.tabContent} role="tabpanel" id="product-tab-content" aria-labelledby={`product-tab-${tabs.indexOf(tab)}`} tabIndex={0}>
         {(tab === "Description" || tab === "Specifications") && <div className={styles.descriptionGrid}>{tab === "Description" && <div><p className={styles.description}>{product.description || product.shortDescription || "No description has been added for this product yet."}</p>{product.tags.length > 0 && <div className={styles.tags}>{product.tags.map(tag => <span key={tag}>{tag}</span>)}</div>}</div>}<dl className={styles.specs}>{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div>}
         {tab === "Reviews" && <div className={styles.tabEmpty}><h3>No reviews yet</h3><p>Customer reviews aren’t available for this product yet.</p></div>}
-        {tab === "Shipping & Returns" && <div className={styles.tabEmpty}><h3>Delivery & returns</h3><p>Shipping rates, delivery estimates, and return terms will be provided when checkout is available.</p><Link href="/account">Save your delivery address <ArrowRight size={14} /></Link></div>}
+        {tab === "Shipping & Returns" && <div className={styles.tabEmpty}><h3>Delivery & returns</h3><p>Choose standard or express delivery at checkout. Standard shipping is free on orders of Rs. 5,000 or more.</p><Link href="/account">Save your delivery address <ArrowRight size={14} /></Link></div>}
       </div>
     </section>
     {related.length > 0 && <section className={styles.related}><div className={styles.relatedHeading}><h2>You May Also Like</h2><Link href={`/search?q=${encodeURIComponent(product.category)}`}>View all <ArrowRight size={14} /></Link></div><div className={styles.relatedGrid}>{related.map(item => <ProductCard key={item.id} product={toProductCard(item)} showColors={false} showArrow={false} />)}</div></section>}

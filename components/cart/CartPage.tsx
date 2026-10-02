@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ChevronDown, CircleHelp, Headset, LockKeyhole, Minus, Plus, RotateCcw, ShoppingBag, Trash2, Truck } from "lucide-react";
-import { FaApplePay, FaCcVisa, FaGooglePay, FaPaypal } from "react-icons/fa";
+import { ArrowLeft, ArrowRight, CircleHelp, Headset, LockKeyhole, Minus, Plus, RotateCcw, ShoppingBag, Trash2, Truck } from "lucide-react";
 import { useCart } from "./CartProvider";
 import { formatCartPrice } from "@/lib/cart-data";
 import styles from "./cart.module.css";
 
 const benefits = [
-  { icon: Truck, title: "Free shipping", description: "On orders over $100" },
+  { icon: Truck, title: "Free shipping", description: "On orders of Rs. 5,000 or more" },
   { icon: RotateCcw, title: "Easy returns", description: "30-day return policy" },
   { icon: LockKeyhole, title: "Secure payment", description: "100% encrypted" },
   { icon: Headset, title: "Premium support", description: "We’ve got you covered" },
@@ -18,13 +17,7 @@ const benefits = [
 
 export default function CartPage() {
   const { items, itemCount, subtotal, changeQuantity, removeItem, clearCart, isLoading, error, retry } = useCart();
-  const [promoMessage, setPromoMessage] = useState("");
-  const [checkoutMessage, setCheckoutMessage] = useState("");
-
-  function applyPromo(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setPromoMessage("Promo codes are coming soon. Stay tuned for your next offer.");
-  }
+  const router = useRouter();
 
   return (
     <main className={styles.page}>
@@ -96,24 +89,10 @@ export default function CartPage() {
                   <div><dt>Estimated tax <span title="Final tax is calculated at checkout." aria-label="Final tax is calculated at checkout."><CircleHelp size={13} /></span></dt><dd>{formatCartPrice(0)}</dd></div>
                 </dl>
                 <div className={styles.total} aria-live="polite"><span>Total</span><strong>{formatCartPrice(subtotal)}</strong></div>
-                <button type="button" className={styles.checkout} disabled={!items.length} onClick={() => setCheckoutMessage("Checkout is coming soon. Keep exploring your next fit.")}>Proceed to checkout<ArrowRight size={16} /></button>
-                {checkoutMessage && <p className={styles.feedback} role="status">{checkoutMessage}</p>}
-                <div className={styles.payments} aria-label="Payment methods: Visa, Mastercard, Apple Pay, Google Pay, PayPal">
-                  <FaCcVisa size={31} aria-hidden="true" />
-                  <span className={styles.mastercard} aria-hidden="true"><i /><i /></span>
-                  <FaApplePay size={34} aria-hidden="true" /><FaGooglePay size={34} aria-hidden="true" />
-                  <span className={styles.paypal}><FaPaypal size={14} aria-hidden="true" />PayPal</span>
-                </div>
+                <button type="button" className={styles.checkout} disabled={!items.length || isLoading || !!error} onClick={() => router.push("/checkout")}>Proceed to checkout<ArrowRight size={16} /></button>
+                <p className={styles.feedback}>Cash on delivery · Discount codes can be applied at checkout.</p>
               </div>
-              <details className={styles.promo} open>
-                <summary>Apply promo code<ChevronDown size={14} /></summary>
-                <form onSubmit={applyPromo}>
-                  <label className={styles.srOnly} htmlFor="promo-code">Promo code</label>
-                  <input id="promo-code" name="promo-code" placeholder="Enter code" required maxLength={40} disabled={!items.length} onChange={() => setPromoMessage("")} />
-                  <button type="submit" disabled={!items.length}>Apply</button>
-                </form>
-                {promoMessage && <p className={styles.feedback} role="status">{promoMessage}</p>}
-              </details>
+
             </div>
             <div className={styles.benefits}>
               {benefits.map(({ icon: Icon, title, description }) => (

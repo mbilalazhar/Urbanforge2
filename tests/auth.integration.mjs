@@ -205,7 +205,7 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.match(accountHtml, /My account/);
     assert.match(accountHtml, /Updated User/);
     assert.doesNotMatch(accountHtml, /Payment Methods|Visa ending|House 24|Bilal Azhar/);
-    assert.match(accountHtml, /No orders yet/);
+    assert.match(accountHtml, /Loading your orders/); // Order history is now fetched from the account-scoped API.
     const admin = await (await fetch(base + '/adminroute')).text();
     assert.match(admin, /Admin Login/);
     assert.match(admin, /type="password"/);

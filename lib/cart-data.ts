@@ -1,6 +1,6 @@
 export type CartItem = {
   id: string; productId?: string; variantId?: string;
-  name: string; details: string; size: string;
+  name: string; details: string; size: string; color?: string; selectedSize?: string;
   /** Price in paisa (PKR / 100). */
   price: number; image: string; imageStyle?: "shoes" | "sunglasses";
   quantity: number; maxQuantity?: number;

@@ -54,7 +54,7 @@ The login/signup forms use TanStack Query mutations, show API errors and pending
 states, and take signed-in users to `/account`. That page checks the user session
 on the server. Type `/adminroute` manually to sign in as an admin; successful
 login opens the admin portal, with dashboard, product, inventory, order, customer,
-coupon, and promotion screens. The Products and Inventory screens save product changes, uploaded media, and stock adjustments to MongoDB through
+coupon, and promotion screens. The Products, Inventory, and Orders screens save product changes, uploaded media, stock adjustments, and orders to MongoDB through
 the admin APIs. Other management screens still use an in-memory preview that
 resets on page refresh. Admin login, signup, sessions, and logout remain real MongoDB-backed
 authentication. The storefront navbar and footer are hidden throughout the admin
@@ -130,7 +130,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 The admin portal uses the existing `urbanforge_admin_session` cookie. `/api/admin/signup` is an alias for the provisioning endpoint at `/api/admin/create`: both require the server's `ADMIN_PROVISIONING_KEY` in the `x-admin-provisioning-key` header. Public signup cannot create administrators.
 
-The Products and Inventory screens use the authenticated commerce APIs. Other portal sections still display sample data from `lib/admin/preview.ts`; their controls update browser-memory preview state only. Their product choices are isolated from the live Products and Inventory screens. The homepage, category listings, search, and product detail pages display active products from the public catalog APIs. No sample commerce records are inserted into MongoDB.
+The Products, Inventory, and Orders screens use the authenticated commerce APIs. Other portal sections still display sample data from `lib/admin/preview.ts`; their controls update browser-memory preview state only. Their product choices are isolated from the live Products, Inventory, and Orders screens. The homepage, category listings, search, and product detail pages display active products from the public catalog APIs. No sample commerce records are inserted into MongoDB.
 
 When called directly, the prepared product, inventory, order, coupon, and promotion APIs persist data in MongoDB. **Use MongoDB Atlas or a MongoDB replica set for these commerce APIs**: product stock edits, order creation, inventory audit records, returns, and coupon redemptions use transactions to prevent partial writes and overselling. A standalone MongoDB server returns an explicit configuration error for transaction-dependent writes. The existing `MONGODB_URI` and optional `MONGODB_DB` configure the connection. Authentication and the static portal preview do not require a replica set.
 
@@ -215,13 +215,12 @@ lookup, preserving saved fields. Signing in again does not clear contact details
   Email, roles, order references, and other protected fields cannot be edited here.
 - `defaultAddress` contains `recipient`, `contact`, `line1`, optional `line2`,
   `city`, `region`, optional `postalCode`, and `country`. Send `null` to remove it.
-- `currentOrderIds` and `pastOrderIds` are reserved string ID references for the
-  future order workflows. The account's order lists remain empty until those
-  workflows are connected; sample customer orders are no longer displayed.
+- `currentOrderIds` and `pastOrderIds` are maintained by checkout and admin order
+  status updates. Account order history uses `GET /api/orders`, scoped to the
+  signed-in user. New accounts show one shared empty state.
 
 The Addresses tab starts with an empty state and offers a form to save, edit,
-or remove the default delivery address. Checkout can reuse this address when
-its order flow is implemented. Wishlist items are stored per user in MongoDB.
+or remove the default delivery address. Checkout prefills these saved details and can save a new default address. Wishlist items are stored per user in MongoDB.
 Run `npm run test:auth` for profile validation, persistence, role and user isolation,
 legacy defaults, and account-page coverage.
 
@@ -249,8 +248,8 @@ rendered without requiring Next.js remote image host configuration.
 
 Add to Cart stores the selected live product/variant in the guest or signed-in account's
 Zustand cart, uses PKR prices, and caps quantities at available stock. Each signed-in
-account restores its own cart from local storage. Buy Now adds the selection and opens `/cart`; payment checkout is not implemented. Future checkout must revalidate
-prices and stock on the server. Run `node --test tests/storefront.test.mjs` for
+account restores its own cart from local storage. Buy Now opens `/checkout` with only the selected item and does not add it to the cart.
+Cart checkout uses all current cart items. Checkout revalidates prices and stock on the server. Run `node --test tests/storefront.test.mjs` for
 catalog-card and cart logic checks; public product API and page coverage is included
 in `npm run test:admin`.
 
@@ -305,8 +304,7 @@ Persistence hydrates after mount to avoid server/client markup mismatches.
 Authentication changes notify other tabs to recheck their shared session;
 same-account cart changes also synchronize across tabs. Invalid stored items are
 ignored, and unavailable storage falls back to an in-memory cart. Storage is local
-to the browser, not a cross-device or encrypted account database; checkout must
-revalidate prices and stock on the server when implemented.
+to the browser, not a cross-device or encrypted account database; checkout revalidates prices and stock on the server before saving an order.
 
 Run `node --test tests/cart-store.test.mjs tests/storefront.test.mjs` for account
 isolation, reload restoration, quantity limits, mutations, storage synchronization,
@@ -340,3 +338,46 @@ persist in MongoDB and work across devices. Browser caches are scoped by account
 other tabs refresh on wishlist changes. Archived/inactive products are not exposed,
 and unavailable saved entries can still be removed. Profile edits cannot replace
 wishlist references. Existing accounts initialize an empty list automatically.
+
+
+## Customer checkout and orders
+
+`/checkout` presents contact information, a delivery address, shipping choices,
+and a live order summary on desktop and mobile. Signed-in accounts prefill name,
+email, phone, street/apartment, city, province, postal code, and country from their
+profile/default address. Missing information stays blank. Guests can check out
+without an account; their orders are not assigned to an account by email alone.
+Signed-in shoppers can explicitly save the entered address as their default.
+
+- `POST /api/checkout/quote`: accepts `items` (`productId`, optional `variantId`,
+  `color`, `size`, and `quantity`), `deliveryMethod`, optional `couponCode`, and
+  `email` for coupon eligibility. Returns server-calculated line items, totals,
+  shipping, discounts, and a `quoteToken`. Quoting does not redeem a coupon.
+- `POST /api/orders`: accepts the same selections plus `contact` (`name`, `email`,
+  `phone`), `address` (`line1`, `apartment`, `city`, `province`, `postalCode`,
+  `country`, `type`), `saveAddress`, `paymentMethod: "cod"`, `quoteToken`, a UUID
+  `requestId`, and `accountId` (session ID or null for guests). The latter guards
+  against account switching; ownership always comes from the authenticated session.
+- `GET /api/orders`: requires a user session and returns only that account's
+  orders. Customers cannot set order/payment status, ownership, prices, or totals.
+
+Prices use PKR (the cart alone stores paisa). Shipping is configured in
+`lib/checkout/types.ts`: standard Rs. 250, free from Rs. 5,000; express Rs. 500.
+Cash on delivery is the supported payment method; orders start as `new` with
+payment `pending`. No payment gateway or payment collection is implemented.
+
+Orders are inserted into the existing `admin_orders` collection in the same MongoDB
+transaction as inventory deduction, stock audit records, coupon redemption, and
+user order references/default-address changes. Use Atlas or a MongoDB replica set.
+Retries of the same request are idempotent. Changed prices or insufficient stock
+produce an error for review instead of silently changing the payable amount.
+The confirmation modal appears only after a saved order response. Successful cart
+checkout consumes the submitted quantities; Buy Now leaves the cart untouched.
+Admin Orders now uses the real APIs, including fulfilment, invoices, and returns.
+Completed/cancelled/returned/refunded orders move to the user's past references.
+
+Checks: `npm run build`, then
+`node --test tests/checkout.integration.mjs tests/cart-store.test.mjs`.
+`node --test tests/checkout.browser.mjs` uses a local Chrome and an isolated MongoDB
+replica set to verify cart checkout, Buy Now, saved details, failure/retry recovery,
+account history, and desktop/mobile layout. Set `CHROME_PATH` if needed.

@@ -89,7 +89,7 @@ function ProductOptions({ product, onClose }: { product: AdminProduct; onClose: 
   }
   function addToCart() {
     if (!canAdd) return;
-    const added = cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id,
+    const added = cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id, color, selectedSize: size,
       name: product.name, details: [product.category, product.subcategory, color].filter(Boolean).join(" / "), size: size ? `Size: ${size}` : "One size",
       price: Math.round(price * 100), image: product.images[0], quantity: purchaseQuantity, maxQuantity: stock });
     setFeedback(added ? `${purchaseQuantity} ${purchaseQuantity === 1 ? "item" : "items"} added to your cart.` : "Unable to add this quantity. Check your cart and try again.");

@@ -15,7 +15,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const isCart = pathname === "/cart";
-  const isLightPage = pathname.startsWith("/products/") || ["/search", "/cart", "/wishlist", "/account", "/login", "/signup", "/forgot-password"].includes(pathname);
+  const isLightPage = pathname.startsWith("/products/") || ["/search", "/cart", "/checkout", "/wishlist", "/account", "/login", "/signup", "/forgot-password"].includes(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {

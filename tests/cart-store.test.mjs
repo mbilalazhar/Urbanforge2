@@ -147,3 +147,17 @@ test('unavailable browser storage falls back to an isolated in-memory cart', asy
   assert.equal(a.getState().addItem(item), true); assert.deepEqual(a.getState().items, [item]);
   assert.deepEqual((await ready(createCartStore('b'))).getState().items, []);
 });
+
+test('successful checkout consumes only submitted quantities in the submitting account', async () => {
+  const { storage } = fixture();
+  const a = await ready(createCartStore('checkout-a', storage));
+  const b = await ready(createCartStore('checkout-b', storage));
+  a.getState().addItem(item); b.getState().addItem(item);
+  const submitted = a.getState().items.map(({ id, quantity }) => ({ id, quantity }));
+  a.getState().addItem({ ...item, quantity: 1 });
+  a.getState().addItem({ ...item, id: 'other', productId: 'other', quantity: 1 });
+  a.getState().consumeItems(submitted);
+  assert.deepEqual(a.getState().items.map(i => [i.id, i.quantity]), [[item.id, 1], ['other', 1]]);
+  assert.equal(b.getState().items[0].quantity, 2);
+  assert.deepEqual((await ready(createCartStore('checkout-a', storage))).getState().items, a.getState().items);
+});

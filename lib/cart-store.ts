@@ -8,6 +8,7 @@ export const cartStorageKey = (accountId: string) => `urbanforge:cart:v1:user:${
 const itemSchema = z.object({
   id: z.string().min(1).max(1000), productId: z.string().min(1).max(100).optional(), variantId: z.string().max(100).optional(),
   name: z.string().min(1).max(500), details: z.string().max(2000), size: z.string().max(200),
+  color: z.string().max(150).optional(), selectedSize: z.string().max(150).optional(),
   price: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
   image: z.string().min(1).max(2048).refine(value => /^\/(?!\/)/.test(value) || /^https?:\/\//.test(value)),
   imageStyle: z.enum(["shoes", "sunglasses"]).optional(),
@@ -35,6 +36,7 @@ export type CartState = {
   changeQuantity: (id: string, change: number) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
+  consumeItems: (purchased: { id: string; quantity: number }[]) => void;
 };
 
 // A fresh store per account prevents state from being copied between storage keys.
@@ -54,6 +56,10 @@ export function createCartStore(accountId: string | null, storage: StateStorage 
     },
     changeQuantity: (id, change) => { if (get().hydrated) set({ items: changeCartQuantity(get().items, id, change) }); },
     removeItem: id => { if (get().hydrated) set({ items: get().items.filter(item => item.id !== id) }); },
+    consumeItems: purchased => {
+      if (!get().hydrated) return;
+      set({ items: get().items.map(item => ({ ...item, quantity: item.quantity - purchased.filter(entry => entry.id === item.id).reduce((sum, entry) => sum + entry.quantity, 0) })).filter(item => item.quantity > 0) });
+    },
     clearCart: () => { if (get().hydrated) set({ items: [] }); },
   }), {
     name: accountId ? cartStorageKey(accountId) : guestCartStorageKey,

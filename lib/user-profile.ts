@@ -12,7 +12,7 @@ export type UserDetails = {
   contact: string;
   wishlistProductIds: string[];
   defaultAddress: UserAddress | null;
-  /** References to order IDs; populated by future order workflows, never by profile edits. */
+  /** References to order IDs; maintained by checkout and fulfilment, never by profile edits. */
   currentOrderIds: string[];
   pastOrderIds: string[];
   preferences: { orders: boolean; news: boolean };

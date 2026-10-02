@@ -10,7 +10,7 @@ export type AdminProduct = {
 };
 export const orderStatuses = ["new", "processing", "confirmed", "packed", "shipped", "delivered", "cancelled", "returned", "refunded"] as const;
 export type OrderStatus = typeof orderStatuses[number];
-export type OrderItem = { productId: string; variantId?: string; name: string; sku: string; quantity: number; price: number; image: string };
+export type OrderItem = { productId: string; variantId?: string; color?: string; size?: string; name: string; sku: string; quantity: number; price: number; image: string };
 export type AdminOrder = {
   id: string; number: string; customerName: string; email: string; phone: string; address: string;
   items: OrderItem[]; subtotal: number; shipping: number; discount: number; total: number;

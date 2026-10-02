@@ -1,10 +1,13 @@
 import "server-only";
+import { checkoutOrderSchema, checkoutQuoteSchema } from "@/lib/checkout/schema";
+import { shippingCost, type CheckoutInput, type CheckoutQuote, type CustomerOrder, type CheckoutAddress, type DeliveryMethod } from "@/lib/checkout/types";
+import type { AccountDocument } from "@/models/account";
 import { subcategoriesFor, productTypesFor } from "@/lib/product-categories";
 import { readProductBody } from "./product-upload";
 import { readInventoryHistory, summarizeInventory } from "./inventory";
 
 import { randomUUID } from "node:crypto";
-import { MongoServerError, type ClientSession, type Db } from "mongodb";
+import { ObjectId, MongoServerError, type ClientSession, type Db } from "mongodb";
 import { z, type ZodType } from "zod";
 import dbConnect from "@/lib/dbconnect";
 import { AuthError, checkOrigin, json } from "@/lib/auth/http";
@@ -56,7 +59,7 @@ const promotionSchema = z.object({
 }).strict();
 
 type ProductDoc = AdminProduct & { _id: string; skuKeys: string[]; deletedAt?: string };
-type OrderDoc = AdminOrder & { _id: string; stockRestored: boolean; coupon?: { id: string; code: string; discount: number }; manualRefund?: { amount: number; note: string; adminId: string; recordedAt: string } };
+type OrderDoc = AdminOrder & { _id: string; stockRestored: boolean; userId?: string; checkoutKey?: string; checkoutFingerprint?: string; shippingAddress?: CheckoutAddress; deliveryMethod?: DeliveryMethod; paymentMethod?: "cod"; coupon?: { id: string; code: string; discount: number }; manualRefund?: { amount: number; note: string; adminId: string; recordedAt: string } };
 type CouponDoc = AdminCoupon & { _id: string };
 type PromotionDoc = Omit<AdminPromotion, "state"> & { _id: string };
 type MovementDoc = StockMovement & { _id: string; adminId: string };
@@ -68,6 +71,8 @@ async function database() {
       db.collection("admin_products").createIndex({ skuKeys: 1 }, { unique: true }),
       db.collection("admin_orders").createIndex({ number: 1 }, { unique: true }),
       db.collection("admin_orders").createIndex({ email: 1, createdAt: -1 }),
+      db.collection("admin_orders").createIndex({ userId: 1, createdAt: -1 }),
+      db.collection("admin_orders").createIndex({ checkoutKey: 1 }, { unique: true, sparse: true }),
       db.collection("admin_coupons").createIndex({ code: 1 }, { unique: true }),
       db.collection("admin_stock_movements").createIndex({ productId: 1, createdAt: -1 }),
       db.collection("admin_stock_movements").createIndex({ createdAt: -1, _id: -1 }),
@@ -82,7 +87,7 @@ function collections(db: Db) {
 }
 function clean<T extends object>(document: T) {
   const result = { ...document } as Record<string, unknown>;
-  for (const key of ["_id", "skuKeys", "deletedAt", "stockRestored", "manualRefund", "adminId", "coupon"]) delete result[key];
+  for (const key of ["_id", "skuKeys", "deletedAt", "stockRestored", "manualRefund", "adminId", "coupon", "checkoutKey", "checkoutFingerprint"]) delete result[key];
   return result;
 }
 async function body<T>(request: Request, schema: ZodType<T>): Promise<T> {
@@ -279,7 +284,7 @@ export function orderCreate(request: Request) { return adminRoute(request, async
   });
   return { order: clean(order) };
 }, 201); }
-async function redeemCoupon(db: Db, session: ClientSession, code: string, input: z.infer<typeof orderCreateSchema>, items: AdminOrder["items"], categories: Map<string, string>, subtotal: number) {
+async function redeemCoupon(db: Db, session: ClientSession | undefined, code: string, input: z.infer<typeof orderCreateSchema>, items: AdminOrder["items"], categories: Map<string, string>, subtotal: number, reserve = true) {
   if (input.discount > 0) throw new AuthError("Use either a coupon or a manual discount on an order.", 400);
   const c = collections(db), coupon = await c.coupons.findOne({ code, active: true }, { session });
   const instant = now();
@@ -293,7 +298,7 @@ async function redeemCoupon(db: Db, session: ClientSession, code: string, input:
   let discount = coupon.type === "free_shipping" ? input.shipping : coupon.type === "percentage" ? round(eligibleSubtotal * coupon.value / 100) : Math.min(coupon.value, eligibleSubtotal);
   if (coupon.maximumDiscount !== null) discount = Math.min(discount, coupon.maximumDiscount);
   if (discount <= 0) throw new AuthError("This coupon does not provide a discount for this order.", 400);
-  await c.coupons.updateOne({ _id: coupon.id }, { $inc: { usedCount: 1 } }, { session });
+  if (reserve) await c.coupons.updateOne({ _id: coupon.id }, { $inc: { usedCount: 1 } }, { session });
   return { id: coupon.id, code: coupon.code, discount: round(discount) };
 }
 const transitions: Record<AdminOrder["status"], AdminOrder["status"][]> = {
@@ -330,6 +335,13 @@ export function orderUpdate(request: Request, id: string) { return adminRoute(re
       updated.stockRestored = true;
     }
     await c.orders.replaceOne({ _id: id }, updated, { session });
+    if (updated.userId) {
+      const past = ["delivered", "cancelled", "returned", "refunded"].includes(updated.status);
+      await db.collection<AccountDocument>("users").updateOne({ _id: new ObjectId(updated.userId) }, {
+        $addToSet: { [past ? "pastOrderIds" : "currentOrderIds"]: updated.id },
+        $pull: { [past ? "currentOrderIds" : "pastOrderIds"]: updated.id },
+      }, { session });
+    }
     return updated;
   });
   return { order: clean(order) };
@@ -458,3 +470,90 @@ export async function catalogProductsByIds(ids: string[]) {
     return { ...clean(product), salePrice: price < product.price ? price : product.salePrice } as AdminProduct;
   });
 }
+
+function customerOrder(order: OrderDoc): CustomerOrder {
+  const { id, number, customerName, email, phone, address, items, subtotal, shipping, discount, total, status, paymentStatus, courier, trackingNumber, createdAt, shippingAddress, deliveryMethod, paymentMethod } = order;
+  return { id, number, customerName, email, phone, address, items, subtotal, shipping, discount, total, status, paymentStatus, courier, trackingNumber, createdAt, shippingAddress, deliveryMethod, paymentMethod };
+}
+async function quoteCheckout(db: Db, input: CheckoutInput, session?: ClientSession, reserveCoupon = false) {
+  const c = collections(db), promotions = await activePromotions(db, session);
+  const items: CheckoutQuote["items"] = [], categories = new Map<string, string>(), demand = new Map<string, number>();
+  for (const item of input.items) {
+    const product = await c.products.findOne({ _id: item.productId, status: "active", deletedAt: { $exists: false } }, { session });
+    if (!product) throw new AuthError("A selected product is no longer available. Remove it from checkout.", 404);
+    const variant = product.variants.find(variant => variant.id === item.variantId);
+    if (product.variants.length && !variant || item.variantId && !variant) throw new AuthError(`Select an available option for ${product.name}.`, 400);
+    const color = variant?.color ?? item.color ?? "", size = variant?.size ?? item.size ?? "";
+    if (variant ? (item.color !== undefined && item.color !== color || item.size !== undefined && item.size !== size) :
+      (product.colors.length ? !product.colors.includes(color) : !!color) || (product.sizes.length ? !product.sizes.includes(size) : !!size)) throw new AuthError(`Select a valid color and size for ${product.name}.`, 400);
+    const stock = variant?.stock ?? product.stock, stockKey = `${product.id}:${variant?.id ?? ""}`;
+    demand.set(stockKey, (demand.get(stockKey) ?? 0) + item.quantity);
+    if (demand.get(stockKey)! > stock) throw new AuthError(`Only ${stock} units of ${product.name} are available. Reduce the quantity or remove the item.`, 409);
+    categories.set(product.id, product.category);
+    items.push({ productId: product.id, ...(variant ? { variantId: variant.id } : {}), color, size, quantity: item.quantity, name: product.name, sku: variant?.sku ?? product.sku, image: product.images[0], price: effectivePrice(product, promotions), stock });
+  }
+  const subtotal = round(items.reduce((sum, item) => sum + item.price * item.quantity, 0)), shipping = shippingCost(input.deliveryMethod, subtotal);
+  if (subtotal > 1_000_000_000) throw new AuthError("Order subtotal exceeds the maximum supported amount.", 400);
+  if (input.couponCode && !input.email) throw new AuthError("Enter your email before applying a discount code.", 400);
+  const coupon = input.couponCode ? await redeemCoupon(db, session, input.couponCode, { customerName: "", email: input.email, phone: "", address: "", items, shipping, discount: 0, notes: "", paymentStatus: "pending" }, items, categories, subtotal, reserveCoupon) : undefined;
+  const discount = coupon?.discount ?? 0, total = round(subtotal + shipping - discount);
+  if (total > 1_000_000_000) throw new AuthError("Order total exceeds the maximum supported amount.", 400);
+  const quoteToken = hashToken(JSON.stringify({ items: items.map(({ stock, ...snapshot }) => { void stock; return snapshot; }), subtotal, shipping, discount, total }));
+  return { quote: { items, subtotal, shipping, discount, total, quoteToken }, coupon };
+}
+export function checkoutQuote(request: Request) { return apiRoute(async () => {
+  const input = await body(request, checkoutQuoteSchema);
+  return json({ quote: (await quoteCheckout(await database(), input)).quote });
+}); }
+export function customerOrderCreate(request: Request) { return apiRoute(async () => {
+  const input = await body(request, checkoutOrderSchema), account = await getCurrentAccount("user");
+  if (input.accountId !== (account?.id ?? null)) throw new AuthError("Your signed-in account changed. Refresh checkout before placing the order.", 409);
+  if (input.saveAddress && !account) throw new AuthError("Sign in to save your address.", 401);
+  const db = await database(), checkoutKey = hashToken(`${account?.id ?? "guest"}:${input.requestId}`), checkoutFingerprint = hashToken(JSON.stringify(input));
+  function replay(order: OrderDoc) {
+    if (order.checkoutFingerprint !== checkoutFingerprint) throw new AuthError("This checkout request has already been used. Refresh checkout and try again.", 409);
+    return order;
+  }
+  const existing = await collections(db).orders.findOne({ checkoutKey });
+  if (existing) return json({ order: customerOrder(replay(existing)) });
+  let order: OrderDoc;
+  try {
+    order = await transaction(db, async session => {
+      // Serialize retries even when they arrive before the first order commits.
+      await db.collection<{ _id: string; touchedAt: Date }>("checkout_requests").updateOne({ _id: checkoutKey }, { $set: { touchedAt: new Date() } }, { upsert: true, session });
+      const c = collections(db), previous = await c.orders.findOne({ checkoutKey }, { session });
+      if (previous) return replay(previous);
+      await db.collection<{ _id: string; orders: number }>("admin_order_customers").updateOne({ _id: input.contact.email }, { $inc: { orders: 1 } }, { session, upsert: true });
+      const { quote, coupon } = await quoteCheckout(db, { ...input, email: input.contact.email }, session, true);
+      if (input.quoteToken !== quote.quoteToken) throw new AuthError("Prices changed. Review the refreshed order summary before placing your order.", 409);
+      const id = randomUUID(), timestamp = now(), number = `UF-${Date.now().toString(36).toUpperCase()}-${id.slice(0, 6).toUpperCase()}`;
+      for (const item of quote.items) await changeStock(db, session, { productId: item.productId, variantId: item.variantId, quantity: -item.quantity, type: "sold", reason: `Order ${number}` }, account?.id ?? "guest-checkout");
+      const created: OrderDoc = { _id: id, id, number, checkoutKey, checkoutFingerprint, ...(account ? { userId: account.id } : {}),
+        customerName: input.contact.name, email: input.contact.email, phone: input.contact.phone,
+        address: [input.address.line1, input.address.apartment, input.address.city, input.address.province, input.address.postalCode, input.address.country].filter(Boolean).join(", "),
+        shippingAddress: input.address, deliveryMethod: input.deliveryMethod, paymentMethod: "cod",
+        items: quote.items.map(({ stock, ...item }) => { void stock; return item; }), subtotal: quote.subtotal, shipping: quote.shipping, discount: quote.discount, total: quote.total,
+        ...(coupon ? { coupon } : {}), status: "new", paymentStatus: "pending", notes: "", courier: "", trackingNumber: "", returnStatus: "none", stockRestored: false, createdAt: timestamp, updatedAt: timestamp };
+      await c.orders.insertOne(created, { session });
+      if (account) {
+        const result = await db.collection<AccountDocument>("users").updateOne({ _id: new ObjectId(account.id) }, {
+          $addToSet: { currentOrderIds: id }, $set: { updatedAt: new Date(), ...(input.saveAddress ? { contact: input.contact.phone, defaultAddress: { recipient: input.contact.name, contact: input.contact.phone, line1: input.address.line1, line2: input.address.apartment, city: input.address.city, region: input.address.province, postalCode: input.address.postalCode, country: input.address.country } } : {}) },
+        }, { session });
+        if (!result.matchedCount) throw new AuthError("Your account is no longer available. Sign in again.", 401);
+      }
+      return created;
+    });
+  } catch (error) {
+    if (!(error instanceof MongoServerError && error.code === 11000)) throw error;
+    const previous = await collections(db).orders.findOne({ checkoutKey });
+    if (!previous) throw error;
+    order = replay(previous);
+  }
+  return json({ order: customerOrder(order) }, 201);
+}); }
+export function customerOrders() { return apiRoute(async () => {
+  const account = await getCurrentAccount("user");
+  if (!account) throw new AuthError("Sign in to view your orders.", 401);
+  const orders = await collections(await database()).orders.find({ userId: account.id }).sort({ createdAt: -1 }).toArray();
+  return json({ accountId: account.id, orders: orders.map(customerOrder) });
+}); }
