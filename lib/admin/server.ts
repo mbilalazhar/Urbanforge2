@@ -3,6 +3,7 @@ import { checkoutOrderSchema, checkoutQuoteSchema } from "@/lib/checkout/schema"
 import { shippingCost, type CheckoutInput, type CheckoutQuote, type CustomerOrder, type CheckoutAddress, type DeliveryMethod } from "@/lib/checkout/types";
 import type { AccountDocument } from "@/models/account";
 import { subcategoriesFor, productTypesFor } from "@/lib/product-categories";
+import { mainCategory, matchesOfferCategory, validOfferScope } from "./offer-scope";
 import { readProductBody } from "./product-upload";
 import { readInventoryHistory, summarizeInventory } from "./inventory";
 
@@ -47,15 +48,20 @@ const inventorySchema = z.object({
   productId: identifier, variantId: identifier.optional(), quantity: z.number().int().min(-1_000_000).max(1_000_000).refine(value => value !== 0, "Enter a nonzero stock change."),
   type: z.enum(["added", "sold", "returned", "adjustment"]), reason: text.min(1), expectedStock: quantity.optional(),
 }).strict();
+const offerScope = {
+  productIds: z.array(identifier).max(0, "Choose main categories or the entire store, not individual products.").default([]),
+  categories: z.array(short.refine(value => Boolean(mainCategory(value)), "Select a valid main category; subcategories are not supported.").transform(value => mainCategory(value)!)).max(6).transform(values => [...new Set(values)]).default([]),
+};
 const couponSchema = z.object({
+  ...offerScope, kind: z.enum(["coupon", "promo"]).default("coupon"),
   code: z.string().trim().min(1).max(60).regex(/^[a-zA-Z0-9_-]+$/).toUpperCase(), type: z.enum(["percentage", "fixed", "free_shipping"]), value: money,
   minimumPurchase: money.default(0), maximumDiscount: money.nullable().default(null), startsAt: timestamp.default(""), endsAt: timestamp.default(""),
-  usageLimit: quantity.default(0), productIds: z.array(identifier).max(1000).default([]), categories: strings.default([]),
+  usageLimit: quantity.default(0),
   customerEmails: z.array(z.string().trim().toLowerCase().email()).max(1000).default([]), firstOrderOnly: z.boolean().default(false), active: z.boolean().default(true),
 }).strict();
 const promotionSchema = z.object({
   name: short.min(1), banner: z.union([media, z.literal("")]).default(""), startsAt: timestamp.refine(Boolean, "A start date is required."), endsAt: timestamp.refine(Boolean, "An end date is required."),
-  productIds: z.array(identifier).min(1).max(1000), discountPercent: z.number().finite().min(0).max(100), active: z.boolean().default(true),
+  ...offerScope, discountPercent: z.number().finite().gt(0).max(100), active: z.boolean().default(true),
 }).strict();
 
 type ProductDoc = AdminProduct & { _id: string; skuKeys: string[]; deletedAt?: string };
@@ -247,10 +253,10 @@ export function inventoryAdjust(request: Request) { return adminRoute(request, a
 export function orderList(request: Request) { return adminRoute(request, async db => ({ orders: (await collections(db).orders.find().sort({ createdAt: -1 }).toArray()).map(clean) })); }
 async function activePromotions(db: Db, session?: ClientSession) {
   const instant = now();
-  return collections(db).promotions.find({ active: true, startsAt: { $lte: instant }, endsAt: { $gt: instant } }, { session }).toArray();
+  return (await collections(db).promotions.find({ active: true, startsAt: { $lte: instant }, endsAt: { $gt: instant } }, { session }).toArray()).filter(validOfferScope);
 }
 function effectivePrice(product: AdminProduct, promotions: PromotionDoc[]) {
-  const discount = Math.max(0, ...promotions.filter(promotion => promotion.productIds.includes(product.id)).map(promotion => promotion.discountPercent));
+  const discount = Math.max(0, ...promotions.filter(promotion => matchesOfferCategory(promotion, product.category)).map(promotion => promotion.discountPercent));
   return Math.min(product.salePrice ?? product.price, round(product.price * (1 - discount / 100)));
 }
 export function orderCreate(request: Request) { return adminRoute(request, async (db, adminId) => {
@@ -289,11 +295,12 @@ async function redeemCoupon(db: Db, session: ClientSession | undefined, code: st
   const c = collections(db), coupon = await c.coupons.findOne({ code, active: true }, { session });
   const instant = now();
   if (!coupon || coupon.startsAt && coupon.startsAt > instant || coupon.endsAt && coupon.endsAt <= instant) throw new AuthError("This coupon is inactive, expired, or has not started.", 400);
+  if (!validOfferScope(coupon)) throw new AuthError("This discount code needs its eligibility updated by the store.", 400);
   if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) throw new AuthError("This coupon has reached its usage limit.", 409);
   if (subtotal < coupon.minimumPurchase) throw new AuthError(`This coupon requires a minimum purchase of Rs. ${coupon.minimumPurchase}.`, 400);
   if (coupon.customerEmails.length && !coupon.customerEmails.includes(input.email)) throw new AuthError("This coupon is not available to this customer.", 400);
   if (coupon.firstOrderOnly && await c.orders.findOne({ email: input.email, status: { $ne: "cancelled" } }, { session })) throw new AuthError("This coupon is only available for a customer's first order.", 400);
-  const eligibleSubtotal = round(items.filter(item => !coupon.productIds.length && !coupon.categories.length || coupon.productIds.includes(item.productId) || coupon.categories.some(category => category.toLowerCase() === categories.get(item.productId)?.toLowerCase())).reduce((total, item) => total + item.price * item.quantity, 0));
+  const eligibleSubtotal = round(items.filter(item => matchesOfferCategory(coupon, categories.get(item.productId) ?? "")).reduce((total, item) => total + item.price * item.quantity, 0));
   if (eligibleSubtotal <= 0) throw new AuthError("No products in this order qualify for the coupon.", 400);
   let discount = coupon.type === "free_shipping" ? input.shipping : coupon.type === "percentage" ? round(eligibleSubtotal * coupon.value / 100) : Math.min(coupon.value, eligibleSubtotal);
   if (coupon.maximumDiscount !== null) discount = Math.min(discount, coupon.maximumDiscount);
@@ -348,15 +355,32 @@ export function orderUpdate(request: Request, id: string) { return adminRoute(re
 }); }
 async function customers(db: Db): Promise<AdminCustomer[]> {
   const [accounts, orders] = await Promise.all([
-    db.collection("users").find({}, { projection: { _id: 1, name: 1, email: 1, createdAt: 1 } }).toArray(),
-    collections(db).orders.find().toArray(),
+    db.collection<AccountDocument>("users").find({}, { projection: { _id: 1, name: 1, email: 1, contact: 1, defaultAddress: 1, createdAt: 1 } }).toArray(),
+    collections(db).orders.find({}, { projection: { id: 1, userId: 1, customerName: 1, email: 1, phone: 1, address: 1, createdAt: 1, paymentStatus: 1, status: 1, total: 1 } }).sort({ createdAt: -1 }).toArray(),
   ]);
   const result = new Map<string, AdminCustomer>();
-  for (const account of accounts) result.set(account.email, { id: String(account._id), name: account.name, email: account.email, createdAt: new Date(account.createdAt).toISOString(), orders: 0, spent: 0 });
+  const byId = new Map<string, AdminCustomer>();
+  for (const account of accounts) {
+    const address = account.defaultAddress;
+    const customer: AdminCustomer = {
+      id: String(account._id), name: account.name, email: account.email, createdAt: new Date(account.createdAt).toISOString(),
+      registered: true, contact: account.contact || address?.contact || "",
+      address: address ? [address.recipient, address.line1, address.line2, address.city, address.region, address.postalCode, address.country].filter(Boolean).join(", ") : "",
+      orders: 0, spent: 0, lastOrderAt: null,
+    };
+    result.set(account.email.toLowerCase(), customer);
+    byId.set(customer.id, customer);
+  }
   for (const order of orders) {
-    let customer = result.get(order.email);
-    if (!customer) { customer = { id: `order-${order.id}`, name: order.customerName, email: order.email, createdAt: order.createdAt, orders: 0, spent: 0 }; result.set(order.email, customer); }
-    if (order.createdAt < customer.createdAt) customer.createdAt = order.createdAt;
+    // Linked orders stay with their account even if checkout used another email.
+    let customer = (order.userId ? byId.get(order.userId) : undefined) ?? result.get(order.email.toLowerCase());
+    if (!customer) {
+      customer = { id: `order-${order.id}`, name: order.customerName, email: order.email, createdAt: order.createdAt, registered: false, contact: order.phone || "", address: order.address || "", orders: 0, spent: 0, lastOrderAt: null };
+      result.set(order.email.toLowerCase(), customer);
+    }
+    if (!customer.registered && order.createdAt < customer.createdAt) customer.createdAt = order.createdAt;
+    if (!customer.lastOrderAt) customer.lastOrderAt = order.createdAt;
+    if (!customer.registered) { customer.contact ||= order.phone || ""; customer.address ||= order.address || ""; }
     customer.orders += 1;
     if (order.paymentStatus === "paid" && !["cancelled", "returned", "refunded"].includes(order.status)) customer.spent = round(customer.spent + order.total);
   }
@@ -375,33 +399,36 @@ function dateRange<T extends { startsAt: string; endsAt: string }>(input: T) {
 }
 function validateCoupon(input: z.infer<typeof couponSchema>) {
   dateRange(input);
+  validateOfferScope(input);
   if (input.type === "percentage" && input.value > 100) throw new AuthError("Percentage discounts cannot exceed 100%.", 400);
   if (input.type === "free_shipping") input.value = 0;
+  else if (input.value <= 0) throw new AuthError("Enter a discount greater than zero.", 400);
 }
 function promotionState(promotion: PromotionDoc): AdminPromotion["state"] {
-  if (!promotion.active) return "inactive";
+  if (!promotion.active || !validOfferScope(promotion)) return "inactive";
   if (promotion.startsAt > now()) return "scheduled";
   return promotion.endsAt <= now() ? "ended" : "active";
 }
 function publicPromotion(promotion: PromotionDoc) { return { ...clean(promotion), state: promotionState(promotion) }; }
-async function validateProductIds(db: Db, ids: string[]) {
-  if (ids.length && await collections(db).products.countDocuments({ _id: { $in: [...new Set(ids)] }, deletedAt: { $exists: false } }) !== new Set(ids).size) throw new AuthError("One or more selected products no longer exist.", 400);
+function validateOfferScope(offer: { categories?: string[]; productIds?: string[]; active: boolean }) {
+  if (offer.active && !validOfferScope(offer)) throw new AuthError("Edit this offer to select main categories or the entire store.", 400);
 }
-export function couponList(request: Request) { return adminRoute(request, async db => ({ coupons: (await collections(db).coupons.find().sort({ createdAt: -1 }).toArray()).map(clean) })); }
+function publicCoupon(coupon: CouponDoc) { return { ...clean(coupon), kind: coupon.kind ?? "coupon" }; }
+export function couponList(request: Request) { return adminRoute(request, async db => ({ coupons: (await collections(db).coupons.find().sort({ createdAt: -1 }).toArray()).map(publicCoupon) })); }
 export function couponCreate(request: Request) { return adminRoute(request, async db => {
-  const input = await body(request, couponSchema); validateCoupon(input); await validateProductIds(db, input.productIds);
+  const input = await body(request, couponSchema); validateCoupon(input);
   const id = randomUUID(), coupon: CouponDoc = { ...input, _id: id, id, usedCount: 0, createdAt: now() };
-  await collections(db).coupons.insertOne(coupon); return { coupon: clean(coupon) };
+  await collections(db).coupons.insertOne(coupon); return { coupon: publicCoupon(coupon) };
 }, 201); }
 export function couponUpdate(request: Request, id: string) { return adminRoute(request, async db => {
   const input = await body(request, couponSchema.partial());
   const coupon = await transaction(db, async session => {
     const c = collections(db).coupons, current = mustExist(await c.findOne({ _id: id }, { session }));
-    const updated = { ...current, ...input }; validateCoupon(updated); await validateProductIds(db, updated.productIds);
+    const updated = { ...current, ...input }; validateCoupon(updated);
     if (updated.usageLimit && updated.usageLimit < current.usedCount) throw new AuthError("Usage limit cannot be below the number already redeemed.", 400);
     await c.replaceOne({ _id: id }, updated, { session }); return updated;
   });
-  return { coupon: clean(coupon) };
+  return { coupon: publicCoupon(coupon) };
 }); }
 export function couponDelete(request: Request, id: string) { return adminRoute(request, async db => {
   const result = await collections(db).coupons.deleteOne({ _id: id });
@@ -410,7 +437,7 @@ export function couponDelete(request: Request, id: string) { return adminRoute(r
 }); }
 export function promotionList(request: Request) { return adminRoute(request, async db => ({ promotions: (await collections(db).promotions.find().sort({ createdAt: -1 }).toArray()).map(publicPromotion) })); }
 export function promotionCreate(request: Request) { return adminRoute(request, async db => {
-  const input = await body(request, promotionSchema); dateRange(input); await validateProductIds(db, input.productIds);
+  const input = await body(request, promotionSchema); dateRange(input); validateOfferScope(input);
   const id = randomUUID(), promotion: PromotionDoc = { ...input, _id: id, id, createdAt: now() };
   await collections(db).promotions.insertOne(promotion); return { promotion: publicPromotion(promotion) };
 }, 201); }
@@ -418,7 +445,7 @@ export function promotionUpdate(request: Request, id: string) { return adminRout
   const input = await body(request, promotionSchema.partial());
   const promotion = await transaction(db, async session => {
     const c = collections(db).promotions, current = mustExist(await c.findOne({ _id: id }, { session }));
-    const updated = { ...current, ...input }; dateRange(updated); await validateProductIds(db, updated.productIds);
+    const updated = { ...current, ...input }; dateRange(updated); validateOfferScope(updated);
     await c.replaceOne({ _id: id }, updated, { session }); return updated;
   });
   return { promotion: publicPromotion(promotion) };

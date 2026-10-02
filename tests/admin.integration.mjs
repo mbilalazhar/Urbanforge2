@@ -163,7 +163,7 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
   });
 
   await t.test('coupons validate scopes, dates, percentage and unique codes', async () => {
-    const input = { code: 'summer25', type: 'percentage', value: 25, minimumPurchase: 5000, maximumDiscount: 2000, usageLimit: 500, productIds: [product.id], active: true };
+    const input = { code: 'summer25', type: 'percentage', value: 25, minimumPurchase: 5000, maximumDiscount: 2000, usageLimit: 500, categories: ['Men'], active: true };
     const created = await api('/api/admin/coupons', { body: input }); assert.equal(created.status, 201); coupon = created.body.coupon;
     assert.equal(coupon.code, 'SUMMER25'); assert.equal(coupon.usedCount, 0);
     assert.equal((await api('/api/admin/coupons', { body: input })).status, 409);
@@ -175,7 +175,7 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
   });
 
   await t.test('scheduled promotions control public catalog pricing and views deduplicate', async () => {
-    const input = { name: 'Autumn Sale', startsAt: new Date(Date.now() - 60_000).toISOString(), endsAt: new Date(Date.now() + 86_400_000).toISOString(), productIds: [product.id], discountPercent: 20, active: true };
+    const input = { name: 'Autumn Sale', startsAt: new Date(Date.now() - 60_000).toISOString(), endsAt: new Date(Date.now() + 86_400_000).toISOString(), categories: ['Men'], discountPercent: 20, active: true };
     const created = await api('/api/admin/promotions', { body: input }); assert.equal(created.status, 201); promotion = created.body.promotion; assert.equal(promotion.state, 'active');
     const catalog = await api('/api/catalog'); assert.equal(catalog.body.managed, true);
     const live = catalog.body.products.find(item => item.id === product.id); assert.equal(live.salePrice, 1600);
@@ -216,7 +216,7 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
     assert.equal(winningOrder.discount, 500);
     assert.equal((await patch(`/api/admin/orders/${winningOrder.id}`, { status: 'cancelled' })).status, 200);
     assert.equal((await api('/api/admin/coupons')).body.coupons.find(item => item.id === flash.body.coupon.id).usedCount, 1);
-    const shipping = await api('/api/admin/coupons', { body: { code: 'SHIP', type: 'free_shipping', value: 0, productIds: [product.id] } });
+    const shipping = await api('/api/admin/coupons', { body: { code: 'SHIP', type: 'free_shipping', value: 0, categories: ['Men'] } });
     assert.equal(shipping.status, 201);
     const shipped = await createOrder([{ productId: product.id, quantity: 1 }], { couponCode: 'SHIP', shipping: 250 });
     assert.equal(shipped.status, 201); assert.equal(shipped.body.order.discount, 250); assert.equal(shipped.body.order.total, 2000);
@@ -341,6 +341,98 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
     assert.ok(archivedHistory.products.some(item => item.id === id));
     assert.ok(archivedHistory.movements.some(item => item.sku === 'INV-BS'));
     assert.deepEqual((await api('/api/admin/inventory?includeHistory=false')).body.summary, baseline);
+  });
+
+  await t.test('customer directory includes non-buyers, profile details, guests and linked checkout emails', async () => {
+    const signup = await api('/api/auth/signup', { body: { name: 'No Orders User', email: 'no-orders@example.com', password: 'Valid-password-123' } });
+    assert.equal(signup.status, 201);
+    const userCookie = signup.cookie.split(';')[0];
+    const profile = await api('/api/account/profile', { method: 'PATCH', cookie: userCookie, body: { contact: '+92 300 1234567', defaultAddress: { recipient: 'No Orders User', contact: '+92 300 1234567', line1: '42 Main Street', line2: 'Apt 2', city: 'Lahore', region: 'Punjab', postalCode: '54000', country: 'Pakistan' } } });
+    assert.equal(profile.status, 200, JSON.stringify(profile.body));
+    assert.equal((await api('/api/admin/customers', { cookie: userCookie })).status, 401);
+    const result = await api('/api/admin/customers');
+    const customer = result.body.customers.find(item => item.email === 'no-orders@example.com');
+    assert.equal(customer.registered, true); assert.equal(customer.orders, 0); assert.equal(customer.spent, 0); assert.equal(customer.lastOrderAt, null);
+    assert.equal(customer.contact, '+92 300 1234567'); assert.match(customer.address, /42 Main Street, Apt 2, Lahore/);
+    assert.deepEqual(Object.keys(customer).sort(), ['id', 'name', 'email', 'createdAt', 'orders', 'spent', 'registered', 'contact', 'address', 'lastOrderAt'].sort());
+    assert.ok(result.body.customers.some(item => !item.registered), 'guest customers remain distinguishable');
+    const orderId = randomUUID();
+    await db.collection('admin_orders').insertOne({ _id: orderId, id: orderId, number: 'UF-CUSTOMER-FIXTURE', userId: customer.id, email: 'alternate-checkout@example.com', customerName: 'Checkout name', phone: '111111', address: 'Order address', createdAt: '2020-01-01T00:00:00.000Z', total: 1000, paymentStatus: 'paid', status: 'delivered' });
+    const updated = (await api('/api/admin/customers')).body.customers;
+    const linked = updated.find(item => item.id === customer.id);
+    assert.equal(linked.createdAt, customer.createdAt, 'orders must not overwrite registration date');
+    assert.equal(linked.orders, 1); assert.equal(linked.spent, 1000); assert.equal(linked.lastOrderAt, '2020-01-01T00:00:00.000Z');
+    assert.equal(linked.contact, customer.contact); assert.equal(linked.address, customer.address);
+    assert.equal(updated.some(item => item.email === 'alternate-checkout@example.com'), false);
+    await db.collection('admin_orders').deleteOne({ _id: orderId });
+  });
+
+  await t.test('main-category offers persist, validate and price mixed-category checkout and orders', async () => {
+    const fixtures = [];
+    for (const [index, category, subcategory, productType] of [[1, 'Men', 'Tops', 'T-Shirts'], [2, 'Men', 'Bottoms', 'Jeans'], [3, 'Women', 'Tops', 'T-Shirts'], [4, 'Shoes', 'Boots', '']]) {
+      const response = await api('/api/admin/products', { body: { name: `Scope product ${index}`, sku: `SCOPE-${index}`, price: 1000, stock: 20, status: 'active', category, subcategory, productType, images: ['/test.png'] } });
+      assert.equal(response.status, 201, JSON.stringify(response.body)); fixtures.push(response.body.product);
+    }
+    const [menTop, menBottom, women, shoes] = fixtures;
+    const saleInput = { name: 'Main Category Sale', categories: ['men'], discountPercent: 20, startsAt: new Date(Date.now() - 60_000).toISOString(), endsAt: new Date(Date.now() + 86_400_000).toISOString() };
+    const sale = await api('/api/admin/promotions', { body: saleInput });
+    assert.equal(sale.status, 201); assert.deepEqual(sale.body.promotion.categories, ['Men']); assert.deepEqual(sale.body.promotion.productIds, []);
+    const discountInput = { code: 'MAIN10', kind: 'promo', type: 'percentage', value: 10, categories: ['men', 'Women'] };
+    const code = await api('/api/admin/coupons', { body: discountInput });
+    assert.equal(code.status, 201); assert.equal(code.body.coupon.kind, 'promo'); assert.deepEqual(code.body.coupon.categories, ['Men', 'Women']);
+    for (const [path, input] of [['coupons', discountInput], ['promotions', saleInput]]) {
+      for (const invalid of [{ categories: ['Tops'] }, { categories: ['T-Shirts'] }, { categories: ['Unknown'] }, { productIds: [menTop.id] }, { subcategory: 'Tops' }]) {
+        assert.equal((await api(`/api/admin/${path}`, { body: { ...input, ...invalid } })).status, 400, JSON.stringify(invalid));
+        const id = path === 'coupons' ? code.body.coupon.id : sale.body.promotion.id;
+        assert.equal((await patch(`/api/admin/${path}/${id}`, invalid)).status, 400);
+      }
+    }
+    const items = fixtures.map(product => ({ productId: product.id, quantity: 1 }));
+    const quote = async (selected = items, couponCode = 'MAIN10') => api('/api/checkout/quote', { cookie: '', body: { items: selected, deliveryMethod: 'standard', email: 'scope@example.com', couponCode } });
+    let priced = await quote();
+    assert.equal(priced.status, 200, JSON.stringify(priced.body));
+    assert.deepEqual(priced.body.quote.items.map(item => item.price), [800, 800, 1000, 1000], 'all subcategories within Men get the sale');
+    assert.equal(priced.body.quote.subtotal, 3600); assert.equal(priced.body.quote.discount, 260); assert.equal(priced.body.quote.total, 3590);
+    assert.equal((await quote([{ productId: shoes.id, quantity: 1 }])).status, 400, 'excluded categories cannot redeem');
+    assert.equal((await api('/api/admin/coupons')).body.coupons.find(item => item.id === code.body.coupon.id).usedCount, 0, 'quotes do not consume uses');
+    for (const product of [menTop, menBottom]) assert.equal((await api(`/api/catalog/${product.id}`)).body.product.salePrice, 800);
+    assert.equal((await api(`/api/catalog/${women.id}`)).body.product.salePrice, null);
+    const order = await api('/api/orders', { cookie: '', body: { items, couponCode: 'MAIN10', deliveryMethod: 'standard', contact: { name: 'Scope Buyer', email: 'scope@example.com', phone: '03001234567' }, address: { line1: '1 Main St', city: 'Lahore', province: 'Punjab', country: 'Pakistan' }, accountId: null, paymentMethod: 'cod', requestId: randomUUID(), quoteToken: priced.body.quote.quoteToken } });
+    assert.equal(order.status, 201, JSON.stringify(order.body)); assert.equal(order.body.order.discount, 260); assert.equal(order.body.order.total, 3590);
+    const saved = await db.collection('admin_orders').findOne({ _id: order.body.order.id });
+    assert.equal(saved.coupon.code, 'MAIN10'); assert.equal(saved.coupon.discount, 260);
+    assert.equal((await patch(`/api/admin/coupons/${code.body.coupon.id}`, { active: false })).status, 200);
+    assert.equal((await quote()).status, 400);
+    assert.equal((await patch(`/api/admin/coupons/${code.body.coupon.id}`, { active: true, kind: 'coupon', categories: [], type: 'fixed', value: 99999 })).status, 200);
+    priced = await quote(); assert.equal(priced.body.quote.discount, 3600, 'fixed store-wide discounts cannot exceed subtotal');
+    assert.equal((await patch(`/api/admin/coupons/${code.body.coupon.id}`, { categories: ['Women'], maximumDiscount: 500 })).status, 200);
+    priced = await quote(); assert.equal(priced.body.quote.discount, 500, 'fixed category discount respects eligible subtotal and cap');
+    const entireStore = await api('/api/admin/promotions', { body: { ...saleInput, name: 'Store Sale', categories: [], discountPercent: 10 } });
+    assert.equal(entireStore.status, 201);
+    priced = await quote(items, ''); assert.deepEqual(priced.body.quote.items.map(item => item.price), [800, 800, 900, 900], 'overlapping sales use lowest price');
+    assert.equal((await patch(`/api/admin/promotions/${sale.body.promotion.id}`, { categories: ['Men', 'Women'], discountPercent: 30 })).status, 200);
+    priced = await quote(items, ''); assert.deepEqual(priced.body.quote.items.map(item => item.price), [700, 700, 700, 900]);
+    const later = await api('/api/admin/products', { body: { name: 'Later product', sku: 'SCOPE-LATER', price: 1000, stock: 2, status: 'active', category: 'Men', subcategory: 'Tops', productType: 'T-Shirts', images: ['/test.png'] } });
+    assert.equal((await api(`/api/catalog/${later.body.product.id}`)).body.product.salePrice, 700, 'new products inherit category sale');
+    assert.equal((await patch(`/api/admin/promotions/${sale.body.promotion.id}`, { startsAt: new Date(Date.now() - 120_000).toISOString(), endsAt: new Date(Date.now() - 60_000).toISOString() })).body.promotion.state, 'ended');
+    priced = await quote(items, ''); assert.deepEqual(priced.body.quote.items.map(item => item.price), [900, 900, 900, 900]);
+    await patch(`/api/admin/promotions/${entireStore.body.promotion.id}`, { active: false });
+    await patch(`/api/admin/coupons/${code.body.coupon.id}`, { startsAt: new Date(Date.now() + 60_000).toISOString() });
+    assert.equal((await quote()).status, 400, 'scheduled codes cannot apply early');
+
+    // Existing product scopes are never silently broadened into store-wide offers.
+    const legacy = { ...sale.body.promotion, ...saleInput, _id: 'legacy-sale', id: 'legacy-sale', productIds: [menTop.id], categories: [] };
+    await db.collection('admin_promotions').insertOne(legacy);
+    assert.equal((await api(`/api/catalog/${menTop.id}`)).body.product.salePrice, null);
+    assert.equal((await api('/api/admin/promotions')).body.promotions.find(item => item.id === legacy.id).state, 'inactive');
+    assert.equal((await patch('/api/admin/promotions/legacy-sale', { active: true })).status, 400);
+    assert.equal((await patch('/api/admin/promotions/legacy-sale', { active: false })).status, 200);
+    assert.equal((await patch('/api/admin/promotions/legacy-sale', { active: true, productIds: [], categories: ['Men'] })).status, 200);
+    assert.equal((await api(`/api/catalog/${menTop.id}`)).body.product.salePrice, 800);
+    await db.collection('admin_coupons').insertOne({ ...code.body.coupon, _id: 'legacy-code', id: 'legacy-code', code: 'LEGACY', productIds: [menTop.id], categories: [], active: true });
+    assert.equal((await quote(items, 'LEGACY')).status, 400);
+    assert.equal((await patch('/api/admin/coupons/legacy-code', { productIds: [], categories: ['Men'] })).status, 200);
+    assert.equal((await quote(items, 'LEGACY')).body.quote.discount, 160);
   });
 
 });

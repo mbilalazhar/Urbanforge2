@@ -19,12 +19,16 @@ export type AdminOrder = {
   returnStatus: "none" | "requested" | "approved" | "rejected";
   createdAt: string; updatedAt: string;
 };
-export type AdminCustomer = { id: string; name: string; email: string; createdAt: string; orders: number; spent: number };
+export type AdminCustomer = {
+  id: string; name: string; email: string; createdAt: string; orders: number; spent: number;
+  registered: boolean; contact: string; address: string; lastOrderAt: string | null;
+};
 export type InventorySummary = { units: number; trackedSkus: number; lowStockSkus: number; outOfStockSkus: number };
 export type InventoryData = { products: AdminProduct[]; summary: InventorySummary };
 export type InventoryHistory = { movements: StockMovement[]; products: { id: string; name: string }[]; total: number; page: number; pages: number; limit: number };
 export type StockMovement = { sku?: string; variantLabel?: string; id: string; productId: string; productName: string; variantId: string; type: "added" | "sold" | "returned" | "adjustment"; quantity: number; before: number; after: number; reason: string; createdAt: string };
 export type AdminCoupon = {
+  kind: "coupon" | "promo";
   id: string; code: string; type: "percentage" | "fixed" | "free_shipping"; value: number;
   minimumPurchase: number; maximumDiscount: number | null; startsAt: string; endsAt: string;
   usageLimit: number; usedCount: number; productIds: string[]; categories: string[];
@@ -32,7 +36,7 @@ export type AdminCoupon = {
 };
 export type AdminPromotion = {
   id: string; name: string; banner: string; startsAt: string; endsAt: string;
-  productIds: string[]; discountPercent: number; active: boolean;
+  productIds: string[]; categories: string[]; discountPercent: number; active: boolean;
   state: "scheduled" | "active" | "ended" | "inactive"; createdAt: string;
 };
 export type AdminDashboard = {

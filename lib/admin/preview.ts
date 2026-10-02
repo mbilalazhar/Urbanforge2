@@ -35,7 +35,7 @@ function seed(): PreviewStore {
     };
   });
   const names = ["Ali Khan", "Sara Ahmed", "Hamza Rafiq", "Ayesha Malik", "Bilal Shah", "Zain Ali", "Hira Khan", "Usman Tariq", "Maha Noor", "Daniyal Hassan"];
-  const customers: AdminCustomer[] = names.map((name, index) => ({ id: `sample-customer-${index}`, name, email: `${name.toLowerCase().replace(/ /g, ".")}@urbanforge.example`, createdAt: date(-270 + index * 29), orders: 0, spent: 0 }));
+  const customers: AdminCustomer[] = names.map((name, index) => ({ id: `sample-customer-${index}`, name, email: `${name.toLowerCase().replace(/ /g, ".")}@urbanforge.example`, createdAt: date(-270 + index * 29), orders: 0, spent: 0, registered: true, contact: "", address: "", lastOrderAt: null }));
   const orders: AdminOrder[] = [];
   for (let month = 0; month < 12; month++) {
     const count = month < 6 ? 3 : 5;
@@ -54,14 +54,14 @@ function seed(): PreviewStore {
     order.returnStatus = status === "returned" ? "approved" : "none";
   });
   const coupons: AdminCoupon[] = [
-    { id: "sample-coupon-1", code: "SUMMER25", type: "percentage", value: 25, minimumPurchase: 5000, maximumDiscount: 2000, startsAt: date(-20), endsAt: date(25), usageLimit: 500, usedCount: 128, productIds: [], categories: [], customerEmails: [], firstOrderOnly: false, active: true, createdAt: date(-20) },
-    { id: "sample-coupon-2", code: "WELCOME500", type: "fixed", value: 500, minimumPurchase: 3000, maximumDiscount: null, startsAt: date(-10), endsAt: date(45), usageLimit: 200, usedCount: 42, productIds: [], categories: [], customerEmails: [], firstOrderOnly: true, active: true, createdAt: date(-10) },
-    { id: "sample-coupon-3", code: "FREESHIP", type: "free_shipping", value: 0, minimumPurchase: 7500, maximumDiscount: null, startsAt: date(5), endsAt: date(30), usageLimit: 100, usedCount: 0, productIds: [], categories: [], customerEmails: [], firstOrderOnly: false, active: true, createdAt: date(-2) },
+    { kind: "coupon", id: "sample-coupon-1", code: "SUMMER25", type: "percentage", value: 25, minimumPurchase: 5000, maximumDiscount: 2000, startsAt: date(-20), endsAt: date(25), usageLimit: 500, usedCount: 128, productIds: [], categories: [], customerEmails: [], firstOrderOnly: false, active: true, createdAt: date(-20) },
+    { kind: "coupon", id: "sample-coupon-2", code: "WELCOME500", type: "fixed", value: 500, minimumPurchase: 3000, maximumDiscount: null, startsAt: date(-10), endsAt: date(45), usageLimit: 200, usedCount: 42, productIds: [], categories: [], customerEmails: [], firstOrderOnly: true, active: true, createdAt: date(-10) },
+    { kind: "coupon", id: "sample-coupon-3", code: "FREESHIP", type: "free_shipping", value: 0, minimumPurchase: 7500, maximumDiscount: null, startsAt: date(5), endsAt: date(30), usageLimit: 100, usedCount: 0, productIds: [], categories: [], customerEmails: [], firstOrderOnly: false, active: true, createdAt: date(-2) },
   ];
   const promotions: AdminPromotion[] = [
-    { id: "sample-promo-1", name: "The New Season Edit", banner: "/hero-bg.png", startsAt: date(-5), endsAt: date(20), productIds: products.slice(0, 4).map(product => product.id), discountPercent: 20, active: true, state: "active", createdAt: date(-7) },
-    { id: "sample-promo-2", name: "Weekend Essentials", banner: "/sales.png", startsAt: date(7), endsAt: date(10), productIds: products.slice(4, 8).map(product => product.id), discountPercent: 30, active: true, state: "scheduled", createdAt: date(-2) },
-    { id: "sample-promo-3", name: "Summer Clearance", banner: "/home-models.png", startsAt: date(-45), endsAt: date(-10), productIds: products.slice(8).map(product => product.id), discountPercent: 40, active: true, state: "ended", createdAt: date(-50) },
+    { id: "sample-promo-1", name: "The New Season Edit", banner: "/hero-bg.png", startsAt: date(-5), endsAt: date(20), productIds: [], categories: ["Men"], discountPercent: 20, active: true, state: "active", createdAt: date(-7) },
+    { id: "sample-promo-2", name: "Weekend Essentials", banner: "/sales.png", startsAt: date(7), endsAt: date(10), productIds: [], categories: ["Women", "Accessories"], discountPercent: 30, active: true, state: "scheduled", createdAt: date(-2) },
+    { id: "sample-promo-3", name: "Summer Clearance", banner: "/home-models.png", startsAt: date(-45), endsAt: date(-10), productIds: [], categories: [], discountPercent: 40, active: true, state: "ended", createdAt: date(-50) },
   ];
   const movements: StockMovement[] = products.slice(0, 8).map((product, index) => ({ id: `sample-movement-${index}`, productId: product.id, productName: product.name, variantId: product.variants[0]?.id ?? "", type: index % 2 ? "sold" : "added", quantity: index % 2 ? -2 : 10, before: (product.variants[0]?.stock ?? product.stock) + (index % 2 ? 2 : -10), after: product.variants[0]?.stock ?? product.stock, reason: index % 2 ? "Sample order fulfilled" : "Sample stock delivery", createdAt: date(-index * .5) }));
   // Keep illustrative opening balances nonnegative for low-stock products.
@@ -77,7 +77,7 @@ function required<T>(record: T | undefined): T { if (!record) throw new Error("T
 function customerList(data: PreviewStore) {
   const customers = new Map(data.customers.map(customer => [customer.email, { ...customer, orders: 0, spent: 0 }]));
   for (const order of data.orders) {
-    const customer = customers.get(order.email) ?? { id: `customer-${order.id}`, name: order.customerName, email: order.email, createdAt: order.createdAt, orders: 0, spent: 0 };
+    const customer = customers.get(order.email) ?? { id: `customer-${order.id}`, name: order.customerName, email: order.email, createdAt: order.createdAt, orders: 0, spent: 0, registered: true, contact: "", address: "", lastOrderAt: null };
     customer.orders++;
     if (order.paymentStatus === "paid" && !["cancelled", "returned", "refunded"].includes(order.status)) customer.spent += order.total;
     customers.set(order.email, customer);

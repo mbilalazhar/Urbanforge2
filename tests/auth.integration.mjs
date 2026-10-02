@@ -245,7 +245,7 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     const relogin = await api('/api/auth/login', { body: { email: input.email, password: input.password } });
     assert.equal(relogin.status, 200); userCookie = relogin.cookie.split(';')[0];
     assert.deepEqual((await api(path, { cookie: userCookie })).body.productIds, [fixture.id]);
-    await db.collection('admin_promotions').insertOne({ _id: 'wishlist-promo', id: 'wishlist-promo', active: true, startsAt: new Date(Date.now() - 60000).toISOString(), endsAt: new Date(Date.now() + 60000).toISOString(), productIds: [fixture.id], discountPercent: 20 });
+    await db.collection('admin_promotions').insertOne({ _id: 'wishlist-promo', id: 'wishlist-promo', active: true, startsAt: new Date(Date.now() - 60000).toISOString(), endsAt: new Date(Date.now() + 60000).toISOString(), productIds: [], categories: [], discountPercent: 20 });
     assert.equal((await api(path, { cookie: userCookie })).body.products[0].salePrice, 1600);
     await db.collection('admin_products').updateOne({ _id: fixture.id }, { $set: { status: 'inactive' } });
     assert.deepEqual((await api(path, { cookie: userCookie })).body.products, []);
