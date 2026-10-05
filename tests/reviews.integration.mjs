@@ -143,7 +143,7 @@ test('product reviews persist, validate input, and work in the browser', { timeo
     async function openReviews() {
       await until(() => evaluate('!!document.querySelector("#product-tab-2")'), 'product page');
       await delay(300); await evaluate('document.querySelector("#product-tab-2").click()');
-      await until(() => evaluate(`!!${section} && !${section}.textContent.includes('Loading reviews')`), 'reviews loaded');
+      await until(() => evaluate(`!!${section} && !${section}.querySelector('[data-skeleton]')`), 'reviews loaded');
     }
     await call('Page.enable'); await call('Network.enable');
     await call('Page.navigate', { url: base + '/products/browser' }); await openReviews();

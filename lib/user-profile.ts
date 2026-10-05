@@ -1,3 +1,7 @@
+export const profileImagePaths = ["/profile/male.png", "/profile/female.png"] as const;
+export type ProfileImage = typeof profileImagePaths[number];
+export const defaultProfileImage: ProfileImage = profileImagePaths[0];
+
 export type UserAddress = {
   recipient: string;
   contact: string;
@@ -9,6 +13,7 @@ export type UserAddress = {
   country: string;
 };
 export type UserDetails = {
+  profileImage: ProfileImage;
   contact: string;
   wishlistProductIds: string[];
   defaultAddress: UserAddress | null;
@@ -18,8 +23,9 @@ export type UserDetails = {
   preferences: { orders: boolean; news: boolean };
 };
 export type UserProfile = UserDetails & { id: string; name: string; email: string };
-export type UserProfileUpdate = Partial<Pick<UserProfile, "name" | "contact" | "defaultAddress" | "preferences">>;
+export type UserProfileUpdate = Partial<Pick<UserProfile, "name" | "profileImage" | "contact" | "defaultAddress" | "preferences">>;
 export const emptyUserDetails = (): UserDetails => ({
+  profileImage: defaultProfileImage,
   contact: "", wishlistProductIds: [], defaultAddress: null, currentOrderIds: [], pastOrderIds: [],
   preferences: { orders: true, news: false },
 });

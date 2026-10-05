@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+import { Skeleton, DashboardSkeleton, PendingContent } from "@/components/ui/Skeleton";
 import { useState } from "react";
 import { ArrowRight, ArrowUpRight, Boxes, CircleDollarSign, Package, Plus, ShoppingBag, Tag, TrendingUp, Users } from "lucide-react";
 import type { LiveAdminDashboard } from "@/lib/admin/analytics";
@@ -12,7 +13,7 @@ const palette = ["#cc2338", "#25272c", "#f18c94", "#b2b5bd", "#f7bec3", "#e2e4e9
 export default function Dashboard({ name, navigate, search }: { name: string; navigate: (section: Section) => void; search: string }) {
   const query = useAdminQuery<LiveAdminDashboard>("dashboard", "api", { refetchInterval: 30_000 });
   const [chart, setChart] = useState<"revenue" | "orders">("revenue");
-  if (query.isPending) return <div className={styles.empty} role="status">Loading your store overview…</div>;
+  if (query.isPending) return <DashboardSkeleton />;
   if (query.error || !query.data) return <div className={styles.error} role="alert">{query.error?.message || "Unable to load the dashboard."}<button onClick={() => query.refetch()}>Try again</button></div>;
   const data = query.data;
   const metrics = data.metrics;
@@ -39,7 +40,7 @@ export default function Dashboard({ name, navigate, search }: { name: string; na
 
   return <>
     <div className={styles.heading}><div><p className={styles.eyebrow}>LET’S MAKE TODAY A GOOD ONE</p><h1>Welcome back, {name.split(" ")[0]} <span aria-hidden="true">👋</span></h1><p>Here’s what’s happening with your store today.</p></div><button className={styles.primary} onClick={() => navigate("products")}><Plus size={15} />Add product</button></div>
-    <div className={styles.overviewStatus}><span role="status">{query.isFetching ? "Updating overview…" : `Live store data · Updated ${new Date(data.generatedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Karachi" })} PKT · Refreshes every 30 seconds`}</span><button type="button" onClick={() => void query.refetch()} disabled={query.isFetching}>Refresh</button></div>
+    <div className={styles.overviewStatus}><span role="status">{query.isFetching ? <Skeleton width={220} /> : `Live store data · Updated ${new Date(data.generatedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Karachi" })} PKT · Refreshes every 30 seconds`}</span><button type="button" onClick={() => void query.refetch()} disabled={query.isFetching}><PendingContent pending={query.isFetching}>Refresh</PendingContent></button></div>
     <div className={styles.stats}>{stats.map(stat => <article className={styles.stat} key={stat.label}><div className={styles.statTop}><span className={styles.statIcon}><stat.icon size={17} strokeWidth={1.7} /></span>{stat.label}</div><strong>{stat.value}</strong><small>{stat.note}</small>{stat.values.some(value => value > 0) && <Sparkline values={stat.values} compact />}</article>)}</div>
     <div className={styles.dashboardGrid}>
       <div className={styles.dashboardMain}>

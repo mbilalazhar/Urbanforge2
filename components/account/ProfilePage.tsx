@@ -1,11 +1,12 @@
 "use client";
 
+import { ListSkeleton, PendingContent } from "@/components/ui/Skeleton";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Check, ChevronRight, Hourglass, LogOut, Pencil, Phone, Truck, X } from "lucide-react";
 import { accountOrder, money, orderTotal, orderQuantity, type Order, type OrderItem } from "./account-data";
-import type { UserProfile } from "@/lib/user-profile";
+import { defaultProfileImage, profileImagePaths, type UserProfile } from "@/lib/user-profile";
 import { useProfile, useSaveProfile } from "@/lib/account/client";
 import WishlistContents from "@/components/wishlist/WishlistContents";
 import { useCustomerOrders } from "@/lib/checkout/client";
@@ -76,9 +77,9 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
       <div className={styles.mobileHeading}><h1>My account</h1><p>Manage your orders and account details.</p></div>
       <section className={styles.profile} aria-label="Your profile">
         <Image className={styles.cover} src="/hero-bg.png" alt="" fill sizes="(max-width: 767px) 1px, 1240px" priority />
-        <Image className={styles.coverModel} src="/MenSection.png" alt="" width={1086} height={1448} priority />
+        <Image className={styles.coverModel} src={profile.profileImage ?? defaultProfileImage} alt="" width={1086} height={1448} priority />
         <div className={styles.identity}>
-          <div className={styles.avatar}><Image src="/MenSection.png" alt="Profile avatar" fill sizes="(max-width: 767px) 64px, 104px" priority /></div>
+          <div className={styles.avatar}><Image src={profile.profileImage ?? defaultProfileImage} alt="Profile avatar" fill sizes="(max-width: 767px) 64px, 104px" priority /></div>
           <div className={styles.profileDetails}><h2>{profile.name}</h2><p>{profile.email}</p><p className={styles.phone}><Phone size={13} />{profile.contact || "Add a contact number"}</p></div>
         </div>
         <button type="button" className={styles.editProfile} onClick={() => { save.reset(); setEditing(true); }} aria-label="Edit profile"><Pencil size={14} /><span>Edit Profile</span><ChevronRight className={styles.mobileChevron} size={20} /></button>
@@ -87,7 +88,7 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
       <nav className={styles.tabs} aria-label="Account sections">{tabs.map(tab => <button key={tab} type="button" aria-current={activeTab === tab ? "page" : undefined} onClick={() => { setActiveTab(tab); setNotice(""); }}><span className={styles.fullTab}>{tab}</span><span className={styles.shortTab}>{tab === "My Orders" ? "Orders" : tab}</span></button>)}</nav>
 
       {activeTab === "My Orders" && <div className={styles.orders}>
-        {ordersQuery.isPending ? <div className={styles.emptyState} role="status">Loading your orders…</div> : ordersQuery.isError ? <div className={styles.emptyState} role="alert"><h3>Unable to load your orders</h3><p>{ordersQuery.error.message}</p><button className={styles.outlineButton} onClick={() => void ordersQuery.refetch()}>Try again</button></div> : !hasOrders ? <div className={styles.emptyState}><Truck size={30} /><h3>No orders yet</h3><p>Your orders will appear here after you make a purchase.</p><Link href="/search">Explore the collection <ArrowRight size={16} /></Link></div> : <>
+        {ordersQuery.isPending ? <ListSkeleton /> : ordersQuery.isError ? <div className={styles.emptyState} role="alert"><h3>Unable to load your orders</h3><p>{ordersQuery.error.message}</p><button className={styles.outlineButton} onClick={() => void ordersQuery.refetch()}>Try again</button></div> : !hasOrders ? <div className={styles.emptyState}><Truck size={30} /><h3>No orders yet</h3><p>Your orders will appear here after you make a purchase.</p><Link href="/search">Explore the collection <ArrowRight size={16} /></Link></div> : <>
         <section aria-labelledby="current-orders-title">
           <div className={styles.sectionHeading}><div><h2 id="current-orders-title">{showAll ? "All Orders" : "Current Orders"}</h2><p>Track, return or buy again from your recent orders.</p></div><button type="button" className={styles.textButton} onClick={() => setShowAll(!showAll)}>{showAll ? "Show Recent" : <><span className={styles.desktopLabel}>View All Orders</span><span className={styles.mobileLabel}>View All</span></>}<ArrowRight size={14} /></button></div>
           <div className={styles.orderList}>{!showAll && !currentOrders.length && <div className={styles.emptyState}><Truck size={30} /><h3>No current orders</h3><p>Your active orders will appear here.</p></div>}{(showAll ? [...currentOrders, ...pastOrders] : currentOrders).map(order => <OrderCard key={order.id} order={order} onOpen={setSelectedOrder} />)}</div>
@@ -104,7 +105,7 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
       {activeTab === "Addresses" && <SavedAddress profile={profile} pending={save.isPending} save={async defaultAddress => { await save.mutateAsync({ defaultAddress }); setNotice(defaultAddress ? "Delivery address saved." : "Delivery address removed."); }} />}
 
       {activeTab === "Wishlist" && <section className={styles.tabContent}><div className={styles.sectionHeading}><div><h2>Your Wishlist</h2><p>The pieces you have your eye on.</p></div><Link href="/wishlist">View wishlist <ArrowRight size={14} /></Link></div><WishlistContents /></section>}
-      {activeTab === "Settings" && <section className={styles.tabContent}><div className={styles.sectionHeading}><div><h2>Account Settings</h2><p>Make yourself at home.</p></div></div><div className={styles.settingsCard}><div className={styles.settingRow}><div><h3>Profile details</h3><p>Update your name and contact information.</p></div><button type="button" className={styles.outlineButton} onClick={() => { save.reset(); setEditing(true); }}>Edit Profile</button></div><label className={styles.settingRow}><span><strong>Order updates</strong><small>Keep me posted on my deliveries.</small></span><input type="checkbox" checked={preferences.orders} disabled={save.isPending} onChange={event => save.mutate({ preferences: { ...preferences, orders: event.target.checked } }, { onSuccess: () => setNotice("Preferences saved.") })} /></label><label className={styles.settingRow}><span><strong>New drops & offers</strong><small>Send me the latest from UrbanForge.</small></span><input type="checkbox" checked={preferences.news} disabled={save.isPending} onChange={event => save.mutate({ preferences: { ...preferences, news: event.target.checked } }, { onSuccess: () => setNotice("Preferences saved.") })} /></label><div className={styles.settingRow}><div><h3>Sign out</h3><p>See you on your next visit.</p></div><button type="button" className={styles.outlineButton} onClick={onLogout} disabled={loggingOut}><LogOut size={15} />{loggingOut ? "Logging out…" : "Log Out"}</button></div></div><p className={styles.demoNote}>Your profile and preferences are saved to your account.</p></section>}
+      {activeTab === "Settings" && <section className={styles.tabContent}><div className={styles.sectionHeading}><div><h2>Account Settings</h2><p>Make yourself at home.</p></div></div><div className={styles.settingsCard}><div className={styles.settingRow}><div><h3>Profile details</h3><p>Update your name and contact information.</p></div><button type="button" className={styles.outlineButton} onClick={() => { save.reset(); setEditing(true); }}>Edit Profile</button></div><label className={styles.settingRow}><span><strong>Order updates</strong><small>Keep me posted on my deliveries.</small></span><input type="checkbox" checked={preferences.orders} disabled={save.isPending} onChange={event => save.mutate({ preferences: { ...preferences, orders: event.target.checked } }, { onSuccess: () => setNotice("Preferences saved.") })} /></label><label className={styles.settingRow}><span><strong>New drops & offers</strong><small>Send me the latest from UrbanForge.</small></span><input type="checkbox" checked={preferences.news} disabled={save.isPending} onChange={event => save.mutate({ preferences: { ...preferences, news: event.target.checked } }, { onSuccess: () => setNotice("Preferences saved.") })} /></label><div className={styles.settingRow}><div><h3>Sign out</h3><p>See you on your next visit.</p></div><button type="button" className={styles.outlineButton} onClick={onLogout} disabled={loggingOut}><PendingContent pending={loggingOut}><LogOut size={15} />{"Log Out"}</PendingContent></button></div></div><p className={styles.demoNote}>Your profile and preferences are saved to your account.</p></section>}
       <p className={styles.feedback} role="status">{error || profileQuery.error?.message || save.error?.message || notice}</p>
     </div>
 
@@ -112,10 +113,19 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
       event.preventDefault(); if (save.isPending) return;
       const data = new FormData(event.currentTarget);
       try {
-        await save.mutateAsync({ name: String(data.get("name") ?? "").trim(), contact: String(data.get("contact") ?? "").trim() });
+        await save.mutateAsync({ profileImage: profileImagePaths.find(path => path === data.get("profileImage")) ?? defaultProfileImage, name: String(data.get("name") ?? "").trim(), contact: String(data.get("contact") ?? "").trim() });
         setNotice("Profile saved."); setEditing(false);
       } catch { /* The mutation error is displayed below without discarding the form. */ }
-    }}><p>Your details are saved to your account.</p><label>Full name<input name="name" autoComplete="name" defaultValue={profile.name} required maxLength={100} disabled={save.isPending} /></label><label>Sign-in email<input type="email" value={profile.email} readOnly /></label><label>Contact number (optional)<input name="contact" type="tel" autoComplete="tel" defaultValue={profile.contact} maxLength={30} disabled={save.isPending} /></label>{save.error && <p role="alert">{save.error.message}</p>}<div className={styles.formActions}><button className={styles.outlineButton} type="button" disabled={save.isPending} onClick={() => setEditing(false)}>Cancel</button><button className={styles.primaryButton} type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save Changes"}</button></div></form></Modal>}
+    }}><p>Your details are saved to your account.</p>
+      <fieldset className={styles.imagePicker} disabled={save.isPending}>
+        <legend>Profile image</legend>
+        <div className={styles.imageOptions}>{profileImagePaths.map((path, index) => <label key={path} className={styles.imageOption}>
+          <input type="radio" name="profileImage" value={path} defaultChecked={path === (profile.profileImage ?? defaultProfileImage)} required />
+          <span className={styles.imagePreview}><Image src={path} alt="" fill sizes="80px" /></span>
+          <span>{index === 0 ? "Male" : "Female"}</span>
+        </label>)}</div>
+      </fieldset>
+      <label>Full name<input name="name" autoComplete="name" defaultValue={profile.name} required maxLength={100} disabled={save.isPending} /></label><label>Sign-in email<input type="email" value={profile.email} readOnly /></label><label>Contact number (optional)<input name="contact" type="tel" autoComplete="tel" defaultValue={profile.contact} maxLength={30} disabled={save.isPending} /></label>{save.error && <p role="alert">{save.error.message}</p>}<div className={styles.formActions}><button className={styles.outlineButton} type="button" disabled={save.isPending} onClick={() => setEditing(false)}><PendingContent pending={save.isPending}>Cancel</PendingContent></button><button className={styles.primaryButton} type="submit" disabled={save.isPending}><PendingContent pending={save.isPending}>{"Save Changes"}</PendingContent></button></div></form></Modal>}
     {selectedOrder && <Modal title={`Order #${selectedOrder.id}`} onClose={() => setSelectedOrder(null)}><div className={styles.orderSummary}><Status status={selectedOrder.status} /><p>{selectedOrder.update}</p><p>Placed on {selectedOrder.date}</p></div>{selectedOrder.status === "Shipped" && <ol className={styles.tracking}><li><Check size={16} />Order confirmed</li><li><Check size={16} />Packed & dispatched</li><li><Truck size={16} />On its way to you</li></ol>}<div className={styles.modalItems}>{selectedOrder.items.map((item, index) => <div key={`${item.name}-${index}`}><ProductImage item={item} /><span>{item.name}<small>Quantity: {item.quantity}{item.details ? ` · ${item.details}` : ""}</small></span><strong>{money(item.price * item.quantity)}</strong></div>)}</div><div className={styles.total}><span>Order total</span><strong>{money(orderTotal(selectedOrder))}</strong></div><p className={styles.demoNote}>Shipping: {money(selectedOrder.shipping)} · Discount: {money(selectedOrder.discount)}<br />Payment: {selectedOrder.paymentStatus}<br />Delivery: {selectedOrder.address}</p></Modal>}
   </main>;
 }

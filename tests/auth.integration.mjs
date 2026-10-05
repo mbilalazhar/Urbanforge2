@@ -150,13 +150,14 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     const initial = await api(path, { cookie: userCookie });
     assert.equal(initial.body.profile.name, input.name);
     assert.equal(initial.body.profile.contact, '');
+    assert.equal(initial.body.profile.profileImage, '/profile/male.png');
     assert.equal(initial.body.profile.defaultAddress, null);
     assert.deepEqual(initial.body.profile.currentOrderIds, []);
     assert.deepEqual(initial.body.profile.pastOrderIds, []);
     assert.equal(initial.headers.get('cache-control'), 'no-store');
     assert.equal(initial.body.profile.passwordHash, undefined);
     assert.equal(initial.body.profile.sessions, undefined);
-    for (const invalid of [{ wishlistProductIds: ['fake'] }, { currentOrderIds: ['fake'] }, { pastOrderIds: ['fake'] }, { email: 'other@example.com' }, { role: 'admin' }, { id: 'other' }, { paymentMethods: [] }, { contact: 'invalid' }, { name: ' ' }, { defaultAddress: {} }, {}]) {
+    for (const invalid of [{ profileImage: '/other.png' }, { profileImage: 'https://example.com/avatar.png' }, { profileImage: null }, { wishlistProductIds: ['fake'] }, { currentOrderIds: ['fake'] }, { pastOrderIds: ['fake'] }, { email: 'other@example.com' }, { role: 'admin' }, { id: 'other' }, { paymentMethods: [] }, { contact: 'invalid' }, { name: ' ' }, { defaultAddress: {} }, {}]) {
       assert.equal((await patch(invalid)).status, 400, JSON.stringify(invalid));
     }
     assert.equal((await patch({ name: 'Changed' }, userCookie, { Origin: 'https://other.example' })).status, 403);
@@ -178,6 +179,17 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.equal((await api(path, { cookie: userCookie })).body.profile.contact, '');
     assert.equal((await patch({ defaultAddress: null })).body.profile.defaultAddress, null);
     assert.equal((await api(path, { cookie: userCookie })).body.profile.defaultAddress, null);
+    for (const profileImage of ['/profile/female.png', '/profile/male.png', '/profile/female.png']) {
+      const saved = await patch({ profileImage });
+      assert.equal(saved.status, 200);
+      assert.equal(saved.body.profile.profileImage, profileImage);
+      assert.equal((await db.collection('users').findOne({ email: 'user@example.com' })).profileImage, profileImage);
+      assert.equal((await api(path, { cookie: userCookie })).body.profile.profileImage, profileImage);
+    }
+    await patch({ contact: '' });
+    assert.equal((await api(path, { cookie: userCookie })).body.profile.profileImage, '/profile/female.png');
+    assert.equal((await api(path, { cookie: otherCookie })).body.profile.profileImage, '/profile/male.png');
+
   });
 
   await t.test('legacy user defaults are initialized on sign-in without overwriting saved information', async () => {
@@ -189,6 +201,7 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
     assert.equal(result.status, 200); userCookie = result.cookie.split(';')[0];
     const document = await db.collection('users').findOne({ email: 'user@example.com' });
     assert.equal(document.contact, '+92 300 7654321');
+    assert.equal(document.profileImage, '/profile/female.png', 'sign-in preserves the selected image');
     assert.equal(document.defaultAddress, null);
     assert.deepEqual(document.currentOrderIds, []);
     assert.deepEqual(document.pastOrderIds, ['future-order-reference']);
@@ -197,15 +210,23 @@ test('authentication APIs and protected pages', { timeout: 240_000 }, async t =>
 
   await t.test('pages show login or authenticated account and do not link to the admin route', async () => {
     const anonymousAccount = await fetch(base + '/account', { redirect: 'manual' });
-    assert.equal(anonymousAccount.status, 307);
-    assert.equal(anonymousAccount.headers.get('location'), '/login');
+    const anonymousHtml = await anonymousAccount.text();
+    if (anonymousAccount.status === 307) {
+      assert.equal(anonymousAccount.headers.get('location'), '/login');
+    } else {
+      // Route skeletons can flush headers before authentication resolves.
+      // Next then delivers the redirect in the streamed HTML.
+      assert.equal(anonymousAccount.status, 200);
+      assert.match(anonymousHtml, /<meta[^>]*id="__next-page-redirect"[^>]*http-equiv="refresh"[^>]*content="\d+;url=\/login"/);
+    }
+    assert.doesNotMatch(anonymousHtml, /Updated User|user@example\.com|pastOrderIds/);
     const account = await fetch(base + '/account', { headers: { Cookie: userCookie } });
     assert.equal(account.status, 200);
     const accountHtml = await account.text();
     assert.match(accountHtml, /My account/);
     assert.match(accountHtml, /Updated User/);
     assert.doesNotMatch(accountHtml, /Payment Methods|Visa ending|House 24|Bilal Azhar/);
-    assert.match(accountHtml, /Loading your orders/); // Order history is now fetched from the account-scoped API.
+    assert.match(accountHtml, /aria-label="Items pending"/); // Order history is now fetched from the account-scoped API.
     const admin = await (await fetch(base + '/adminroute')).text();
     assert.match(admin, /Admin Login/);
     assert.match(admin, /type="password"/);

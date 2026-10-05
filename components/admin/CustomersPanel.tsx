@@ -1,5 +1,6 @@
 "use client";
 
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import { useState } from "react";
 import { Search, Users } from "lucide-react";
 import { money, useAdminQuery } from "@/lib/admin/client";
@@ -24,7 +25,7 @@ export default function CustomersPanel({ search }: { search: string }) {
         <select className={styles.select} aria-label="Filter customers" value={filter} onChange={event => setFilter(event.target.value)}><option value="all">All customers</option><option value="registered">Registered users</option><option value="guest">Guest customers</option></select>
         <span className={styles.muted}>{all.filter(customer => customer.registered).length} registered · {customers.length} shown</span>
       </div>
-      {query.isPending ? <div className={styles.loading} role="status">Loading customers…</div> : query.error ? <div className={styles.empty}><p className={styles.error} role="alert">{query.error.message}</p><button className={styles.secondary} onClick={() => void query.refetch()}>Try again</button></div> : customers.length ? <div className={styles.tableWrap}>
+      {query.isPending ? <TableSkeleton /> : query.error ? <div className={styles.empty}><p className={styles.error} role="alert">{query.error.message}</p><button className={styles.secondary} onClick={() => void query.refetch()}>Try again</button></div> : customers.length ? <div className={styles.tableWrap}>
         <table className={styles.table}><thead><tr><th>Customer</th><th>Contact details</th><th>Address</th><th>Joined / first order</th><th>Orders</th><th>Last order</th><th>Total spent</th></tr></thead>
           <tbody>{customers.map(customer => <tr key={customer.id}>
             <td><strong>{customer.name}</strong><small>{customer.registered ? "Registered user" : "Guest customer"}</small></td>

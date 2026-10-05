@@ -10,7 +10,7 @@
 .coverModel { position: absolute; z-index: -2; width: 390px; height: auto; max-width: none; right: 11%; top: -8px; }
 .identity { display: flex; align-items: center; gap: 25px; min-width: 0; }
 .avatar { position: relative; flex-shrink: 0; width: 110px; height: 110px; overflow: hidden; border: 3px solid #f4f4f4; border-radius: 50%; background: #494a48; }
-.avatar img { object-fit: cover; object-position: center top; transform: scale(2.8); transform-origin: 50% 5%; }
+.avatar img { object-fit: cover; object-position: center top; transform: scale(1.5); transform-origin: 50% 5%; }
 .profileDetails { min-width: 0; }
 .profileDetails h2 { font-size: 26px; font-weight: 650; line-height: 1.4; letter-spacing: -.6px; }
 .profileDetails p { margin-top: 3px; font-size: 14px; overflow-wrap: anywhere; }
@@ -207,3 +207,12 @@
 }
 
 .addressForm { max-width: 620px; padding: 24px; background: #fff; border: 1px solid #e7e8eb; border-radius: 9px; }
+
+.imagePicker { min-width: 0; border: 0; padding: 0; }
+.imagePicker legend { margin-bottom: 10px; font-size: 12px; font-weight: 500; }
+.imageOptions { display: flex; gap: 14px; }
+.editForm .imageOption { flex: 1; position: relative; justify-items: center; padding: 12px; border: 1px solid #d5d7dc; border-radius: 8px; cursor: pointer; }
+.imageOption:has(input:checked) { border-color: #171717; background: #f2f3f5; box-shadow: inset 0 0 0 1px #171717; }
+.editForm .imageOption input { width: 16px; height: 16px; padding: 0; accent-color: #171717; }
+.imagePreview { position: relative; width: 80px; height: 80px; overflow: hidden; border-radius: 50%; background: #494a48; }
+.imagePreview img { object-fit: cover; object-position: center top; transform: scale(1.5); transform-origin: 50% 5%; }

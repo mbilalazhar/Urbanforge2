@@ -1,5 +1,6 @@
 "use client";
 
+import { PendingContent } from "@/components/ui/Skeleton";
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -97,10 +98,8 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
         </div>
 
         <Link href="/" className={styles.brand} aria-label="UrbanForge home">
-          <span className={styles.brandMark} aria-hidden="true">
-            <Image src="/logo.svg" alt="" width={82} height={34} />
-          </span>
-          <span>Urban<span>Forge</span></span>
+            <Image src="/dark-bg-logo.svg" alt="" width={82} height={34} />
+
         </Link>
 
         <p className={styles.caption}>Premium streetwear.<br />For modern explorers.</p>
@@ -154,7 +153,7 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
               {mode === "login" && <Link href="/forgot-password" className={styles.forgot}>Forgot password?</Link>}
 
               <p className={styles.feedback} role="status" aria-live="polite">{message || mutation.error?.message}</p>
-              <button type="submit" disabled={pending} className={styles.submit}>{pending ? (isSignup ? "Creating account…" : "Logging in…") : content.action}<ArrowRight size={17} strokeWidth={1.5} /></button>
+              <button type="submit" disabled={pending} className={styles.submit}><PendingContent pending={pending}>{content.action}<ArrowRight size={17} strokeWidth={1.5} /></PendingContent></button>
             </form>
 
             {!isReset && (

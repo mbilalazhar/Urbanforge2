@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton, ProductDetailsSkeleton } from "@/components/ui/Skeleton";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
@@ -56,7 +57,7 @@ export default function ProductQuickView({ product, onClose }: { product: Produc
     <div className={styles.content}>
       <p className={styles.eyebrow}>Quick view <span>/</span> {live?.category ?? product.category}</p>
       <h2 id={titleId}>{name}</h2>
-      {query.isPending ? <p className={styles.feedback} role="status">Loading product details…</p> : query.error ? <div className={styles.feedback} role="alert"><p>{query.error.message}</p><button type="button" onClick={() => { void query.refetch(); }}>Try again</button></div> : live && <ProductOptions key={live.id} product={live} onClose={onClose} />}
+      {query.isPending ? <ProductDetailsSkeleton /> : query.error ? <div className={styles.feedback} role="alert"><p>{query.error.message}</p><button type="button" onClick={() => { void query.refetch(); }}>Try again</button></div> : live && <ProductOptions key={live.id} product={live} onClose={onClose} />}
       <Link href={`/products/${encodeURIComponent(product.id)}`} className={styles.fullDetails} onClick={onClose}>View full product details <ArrowRight size={15} /></Link>
     </div>
   </dialog>, document.body);
@@ -103,6 +104,6 @@ function ProductOptions({ product, onClose }: { product: AdminProduct; onClose: 
     {sizes.length > 0 && <fieldset className={styles.options}><legend>Size <span>— {size}</span></legend><div className={styles.sizes}>{sizes.map(option => <button key={option} type="button" aria-label={`Size ${option}`} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); setFeedback(""); }}>{option}</button>)}</div></fieldset>}
     <div className={styles.quantityRow}><span>Quantity</span><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" aria-label="Decrease quantity" disabled={purchaseQuantity <= 1} onClick={() => { setQuantity(purchaseQuantity - 1); setFeedback(""); }}><Minus size={14} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" aria-label="Increase quantity" disabled={!canAdd || purchaseQuantity >= available} onClick={() => { setQuantity(purchaseQuantity + 1); setFeedback(""); }}><Plus size={14} /></button></div></div>
     <div className={styles.actions}><button type="button" className={styles.add} disabled={!canAdd} onClick={addToCart}><ShoppingBag size={17} />Add to Cart</button><Link href="/cart" className={styles.shop} onClick={onClose}>View Cart<ArrowRight size={17} /></Link></div>
-    <p className={styles.feedback} role="status">{cart.error ? <>Unable to load your cart. <button type="button" onClick={cart.retry}>Try again</button></> : cart.isLoading ? "Loading your cart…" : feedback || (available === 0 && inCart > 0 ? "All available units of this selection are already in your cart." : "")}</p>
+    <p className={styles.feedback} role="status">{cart.error ? <>Unable to load your cart. <button type="button" onClick={cart.retry}>Try again</button></> : cart.isLoading ? <Skeleton width={180} /> : feedback || (available === 0 && inCart > 0 ? "All available units of this selection are already in your cart." : "")}</p>
   </>;
 }

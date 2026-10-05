@@ -1,5 +1,6 @@
 "use client";
 
+import { PendingContent } from "@/components/ui/Skeleton";
 import { type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useLogin } from "@/lib/auth/client";
@@ -52,7 +53,7 @@ export default function AdminLoginForm() {
             required
           />
 
-          <button type="submit" disabled={login.isPending}>{login.isPending ? "Signing in…" : "Sign in to your store →"}</button>
+          <button type="submit" disabled={login.isPending}><PendingContent pending={login.isPending}>{"Sign in to your store →"}</PendingContent></button>
           <p className={styles.feedback} role="status" aria-live="polite">{login.error?.message}</p>
         </form>
       </section>

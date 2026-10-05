@@ -1,5 +1,6 @@
 "use client";
 
+import { PendingContent } from "@/components/ui/Skeleton";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -49,7 +50,7 @@ export default function AdminPortal({ account }: { account: PublicAccount }) {
       <header className={styles.topbar}>
         <button className={styles.mobileMenu} aria-label={menu ? "Close menu" : "Open menu"} onClick={() => setMenu(!menu)}>{menu ? <X size={22} /> : <Menu size={22} />}</button>
         <div className={styles.breadcrumb}>Workspace <ChevronRight size={13} /><span>{current.label}</span></div>
-        <div className={styles.account}><div className={styles.avatar}>{account.name.slice(0, 2).toUpperCase()}</div><span>{account.name}<small>Administrator</small></span><button title="Sign out" aria-label="Sign out of admin account" disabled={logout.isPending} onClick={() => logout.mutate(undefined, { onSuccess: () => { client.removeQueries({ queryKey: ["admin"] }); router.refresh(); } })}><LogOut size={17} /></button></div>
+        <div className={styles.account}><div className={styles.avatar}>{account.name.slice(0, 2).toUpperCase()}</div><span>{account.name}<small>Administrator</small></span><button title="Sign out" aria-label="Sign out of admin account" disabled={logout.isPending} onClick={() => logout.mutate(undefined, { onSuccess: () => { client.removeQueries({ queryKey: ["admin"] }); router.refresh(); } })}><PendingContent pending={logout.isPending}><LogOut size={17} /></PendingContent></button></div>
       </header>
       <main className={styles.main}>
         <div className={styles.utility}><label className={styles.search}><Search size={17} /><input type="search" placeholder="Search products, orders, customers…" aria-label="Search admin records" value={search} onChange={event => setSearch(event.target.value)} />{search && <button onClick={() => setSearch("")} aria-label="Clear search"><X size={15} /></button>}</label><span className={styles.date}><CalendarDays size={15} />{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Karachi" })}</span></div>

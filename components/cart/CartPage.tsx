@@ -1,5 +1,6 @@
 "use client";
 
+import { ListSkeleton, Skeleton, SummarySkeleton } from "@/components/ui/Skeleton";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,12 +28,12 @@ export default function CartPage() {
         </nav>
         <header className={styles.heading}>
           <div><h1>Your <span>Cart</span></h1><p>Style is a choice. Make it yours.</p></div>
-          <span className={styles.itemCount} aria-live="polite">{String(itemCount).padStart(2, "0")} {itemCount === 1 ? "item" : "items"}</span>
+          <span className={styles.itemCount} aria-live="polite">{isLoading ? <Skeleton width={65} /> : <>{String(itemCount).padStart(2, "0")} {itemCount === 1 ? "item" : "items"}</>}</span>
         </header>
 
         <div className={styles.layout}>
           <div className={styles.cartColumn}>
-            {isLoading ? <div className={styles.empty} role="status"><ShoppingBag size={38} strokeWidth={1} /><h2>Loading your cart…</h2></div> : error ? <div className={styles.empty} role="alert"><h2>Unable to load your cart</h2><p>{error}</p><button type="button" className={styles.checkout} onClick={retry}>Try again</button></div> : items.length ? (
+            {isLoading ? <ListSkeleton /> : error ? <div className={styles.empty} role="alert"><h2>Unable to load your cart</h2><p>{error}</p><button type="button" className={styles.checkout} onClick={retry}>Try again</button></div> : items.length ? (
               <div className={styles.products}>
                 <div className={styles.tableHeading} aria-hidden="true"><span>Product</span><span>Price</span><span>Quantity</span><span>Total</span></div>
                 <ul>
@@ -72,15 +73,15 @@ export default function CartPage() {
               {items.length > 0 && <button type="button" onClick={clearCart}>Clear cart<Trash2 size={16} strokeWidth={1.5} /></button>}
             </div>
             <div className={styles.banner}>
-              <Image src="/hero-bg.png" alt="" fill sizes="(min-width: 1200px) 55vw, 100vw" className={styles.bannerBackground} />
-              <Image src="/MenSection.png" alt="" width={1086} height={1448} className={styles.bannerModel} />
+              <Image src="/banner.png" alt="" fill sizes="(min-width: 1200px) 55vw, 100vw" className={styles.bannerBackground} />
+
               <p>Don’t just wear it.<br />Live it.</p>
               <span>Urbanforge <i /> <br />Streetwear <i /><br />Worldwide <i /></span>
             </div>
           </div>
 
           <aside className={styles.summaryColumn} aria-label="Order summary">
-            <div className={styles.summaryCard}>
+            {isLoading ? <SummarySkeleton /> : <div className={styles.summaryCard}>
               <div className={styles.summary}>
                 <h2>Order summary</h2>
                 <dl className={styles.costs}>
@@ -93,7 +94,7 @@ export default function CartPage() {
                 <p className={styles.feedback}>Cash on delivery · Discount codes can be applied at checkout.</p>
               </div>
 
-            </div>
+            </div>}
             <div className={styles.benefits}>
               {benefits.map(({ icon: Icon, title, description }) => (
                 <div key={title}><Icon size={22} strokeWidth={1.2} /><div><h3>{title}</h3><p>{description}</p></div></div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewsSkeleton, PendingContent } from "@/components/ui/Skeleton";
 import { useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MessageSquare, Star } from "lucide-react";
@@ -76,17 +77,17 @@ export default function ProductReviews({ productId }: { productId: string }) {
       <textarea id="product-review-comment" rows={4} maxLength={2000} value={comment} disabled={post.isPending} onChange={event => setComment(event.target.value)} placeholder="Tell others what you liked or what could be better…" aria-describedby="review-comment-limit" />
       <p id="review-comment-limit" className={styles.counter}>{comment.length}/2,000 characters</p>
       {post.error && <p className={styles.error} role="alert">{post.error.message}</p>}
-      <div className={styles.actions}><button type="submit" className={styles.primary} disabled={!rating || post.isPending}>{post.isPending ? "Posting…" : "Post review"}</button><button type="button" className={styles.secondary} disabled={post.isPending} onClick={() => { setEditing(false); post.reset(); requestAnimationFrame(() => addButton.current?.focus()); }}>Cancel</button></div>
+      <div className={styles.actions}><button type="submit" className={styles.primary} disabled={!rating || post.isPending}><PendingContent pending={post.isPending}>{"Post review"}</PendingContent></button><button type="button" className={styles.secondary} disabled={post.isPending} onClick={() => { setEditing(false); post.reset(); requestAnimationFrame(() => addButton.current?.focus()); }}><PendingContent pending={post.isPending}>Cancel</PendingContent></button></div>
     </form> : <div className={styles.heading}>
       <div><h3>Customer reviews</h3>{query.data && query.data.total > 0 && <p className={styles.summary}><strong>{query.data.average.toFixed(1)} / 5</strong><span>Based on {query.data.total} {query.data.total === 1 ? "review" : "reviews"}</span></p>}</div>
       <button ref={addButton} type="button" className={styles.primary} onClick={() => { setEditing(true); setNotice(""); post.reset(); }}>Add review</button>
     </div>}
-    {query.isPending && <p className={styles.loading} role="status">Loading reviews…</p>}
+    {query.isPending && <ReviewsSkeleton />}
     {query.error && <div className={styles.error} role="alert">{query.error.message} <button type="button" onClick={() => query.refetch()}>Try again</button></div>}
     {query.data?.total === 0 && !editing && <div className={styles.empty}><MessageSquare size={28} aria-hidden="true" /><h4>No reviews yet</h4><p>Be the first to share your thoughts about this product.</p></div>}
     {!!query.data?.reviews.length && <ul className={styles.list}>{query.data.reviews.map(review => <li key={review.id}>
       <article><div className={styles.reviewHeading}><div><strong>{review.author}</strong><Stars rating={review.rating} /></div><time dateTime={review.createdAt}>{new Date(review.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}</time></div>{review.comment && <p className={styles.comment}>{review.comment}</p>}</article>
     </li>)}</ul>}
-    {query.data && query.data.total > query.data.limit && <nav className={styles.pagination} aria-label="Review pages"><button type="button" className={styles.secondary} disabled={page === 1 || query.isFetching} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page} of {Math.ceil(query.data.total / query.data.limit)}</span><button type="button" className={styles.secondary} disabled={page * query.data.limit >= query.data.total || query.isFetching} onClick={() => setPage(page + 1)}>Next</button></nav>}
+    {query.data && query.data.total > query.data.limit && <nav className={styles.pagination} aria-label="Review pages"><button type="button" className={styles.secondary} disabled={page === 1 || query.isFetching} onClick={() => setPage(page - 1)}><PendingContent pending={query.isFetching}>Previous</PendingContent></button><span>Page {page} of {Math.ceil(query.data.total / query.data.limit)}</span><button type="button" className={styles.secondary} disabled={page * query.data.limit >= query.data.total || query.isFetching} onClick={() => setPage(page + 1)}><PendingContent pending={query.isFetching}>Next</PendingContent></button></nav>}
   </section>;
 }

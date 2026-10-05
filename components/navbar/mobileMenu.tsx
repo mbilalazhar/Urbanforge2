@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +20,7 @@ export default function MobileMenu({ menuItems }: { menuItems: MenuItem[] }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
-  const { itemCount } = useCart();
+  const { itemCount, isLoading } = useCart();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -86,7 +87,7 @@ export default function MobileMenu({ menuItems }: { menuItems: MenuItem[] }) {
             </div>
             <nav aria-label="Mobile shopping navigation">
               <ul className={styles.links}>
-                {[{ label: "Home", href: "/" }, ...menuItems].map(item => (
+                {[{ label: "Home", href: "/" }, ...menuItems, { label: "About UrbanForge", href: "/about" }].map(item => (
                   <li key={item.href}>
                     <Link
                       href={item.href}
@@ -110,7 +111,7 @@ export default function MobileMenu({ menuItems }: { menuItems: MenuItem[] }) {
 
           <div className={styles.footer}>
             <Link href="/account" onClick={closeMenu}><User size={19} strokeWidth={1.5} /><span>My account</span><ArrowRight size={16} aria-hidden="true" /></Link>
-            <Link href="/cart" onClick={closeMenu}><ShoppingBag size={19} strokeWidth={1.5} /><span>Your cart</span><span className={styles.count}>{itemCount}</span></Link>
+            <Link href="/cart" onClick={closeMenu}><ShoppingBag size={19} strokeWidth={1.5} /><span>Your cart</span><span className={styles.count}>{isLoading ? <Skeleton width={14} height={12} /> : itemCount}</span></Link>
             <p>UrbanForge · Built for the streets</p>
           </div>
         </div>

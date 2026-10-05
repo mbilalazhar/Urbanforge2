@@ -1,6 +1,7 @@
 // components/Navbar.tsx
 "use client";
 
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,9 +14,9 @@ import styles from "./navbar.module.css";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { itemCount } = useCart();
+  const { itemCount, isLoading } = useCart();
   const isCart = pathname === "/cart";
-  const isLightPage = pathname.startsWith("/products/") || ["/search", "/cart", "/checkout", "/wishlist", "/account", "/login", "/signup", "/forgot-password", "/privacy-policy", "/terms", "/cookie-policy"].includes(pathname);
+  const isLightPage = pathname.startsWith("/products/") || ["/about", "/search", "/cart", "/checkout", "/wishlist", "/account", "/login", "/signup", "/forgot-password", "/privacy-policy", "/terms", "/cookie-policy"].includes(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function Navbar() {
         </Link>
         <Link href="/cart" className={styles.mobileCart} aria-label={`Cart (${itemCount} ${itemCount === 1 ? "item" : "items"})`} aria-current={isCart ? "page" : undefined}>
           <ShoppingBag size={22} strokeWidth={1.75} />
-          <span>{itemCount}</span>
+          <span>{isLoading ? <Skeleton width={8} height={8} /> : itemCount}</span>
         </Link>
       </nav>
 <nav
@@ -170,7 +171,7 @@ export default function Navbar() {
                   : "h-4 min-w-4 px-1 bg-[#c82032] text-[10px] text-white"
               }`}
             >
-              {itemCount}
+              {isLoading ? <Skeleton width={8} height={8} /> : itemCount}
             </span>
           </Link>
         </div>

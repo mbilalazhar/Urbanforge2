@@ -1,5 +1,6 @@
 "use client";
 
+import { PendingContent } from "@/components/ui/Skeleton";
 import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,9 +18,9 @@ export default function ServiceUnavailable({ title }: { title: string }) {
         disabled={pending}
         onClick={() => startTransition(() => router.refresh())}
         className="rounded bg-neutral-900 px-6 py-3 text-white disabled:opacity-60"
-      >
-        {pending ? "Trying again…" : "Try again"}
-      </button>
+      ><PendingContent pending={pending}>
+        Try again
+      </PendingContent></button>
       <Link href="/" className="underline underline-offset-4">Back to the store</Link>
     </main>
   );

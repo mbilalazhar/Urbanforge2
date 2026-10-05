@@ -31,6 +31,7 @@ const linkGroups = [
     title: "Explore",
     links: [
       { label: "Home", href: "/" },
+      { label: "About UrbanForge", href: "/about" },
       { label: "New Arrivals", href: "/new-in" },
       { label: "Search Products", href: "/search" },
     ],

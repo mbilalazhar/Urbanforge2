@@ -1,4 +1,5 @@
 "use client";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -120,7 +121,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
         {sizes.length > 0 && <fieldset className={styles.options}><legend>Size: <span>{size || "Select a size"}</span></legend><div className={styles.sizeOptions}>{sizes.map(option => <button type="button" key={option} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); setNotice(""); }}>{option}</button>)}</div></fieldset>}
         <p className={`${styles.stock} ${stock === 0 ? styles.outOfStock : ""}`}>{stock > 0 ? <><Check size={14} />In stock · {stock} available{cartQuantity > 0 ? ` (${cartQuantity} in your cart)` : ""}</> : <><Package size={14} />Out of stock{product.variants.length ? " for this selection" : ""}</>}</p>
         <div className={styles.purchase}><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" disabled={purchaseQuantity <= 1} aria-label="Decrease quantity" onClick={() => setQuantity(purchaseQuantity - 1)}><Minus size={15} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" disabled={!canBuy || purchaseQuantity >= available} aria-label="Increase quantity" onClick={() => setQuantity(purchaseQuantity + 1)}><Plus size={15} /></button></div><button type="button" className={styles.addToCart} disabled={!canBuy} onClick={() => addToCart()}><ShoppingBag size={17} />Add to Cart</button><button type="button" className={styles.buyNow} disabled={!validSelection || stock < 1 || !!query.error} onClick={() => addToCart(true)}><Zap size={16} />Buy Now</button></div>
-        <p className={styles.notice} role="status">{cart.error ? <>Unable to load your cart. <button type="button" onClick={cart.retry}>Try again</button></> : cart.isLoading ? "Loading your cart…" : notice}{notice.includes("added to your cart") && <> <Link href="/cart">View cart <ArrowRight size={13} /></Link></>}</p>
+        <p className={styles.notice} role="status">{cart.error ? <>Unable to load your cart. <button type="button" onClick={cart.retry}>Try again</button></> : cart.isLoading ? <Skeleton width={180} /> : notice}{notice.includes("added to your cart") && <> <Link href="/cart">View cart <ArrowRight size={13} /></Link></>}</p>
         <div className={styles.benefits}><div><Package size={21} /><span>Product details<small>See materials & specifications</small></span></div><Link href="/account"><MapPin size={21} /><span>Saved addresses<small>Keep your delivery details ready</small></span></Link></div>
       </section>
     </div>

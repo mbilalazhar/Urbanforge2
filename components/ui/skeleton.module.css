@@ -1,0 +1,38 @@
+.bone { display: inline-block; position: relative; flex-shrink: 0; max-width: 100%; overflow: hidden; border-radius: 5px; background: #e9e9eb; vertical-align: middle; }
+.bone::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 15%, #ffffff8c 48%, transparent 80%); transform: translateX(-100%); animation: shimmer 1.6s ease-in-out infinite; }
+.circle { border-radius: 50%; }
+.frame { width: 100%; min-width: 0; }
+.content, .lines, .productCard, .list, .review { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.content { gap: 28px; }
+.lines { flex: 1; }
+.panel { display: flex; flex-direction: column; gap: 22px; min-width: 0; padding: 24px; background: #fff; border: 1px solid #f0f0f2; border-radius: 8px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.productGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 26px 20px; }
+.productCard { gap: 12px; }
+.listRow { display: flex; align-items: center; gap: 18px; padding: 22px 0; border-bottom: 1px solid #eee; }
+.review { padding: 24px 0; border-bottom: 1px solid #eee; }
+.table { padding: 8px 20px; }
+.tableRow { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; align-items: center; gap: 24px; padding: 20px 0; border-bottom: 1px solid #f0f0f2; }
+.twoColumns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; align-items: start; }
+.checkout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 30px; align-items: start; }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.page { min-height: 75vh; padding: 120px 32px 56px; background: #fafafa; }
+.pageInner { width: 100%; max-width: 1440px; margin: auto; }
+.action { display: inline-grid; position: relative; align-items: center; vertical-align: middle; min-width: 1em; }
+.actionLabel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.concealed { opacity: 0; }
+.action .actionBone { position: absolute; inset: 15% 0; min-height: 8px; background: currentColor; opacity: .3; border-radius: 4px; }
+@keyframes shimmer { to { transform: translateX(100%); } }
+@media (max-width: 900px) { .productGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767px) {
+  .page { padding: 96px 16px 36px; }
+  .twoColumns, .checkout { grid-template-columns: 1fr; gap: 22px; }
+  .productGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+  .table { padding: 8px 12px; }
+  .tableRow { grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+  .tableRow > :last-child { display: none; }
+  .panel { padding: 18px; }
+  .listRow { gap: 12px; }
+  .listRow > .bone:last-child { width: 45px !important; }
+}
+@media (prefers-reduced-motion: reduce) { .bone::after { animation: none; transform: none; opacity: .3; } }

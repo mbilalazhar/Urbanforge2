@@ -1,11 +1,11 @@
 import "server-only";
 import { ObjectId } from "mongodb";
 import dbConnect from "@/lib/dbconnect";
-import { emptyUserDetails, type UserProfile, type UserProfileUpdate } from "@/lib/user-profile";
+import { defaultProfileImage, emptyUserDetails, type UserProfile, type UserProfileUpdate } from "@/lib/user-profile";
 import { createAccountModel, type AccountDocument, type AccountSession } from "./account";
 
 const account = createAccountModel("users", "user");
-const profileProjection = { wishlistProductIds: 1, _id: 1, name: 1, email: 1, contact: 1, defaultAddress: 1, currentOrderIds: 1, pastOrderIds: 1, preferences: 1 };
+const profileProjection = { profileImage: 1, wishlistProductIds: 1, _id: 1, name: 1, email: 1, contact: 1, defaultAddress: 1, currentOrderIds: 1, pastOrderIds: 1, preferences: 1 };
 
 async function initializeDetails(id: ObjectId) {
   const defaults = emptyUserDetails();
@@ -18,6 +18,7 @@ async function initializeDetails(id: ObjectId) {
 function toProfile(document: AccountDocument): UserProfile {
   return {
     id: document._id.toHexString(), name: document.name, email: document.email,
+    profileImage: document.profileImage ?? defaultProfileImage,
     contact: document.contact ?? "", wishlistProductIds: document.wishlistProductIds ?? [], defaultAddress: document.defaultAddress ?? null,
     currentOrderIds: document.currentOrderIds ?? [], pastOrderIds: document.pastOrderIds ?? [],
     preferences: document.preferences ?? { orders: true, news: false },

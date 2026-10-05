@@ -1,5 +1,6 @@
 "use client";
 
+import { PendingContent } from "@/components/ui/Skeleton";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useLogout, useSession } from "@/lib/auth/client";
@@ -42,7 +43,7 @@ export default function AccountPanel({ account, profile }: { account: PublicAcco
         <div className={styles.form}>
           <button type="button" disabled={logout.isPending} onClick={() => logout.mutate(undefined, {
             onSuccess: () => { router.replace(loginPath); router.refresh(); },
-          })}>{logout.isPending ? "Logging out…" : "Log Out"}</button>
+          })}><PendingContent pending={logout.isPending}>{"Log Out"}</PendingContent></button>
           <p className={styles.feedback} role="status">{logout.error?.message || session.error?.message}</p>
         </div>
       </section>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { profileImagePaths } from "@/lib/user-profile";
 import User from "@/models/User";
 import { getCurrentAccount } from "@/lib/auth/session";
 import { authRoute, AuthError, json, readBody } from "@/lib/auth/http";
@@ -12,6 +13,7 @@ const address = z.object({
   region: required, postalCode: z.string().trim().max(20).default(""), country: required,
 }).strict();
 const profileUpdate = z.object({
+  profileImage: z.enum(profileImagePaths).optional(),
   name: z.string().trim().min(1, "Enter your name.").max(100).optional(),
   contact: phone.optional(), defaultAddress: address.nullable().optional(),
   preferences: z.object({ orders: z.boolean(), news: z.boolean() }).strict().optional(),
