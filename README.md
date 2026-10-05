@@ -24,6 +24,19 @@ The helper connects on its first call, reuses the connection pool, and allows a
 retry after a failed connection. Do not close the shared client after requests.
 See the [MongoDB driver documentation](https://www.mongodb.com/docs/drivers/node/current/connect/).
 
+If pages report `queryTxt ETIMEOUT` or `querySrv ETIMEOUT`, the DNS resolver is
+failing to resolve the Atlas connection records. Set `MONGODB_DNS_SERVERS` to
+comma-separated DNS server IPs approved for your network, then restart the dev
+server. Leave it empty to use system DNS. This setting affects Node's
+promise-based DNS resolver throughout the app process; it does not change OS DNS.
+Account and admin pages show a retry screen during a database outage and retain
+the existing session. Authentication APIs continue to return 503 while storage
+is unavailable.
+
+Run `npm run build && node --test tests/routes.integration.mjs` to verify public
+pages, footer destinations, redirects, and unavailable-database page recovery.
+The test uses no real database.
+
 ### Authentication
 
 `models/User.ts` and `models/Admin.ts` use separate MongoDB collections (`users`
@@ -341,6 +354,28 @@ persist in MongoDB and work across devices. Browser caches are scoped by account
 other tabs refresh on wishlist changes. Archived/inactive products are not exposed,
 and unavailable saved entries can still be removed. Profile edits cannot replace
 wishlist references. Existing accounts initialize an empty list automatically.
+
+Wishlist data loads only while a product heart or wishlist view is mounted. The
+shared query is cached for five minutes and does not refetch when switching
+browser tabs. Successful saves update the cache immediately; storage events
+still synchronize wishlist changes across tabs. The provider is limited to the
+storefront and account layouts, so the admin panel never fetches wishlists.
+Desktop and mobile navigation no longer contain a wishlist link; customers can
+still use product hearts and the Wishlist tab in My Account.
+
+### Store policy pages
+
+`/privacy-policy`, `/terms`, and `/cookie-policy` are static frontend pages using
+a shared responsive policy layout. Footer links, policy navigation, section
+anchors and email links connect them to the store. No policy API, consent banner
+or cookie-settings backend is added. Text lives in
+`components/policies/policy-data.ts`.
+
+Run `npm run build` followed by
+`node --test tests/product-preview.browser.mjs tests/auth.integration.mjs` to
+check wishlist persistence, tab-focus request counts, policy navigation, mobile
+layout, and navbar removal with an isolated database and Chrome.
+
 
 
 ## Customer checkout and orders

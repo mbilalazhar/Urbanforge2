@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:auth": "npm run build && node --test tests/auth.integration.mjs",
+    "test:reviews": "npm run build && node --test tests/reviews.integration.mjs",
     "test:admin-preview": "node --test tests/admin-preview.test.mjs",
     "test:admin": "npm run build && node --test tests/admin.integration.mjs tests/admin-products-client.test.mjs"
   },

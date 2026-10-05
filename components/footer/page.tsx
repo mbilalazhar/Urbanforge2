@@ -31,11 +31,8 @@ const linkGroups = [
     title: "Explore",
     links: [
       { label: "Home", href: "/" },
-      { label: "About UrbanForge", href: "/about" },
-      { label: "Our Story", href: "/our-story" },
-      { label: "Journal", href: "/journal" },
       { label: "New Arrivals", href: "/new-in" },
-      { label: "Lookbook", href: "/lookbook" },
+      { label: "Search Products", href: "/search" },
     ],
   },
   {
@@ -46,18 +43,17 @@ const linkGroups = [
       { label: "Shoes", href: "/shoes" },
       { label: "Accessories", href: "/accessories" },
       { label: "Sale", href: "/sale" },
-      { label: "All Collections", href: "/collections" },
+      { label: "All Products", href: "/search" },
     ],
   },
   {
     title: "Assistance",
     links: [
       { label: "Contact Us", href: "/contact" },
-      { label: "Shipping & Delivery", href: "/shipping" },
-      { label: "Returns & Exchanges", href: "/returns" },
-      { label: "Size Guide", href: "/size-guide" },
       { label: "FAQs", href: "/faqs" },
-      { label: "Track Your Order", href: "/track-order" },
+      { label: "My Account & Orders", href: "/account" },
+      { label: "Your Cart", href: "/cart" },
+      { label: "Log In", href: "/login" },
     ],
   },
   {
@@ -84,7 +80,7 @@ export default function Footer() {
           {/* Contact us */}
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rose-600">
-              Contact us
+              <Link href="/contact" className="transition-colors hover:text-white">Contact us</Link>
             </h3>
             <ul className="space-y-2 text-sm text-neutral-200">
               {contactInfo.map((item) => (

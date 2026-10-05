@@ -9,6 +9,7 @@ import { colorHex, formatProductPrice, toProductCard } from "@/lib/products";
 import { useCart } from "@/components/cart/CartProvider";
 import WishlistButton from "@/components/wishlist/WishlistButton";
 import ProductCard from "./ProductCard";
+import ProductReviews from "./ProductReviews";
 import styles from "./product-page.module.css";
 
 const tabs = ["Description", "Specifications", "Reviews", "Shipping & Returns"] as const;
@@ -126,7 +127,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
     <section className={styles.information} aria-label="More product information"><div className={styles.tabs} role="tablist" aria-label="Product information">{tabs.map((item, index) => <button type="button" role="tab" key={item} id={`product-tab-${index}`} aria-controls="product-tab-content" aria-selected={tab === item} tabIndex={tab === item ? 0 : -1} onClick={() => setTab(item)} onKeyDown={event => { const next = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1; if (next >= 0) { event.preventDefault(); setTab(tabs[next]); document.getElementById(`product-tab-${next}`)?.focus(); } }}>{item}</button>)}</div>
       <div className={styles.tabContent} role="tabpanel" id="product-tab-content" aria-labelledby={`product-tab-${tabs.indexOf(tab)}`} tabIndex={0}>
         {(tab === "Description" || tab === "Specifications") && <div className={styles.descriptionGrid}>{tab === "Description" && <div><p className={styles.description}>{product.description || product.shortDescription || "No description has been added for this product yet."}</p>{product.tags.length > 0 && <div className={styles.tags}>{product.tags.map(tag => <span key={tag}>{tag}</span>)}</div>}</div>}<dl className={styles.specs}>{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div>}
-        {tab === "Reviews" && <div className={styles.tabEmpty}><h3>No reviews yet</h3><p>Customer reviews aren’t available for this product yet.</p></div>}
+        {tab === "Reviews" && <ProductReviews key={product.id} productId={product.id} />}
         {tab === "Shipping & Returns" && <div className={styles.tabEmpty}><h3>Delivery & returns</h3><p>Choose standard or express delivery at checkout. Standard shipping is free on orders of Rs. 5,000 or more.</p><Link href="/account">Save your delivery address <ArrowRight size={14} /></Link></div>}
       </div>
     </section>

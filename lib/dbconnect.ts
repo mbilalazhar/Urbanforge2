@@ -1,5 +1,6 @@
 import "server-only";
 
+import { setServers } from "node:dns/promises";
 import { MongoClient, type Db } from "mongodb";
 
 const mongoGlobal = globalThis as typeof globalThis & {
@@ -15,6 +16,10 @@ export default async function dbConnect(): Promise<Db> {
   }
 
   if (!mongoGlobal.mongoClientPromise) {
+    // Optional workaround for resolvers that time out on Atlas TXT/SRV records.
+    // This configures Node's promise-based DNS resolver for the whole process.
+    const dnsServers = process.env.MONGODB_DNS_SERVERS?.split(",").map(server => server.trim()).filter(Boolean);
+    if (dnsServers?.length) setServers(dnsServers);
     const client = new MongoClient(uri, { serverSelectionTimeoutMS: 10000 });
 
     mongoGlobal.mongoClientPromise = client.connect().catch(async (error: unknown) => {

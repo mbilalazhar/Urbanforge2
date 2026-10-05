@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/auth/session";
 import User from "@/models/User";
 import AccountPanel from "@/components/auth/AccountPanel";
+import ServiceUnavailable from "@/components/ServiceUnavailable";
 
 export const metadata: Metadata = {
   title: "My Account | UrbanForge",
@@ -10,9 +11,16 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
-  const account = await getCurrentAccount("user");
+  // Keep redirects outside the catch: Next.js implements them by throwing.
+  let account;
+  let profile;
+  try {
+    account = await getCurrentAccount("user");
+    profile = account ? await User.getProfile(account.id) : null;
+  } catch {
+    return <ServiceUnavailable title="Your account is temporarily unavailable" />;
+  }
   if (!account) redirect("/login");
-  const profile = await User.getProfile(account.id);
   if (!profile) redirect("/login");
   return <AccountPanel account={account} profile={profile} />;
 }
