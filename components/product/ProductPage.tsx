@@ -9,6 +9,7 @@ import { ArrowRight, Check, ChevronLeft, ChevronRight, MapPin, Minus, Package, P
 import { CatalogError, useProduct, type ProductResponse } from "@/lib/catalog/client";
 import { colorHex, formatProductPrice, toProductCard } from "@/lib/products";
 import { useCart } from "@/components/cart/CartProvider";
+import { useCookiePreference } from "@/lib/cookie-preferences";
 import WishlistButton from "@/components/wishlist/WishlistButton";
 import ProductCard from "./ProductCard";
 import ProductReviews from "./ProductReviews";
@@ -31,6 +32,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
   const { product, related } = query.data;
   const router = useRouter();
   const cart = useCart();
+  const cookiePreference = useCookiePreference();
   const initialVariant = initialData.product.variants.find(variant => variant.stock > 0) ?? initialData.product.variants[0];
   const [color, setColor] = useState(initialVariant?.color ?? product.colors[0] ?? "");
   const [size, setSize] = useState(initialVariant?.size ?? product.sizes[0] ?? "");
@@ -60,12 +62,13 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
   ].filter((entry): entry is [string, string] => Boolean(entry[1]));
 
   useEffect(() => {
+    if (cookiePreference !== "all") return;
     try {
       let visitorId = localStorage.getItem("urbanforge-visitor");
       if (!visitorId) { visitorId = crypto.randomUUID(); localStorage.setItem("urbanforge-visitor", visitorId); }
       void fetch(`/api/catalog/${encodeURIComponent(product.id)}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId }) }).catch(() => undefined);
     } catch { /* Tracking is optional when browser storage is unavailable. */ }
-  }, [product.id]);
+  }, [product.id, cookiePreference]);
 
   function selectColor(next: string) {
     setColor(next); setQuantity(1);

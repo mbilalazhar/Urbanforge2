@@ -67,16 +67,26 @@ function ToastViewport({ notices, remove }: { notices: Notice[]; remove: (id: st
   const latestId = notices.at(-1)?.id;
   useEffect(() => {
     const viewport = ref.current;
-    if (!viewport) return;
-    if (latestId) { viewport.hidePopover(); viewport.showPopover(); }
-    else viewport.hidePopover();
+    if (!viewport || !latestId) return;
+    // A fixed portal is always visible. Use the top layer when supported so
+    // notifications also appear above native dialogs, without requiring it.
+    if (typeof viewport.showPopover === "function") {
+      try {
+        viewport.setAttribute("popover", "manual");
+        if (viewport.matches(":popover-open")) viewport.hidePopover();
+        viewport.showPopover();
+      } catch {
+        viewport.removeAttribute("popover");
+      }
+    }
   }, [latestId]);
-  return <div ref={ref} popover="manual" className={styles.toasts} aria-label="Notifications">{notices.map(notice => <Toast key={notice.id} notice={notice} remove={remove} />)}</div>;
+  if (!notices.length) return null;
+  return createPortal(<div ref={ref} className={styles.toasts} aria-label="Notifications" aria-live="polite" aria-relevant="additions text">{notices.map(notice => <Toast key={notice.id} notice={notice} remove={remove} />)}</div>, document.body);
 }
 
 function Toast({ notice, remove }: { notice: Notice; remove: (id: string) => void }) {
   const [paused, setPaused] = useState(false);
-  useEffect(() => { if (paused) return; const timer = window.setTimeout(() => remove(notice.id), 6000); return () => clearTimeout(timer); }, [notice.id, paused, remove]);
+  useEffect(() => { if (paused) return; const timer = window.setTimeout(() => remove(notice.id), 8000); return () => clearTimeout(timer); }, [notice.id, paused, remove]);
   return <div className={styles.toast} role="status" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}><CheckCircle2 size={21} aria-hidden="true" /><div>{notice.content}</div><button type="button" aria-label="Dismiss notification" onClick={() => remove(notice.id)}><X size={17} /></button></div>;
 }
 

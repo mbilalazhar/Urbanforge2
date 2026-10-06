@@ -78,9 +78,9 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
       <div className={styles.mobileHeading}><h1>My account</h1><p>Manage your orders and account details.</p></div>
       <section className={styles.profile} aria-label="Your profile">
         <Image className={styles.cover} src="/hero-bg.png" alt="" fill sizes="(max-width: 767px) 1px, 1240px" priority />
-        <Image className={styles.coverModel} src={profile.profileImage ?? defaultProfileImage} alt="" width={1086} height={1448} priority />
+        <Image className={styles.coverModel} src={profile.profileImage ?? defaultProfileImage} alt="" width={1086} height={1448} sizes="(max-width: 767px) 1px, 390px" quality={90} priority />
         <div className={styles.identity}>
-          <div className={styles.avatar}><Image src={profile.profileImage ?? defaultProfileImage} alt="Profile avatar" fill sizes="(max-width: 767px) 64px, 104px" priority /></div>
+          <div className={styles.avatar}><Image src={profile.profileImage ?? defaultProfileImage} alt="Profile avatar" fill sizes="(max-width: 767px) 80px, 128px" quality={90} priority /></div>
           <div className={styles.profileDetails}><h2>{profile.name}</h2><p>{profile.email}</p><p className={styles.phone}><Phone size={13} />{profile.contact || "Add a contact number"}</p></div>
         </div>
         <button type="button" className={styles.editProfile} onClick={() => { save.reset(); setEditing(true); }} aria-label="Edit profile"><Pencil size={14} /><span>Edit Profile</span><ChevronRight className={styles.mobileChevron} size={20} /></button>
@@ -122,7 +122,7 @@ export default function ProfilePage({ initialProfile, onLogout, loggingOut, erro
         <legend>Profile image</legend>
         <div className={styles.imageOptions}>{profileImagePaths.map((path, index) => <label key={path} className={styles.imageOption}>
           <input type="radio" name="profileImage" value={path} defaultChecked={path === (profile.profileImage ?? defaultProfileImage)} required />
-          <span className={styles.imagePreview}><Image src={path} alt="" fill sizes="80px" /></span>
+          <span className={styles.imagePreview}><Image src={path} alt="" fill sizes="96px" quality={90} /></span>
           <span>{index === 0 ? "Male" : "Female"}</span>
         </label>)}</div>
       </fieldset>

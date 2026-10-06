@@ -40,6 +40,7 @@ export default function ProductReviews({ productId }: { productId: string }) {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rating, comment }),
     }),
     onSuccess: async ({ review }) => {
+      notifySuccess("Your review has been posted. Thank you!");
       await client.cancelQueries({ queryKey: key });
       const first = client.getQueryData<ReviewsResponse>([...key, 1]);
       const summary = query.data;
@@ -50,16 +51,15 @@ export default function ProductReviews({ productId }: { productId: string }) {
         page: 1, limit: 20,
       });
       setPage(1); setEditing(false); setRating(0); setComment("");
-      notifySuccess("Your review has been posted. Thank you!");
       void client.invalidateQueries({ queryKey: key });
-      requestAnimationFrame(() => addButton.current?.focus());
+      requestAnimationFrame(() => addButton.current?.focus({ preventScroll: true }));
     },
   });
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!rating || post.isPending) return;
-     post.mutate();
+    post.mutate();
   }
 
   return <section className={styles.reviews} aria-label="Customer reviews">

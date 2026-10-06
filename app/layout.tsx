@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { FeedbackProvider } from "@/components/ui/Feedback";
+import CookieNotice from "@/components/cookies/CookieNotice";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Inter } from 'next/font/google';
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <QueryProvider>
         <CartProvider>
           {children}
+          <CookieNotice />
         </CartProvider>
         </QueryProvider>
         </FeedbackProvider>

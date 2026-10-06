@@ -1,0 +1,16 @@
+.notice { position: fixed; z-index: 1000; inset-inline: 0; bottom: 0; padding: 24px clamp(20px, 4vw, 64px); padding-bottom: max(24px, env(safe-area-inset-bottom)); max-height: 100dvh; overflow-y: auto; background: #191919; color: #fff; border-top: 1px solid #ffffff25; box-shadow: 0 -8px 40px #0003; font-family: var(--font-inter), Arial, sans-serif; }
+.content { display: flex; align-items: center; gap: 22px; max-width: 1600px; margin-inline: auto; }
+.icon { display: grid; place-items: center; width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; color: #f1cda2; background: #ffffff0d; }
+.copy { flex: 1; min-width: 0; }
+.copy h2 { font-size: 16px; font-weight: 650; margin: 0 0 7px; }
+.copy p { margin: 0; color: #d0d0d0; font-size: 13px; line-height: 1.7; }
+.copy a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.actions { display: flex; gap: 12px; flex-shrink: 0; }
+.actions button { padding: 14px 22px; min-height: 46px; border: 1px solid transparent; border-radius: 5px; color: #fff; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+.actions .necessary { background: transparent; border-color: #ffffff65; }
+.actions .necessary:hover { background: #ffffff12; border-color: #fff; }
+.acceptAll { background: #ce1932; }
+.acceptAll:hover { background: #e0203b; }
+.notice :is(button, a):focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+@media (max-width: 900px) { .content { flex-wrap: wrap; gap: 16px; } .actions { margin-left: 74px; } }
+@media (max-width: 640px) { .notice { padding: 20px; padding-bottom: max(20px, env(safe-area-inset-bottom)); } .content { gap: 12px; } .icon { width: 40px; height: 40px; align-self: flex-start; } .copy { flex-basis: calc(100% - 52px); } .copy h2 { font-size: 15px; } .copy p { font-size: 12px; } .actions { width: 100%; margin: 4px 0 0; gap: 10px; } .actions button { flex: 1; padding-inline: 12px; } }

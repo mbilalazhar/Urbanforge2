@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
-const nextConfig = {
+const nextConfig: NextConfig = {
+  compiler: { removeConsole: true },
+  logging: false,
+  devIndicators: false,
   images: {
+    qualities: [75, 90],
     remotePatterns: [
       {
         protocol: "https",
