@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 
 import { ListSkeleton, Skeleton, SummarySkeleton } from "@/components/ui/Skeleton";
 import { useRouter } from "next/navigation";
@@ -33,7 +34,7 @@ export default function CartPage() {
 
         <div className={styles.layout}>
           <div className={styles.cartColumn}>
-            {isLoading ? <ListSkeleton /> : error ? <div className={styles.empty} role="alert"><h2>Unable to load your cart</h2><p>{error}</p><button type="button" className={styles.checkout} onClick={retry}>Try again</button></div> : items.length ? (
+            {isLoading ? <ListSkeleton /> : error ? <FeedbackNotice><h2>Unable to load your cart</h2><p>{error}</p><button type="button" className={styles.checkout} onClick={retry}>Try again</button></FeedbackNotice> : items.length ? (
               <div className={styles.products}>
                 <div className={styles.tableHeading} aria-hidden="true"><span>Product</span><span>Price</span><span>Quantity</span><span>Total</span></div>
                 <ul>

@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 
 import { TableSkeleton, PendingContent } from "@/components/ui/Skeleton";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
@@ -48,15 +49,14 @@ function printInvoice(order: AdminOrder) {
 
 function OrderDetails({ order, onClose }: { order: AdminOrder; onClose: () => void }) {
   const mutation = useAdminMutation("orders", "api");
-  const [feedback, setFeedback] = useState("");
+  const notifications = useFeedback();
   const [refund, setRefund] = useState(false);
   const [refundNote, setRefundNote] = useState("");
 
   async function update(body: Record<string, unknown>) {
-    setFeedback("");
     try {
       await mutation.mutateAsync({ path: `orders/${order.id}`, method: "PATCH", body });
-      setFeedback(body.paymentStatus === "paid" ? "Order updated. Paid orders are included in the customer’s total spent unless cancelled, returned or refunded." : "Order updated.");
+      notifications.success(body.paymentStatus === "paid" ? "Order updated. Paid orders are included in the customer’s total spent unless cancelled, returned or refunded." : "Order updated.");
       setRefund(false);
       setRefundNote("");
     } catch { /* The mutation error is displayed below. */ }
@@ -69,7 +69,7 @@ function OrderDetails({ order, onClose }: { order: AdminOrder; onClose: () => vo
   }
 
   return <Dialog title={`Order ${order.number}`} onClose={onClose}>
-    <div className={styles.actions}><div className={styles.actions}><span className={styles.badge} data-status={order.status}>{order.status}</span><span className={styles.muted}>{date(order.createdAt)}</span></div><div className={styles.actions}><button className={styles.secondary} onClick={() => printInvoice(order)}><Printer size={14} />Print invoice</button><button className={styles.secondary} onClick={() => downloadInvoice(order)}><Download size={14} />Invoice HTML</button></div></div>
+    <div className={styles.actions}><div className={styles.actions}><span className={styles.badge} data-status={order.status}>{order.status}</span><span className={styles.muted}>{date(order.createdAt)}</span></div><div className={styles.actions}><button className={styles.secondary} onClick={() => printInvoice(order)}><Printer size={14} />Print invoice</button><button className={styles.secondary} onClick={() => { downloadInvoice(order); notifications.success("Invoice download started."); }}><Download size={14} />Invoice HTML</button></div></div>
     <div className={styles.details}>
       <section><h4>Customer</h4><p>{order.customerName}</p><p>{order.email}</p><p>{order.phone || "No phone provided"}</p><div className={styles.actions}><a className={styles.link} href={`mailto:${encodeURIComponent(order.email)}`}><Mail size={13} /> Email customer</a>{order.phone && <a className={styles.link} href={`tel:${order.phone.replace(/[^+\d]/g, "")}`}><Phone size={13} /> Call</a>}</div></section>
       <section><h4>Delivery address</h4><p>{order.address || "No delivery address provided"}</p></section>
@@ -84,14 +84,14 @@ function OrderDetails({ order, onClose }: { order: AdminOrder; onClose: () => vo
         <label className={styles.field}>Tracking number<input name="trackingNumber" className={styles.input} defaultValue={order.trackingNumber} placeholder="Enter tracking number" maxLength={150} /></label>
         <label className={`${styles.field} ${styles.full}`}>Internal notes<textarea name="notes" className={styles.textarea} defaultValue={order.notes} placeholder="Delivery instructions, payment reference, or updates…" maxLength={2000} /></label>
       </div>
-    {mutation.error && <div role="alert" className={styles.error}>{mutation.error.message}</div>}{feedback && <p role="status" className={styles.muted}>{feedback}</p>}
+    {mutation.error && <FeedbackNotice>{mutation.error.message}</FeedbackNotice>}
       <div className={styles.actions}><p className={styles.muted}>Select the current fulfilment stage and save. Cancellation and approved returns restore inventory automatically.</p><button className={styles.button} disabled={mutation.isPending}><PendingContent pending={mutation.isPending}>{"Save changes"}</PendingContent></button></div>
     </form>
     <section className={styles.form}><h4 className={styles.sectionTitle}>Returns & refunds</h4><p className={styles.muted}>Return status: {title(order.returnStatus)}. Approve a return after delivery; mark the order returned once items are received.</p><div className={styles.actions}><div className={styles.actions}>
       {order.status === "delivered" && order.returnStatus !== "requested" && order.returnStatus !== "approved" && <button className={styles.secondary} disabled={mutation.isPending} onClick={() => void update({ returnStatus: "requested" })}><PendingContent pending={mutation.isPending}>Record return request</PendingContent></button>}
       {order.returnStatus === "requested" && <><button className={styles.secondary} disabled={mutation.isPending || order.status !== "delivered"} onClick={() => void update({ returnStatus: "approved" })}><PendingContent pending={mutation.isPending}>Approve return</PendingContent></button><button className={styles.danger} disabled={mutation.isPending} onClick={() => void update({ returnStatus: "rejected" })}><PendingContent pending={mutation.isPending}>Reject return</PendingContent></button></>}
     </div>{canRecordRefund(order) && <button className={styles.danger} onClick={() => setRefund(!refund)} disabled={mutation.isPending}><PendingContent pending={mutation.isPending}>Record manual refund</PendingContent></button>}</div>
-      {refund && <form className={styles.form} onSubmit={event => { event.preventDefault(); void update({ status: "refunded", paymentStatus: "refunded", notes: [order.notes, `Manual refund: ${refundNote.trim()}`].filter(Boolean).join("\n") }); }}><div className={styles.notice}>Record a refund you have already completed outside the store. This action records the reference; it does not transfer money.</div><label className={styles.field}>Refund reference and reason<textarea required minLength={3} maxLength={2000} className={styles.textarea} value={refundNote} onChange={event => setRefundNote(event.target.value)} placeholder="Refund transaction reference and reason" /></label><div className={styles.dialogFooter}><button type="button" className={styles.secondary} onClick={() => setRefund(false)}>Cancel</button><button className={styles.danger} disabled={mutation.isPending}><PendingContent pending={mutation.isPending}>Confirm manual refund · {money(order.total)}</PendingContent></button></div></form>}
+      {refund && <form className={styles.form} onSubmit={event => { event.preventDefault(); void update({ status: "refunded", paymentStatus: "refunded", notes: [order.notes, `Manual refund: ${refundNote.trim()}`].filter(Boolean).join("\n") }); }}><FeedbackNotice kind="warning">Record a refund you have already completed outside the store. This action records the reference; it does not transfer money.</FeedbackNotice><label className={styles.field}>Refund reference and reason<textarea required minLength={3} maxLength={2000} className={styles.textarea} value={refundNote} onChange={event => setRefundNote(event.target.value)} placeholder="Refund transaction reference and reason" /></label><div className={styles.dialogFooter}><button type="button" className={styles.secondary} onClick={() => setRefund(false)}>Cancel</button><button className={styles.danger} disabled={mutation.isPending}><PendingContent pending={mutation.isPending}>Confirm manual refund · {money(order.total)}</PendingContent></button></div></form>}
     </section>
   </Dialog>;
 }
@@ -100,19 +100,20 @@ type DraftItem = { key: number; productId: string; variantId: string; quantity: 
 
 function CreateOrder({ products, onClose }: { products: AdminProduct[]; onClose: () => void }) {
   const mutation = useAdminMutation("orders", "api");
+  const notifications = useFeedback();
   const counter = useRef(1);
   const [items, setItems] = useState<DraftItem[]>([{ key: 0, productId: "", variantId: "", quantity: 1 }]);
   const [shipping, setShipping] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [error, setError] = useState("");
+  const warn = useFeedback().warning;
   function patchItem(key: number, patch: Partial<DraftItem>) { setItems(current => current.map(item => item.key === key ? { ...item, ...patch } : item)); }
   const subtotal = items.reduce((sum, item) => { const product = products.find(product => product.id === item.productId); return sum + (product ? product.salePrice ?? product.price : 0) * item.quantity; }, 0);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
-    if (items.some(item => !item.productId || (products.find(product => product.id === item.productId)?.variants.length && !item.variantId))) { setError("Choose a product and its variant for every line item."); return; }
+
+    if (items.some(item => !item.productId || (products.find(product => product.id === item.productId)?.variants.length && !item.variantId))) { warn("Choose a product and its variant for every line item."); return; }
     const form = new FormData(event.currentTarget);
-    try { await mutation.mutateAsync({ method: "POST", body: { customerName: form.get("customerName"), email: form.get("email"), phone: form.get("phone"), address: form.get("address"), notes: form.get("notes"), paymentStatus: form.get("paymentStatus"), shipping, discount, items: items.map(({ productId, variantId, quantity }) => ({ productId, ...(variantId ? { variantId } : {}), quantity })) } }); onClose(); } catch { /* Shown below. */ }
+    try { await mutation.mutateAsync({ method: "POST", body: { customerName: form.get("customerName"), email: form.get("email"), phone: form.get("phone"), address: form.get("address"), notes: form.get("notes"), paymentStatus: form.get("paymentStatus"), shipping, discount, items: items.map(({ productId, variantId, quantity }) => ({ productId, ...(variantId ? { variantId } : {}), quantity })) } }); notifications.success("Order created."); onClose(); } catch { /* Shown below. */ }
   }
   return <Dialog title="Create order" onClose={onClose}><form className={styles.form} onSubmit={submit}>
     <p className={styles.muted}>Create a phone, social, or in-store order. Prices and stock are checked when the order is saved.</p>
@@ -122,7 +123,7 @@ function CreateOrder({ products, onClose }: { products: AdminProduct[]; onClose:
     <div><button type="button" className={styles.secondary} onClick={() => setItems([...items, { key: counter.current++, productId: "", variantId: "", quantity: 1 }])}><Plus size={14} />Add item</button></div>
     <div className={styles.grid}><label className={styles.field}>Shipping (Rs.)<input type="number" min={0} step="0.01" required className={styles.input} value={shipping} onChange={event => setShipping(Number(event.target.value))} /></label><label className={styles.field}>Discount (Rs.)<input type="number" min={0} max={subtotal} step="0.01" required className={styles.input} value={discount} onChange={event => setDiscount(Number(event.target.value))} /></label><label className={`${styles.field} ${styles.full}`}>Internal notes<textarea name="notes" className={styles.textarea} maxLength={2000} /></label></div>
     <div className={styles.summary}><div className={styles.summaryRow}><span>Subtotal</span><span>{money(subtotal)}</span></div><div className={styles.summaryRow}><span>Order total</span><span>{money(Math.max(0, subtotal + shipping - discount))}</span></div></div>
-    {(error || mutation.error) && <p role="alert" className={styles.error}>{error || mutation.error?.message}</p>}
+    <FeedbackNotice>{mutation.error?.message}</FeedbackNotice>
     <div className={styles.dialogFooter}><button type="button" className={styles.secondary} onClick={onClose}>Cancel</button><button className={styles.button} disabled={mutation.isPending || !products.length}><PendingContent pending={mutation.isPending}>{"Create order"}</PendingContent></button></div>
   </form></Dialog>;
 }
@@ -139,9 +140,9 @@ export default function OrdersPanel({ search = "" }: { search?: string }) {
   const selectedOrder = query.data?.orders.find(order => order.id === selected);
   return <section className={styles.panel}>
     <div className={styles.heading}><div><h2>Orders</h2><p>Every order, from first confirmation to final delivery.</p></div><button className={styles.button} onClick={() => setCreating(true)} disabled={!products.data}><Plus size={15} />Create order</button></div>
-    {products.error && <div className={styles.error} role="alert">Product catalog could not be loaded: {products.error.message} <button className={styles.textButton} onClick={() => void products.refetch()}>Retry</button></div>}
+    {products.error && <FeedbackNotice>Product catalog could not be loaded: {products.error.message} <button className={styles.textButton} onClick={() => void products.refetch()}>Retry</button></FeedbackNotice>}
     <div className={styles.card}><div className={styles.toolbar}><label className={styles.search}><Search size={15} /><input aria-label="Search orders" placeholder="Search order, customer, tracking…" value={localSearch} onChange={event => setLocalSearch(event.target.value)} /></label><select aria-label="Filter order status" className={styles.select} value={status} onChange={event => setStatus(event.target.value)}><option value="all">All statuses</option>{orderStatuses.map(status => <option value={status} key={status}>{title(status)}</option>)}</select><span className={styles.muted}>{orders.length} orders</span></div>
-      {query.isPending ? <TableSkeleton /> : query.error ? <div className={styles.empty}><p className={styles.error} role="alert">{query.error.message}</p><button className={styles.secondary} onClick={() => void query.refetch()}>Try again</button></div> : orders.length ? <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th><th><span className="sr-only">Details</span></th></tr></thead><tbody>{orders.map(order => <tr key={order.id}><td><button className={styles.textButton} onClick={() => setSelected(order.id)}>{order.number}</button></td><td>{order.customerName}<small>{order.email}</small></td><td>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</td><td><strong>{money(order.total)}</strong></td><td><span className={styles.badge} data-status={order.paymentStatus}>{order.paymentStatus}</span></td><td><span className={styles.badge} data-status={order.status}>{order.status}</span></td><td>{date(order.createdAt)}</td><td><button className={styles.secondary} aria-label={`View order ${order.number}`} onClick={() => setSelected(order.id)}>View</button></td></tr>)}</tbody></table></div> : <div className={styles.empty}><Package size={32} strokeWidth={1.4} /><h3>{terms.length || status !== "all" ? "No matching orders" : "Your orders start here"}</h3><p>{terms.length || status !== "all" ? "Try another search or order status." : "Create your first order to track sales, delivery, and customer activity."}</p></div>}
+      {query.isPending ? <TableSkeleton /> : query.error ? <div className={styles.empty}><FeedbackNotice>{query.error.message}</FeedbackNotice><button className={styles.secondary} onClick={() => void query.refetch()}>Try again</button></div> : orders.length ? <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th><th><span className="sr-only">Details</span></th></tr></thead><tbody>{orders.map(order => <tr key={order.id}><td><button className={styles.textButton} onClick={() => setSelected(order.id)}>{order.number}</button></td><td>{order.customerName}<small>{order.email}</small></td><td>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</td><td><strong>{money(order.total)}</strong></td><td><span className={styles.badge} data-status={order.paymentStatus}>{order.paymentStatus}</span></td><td><span className={styles.badge} data-status={order.status}>{order.status}</span></td><td>{date(order.createdAt)}</td><td><button className={styles.secondary} aria-label={`View order ${order.number}`} onClick={() => setSelected(order.id)}>View</button></td></tr>)}</tbody></table></div> : <div className={styles.empty}><Package size={32} strokeWidth={1.4} /><h3>{terms.length || status !== "all" ? "No matching orders" : "Your orders start here"}</h3><p>{terms.length || status !== "all" ? "Try another search or order status." : "Create your first order to track sales, delivery, and customer activity."}</p></div>}
     </div>
     {selectedOrder && <OrderDetails order={selectedOrder} onClose={() => setSelected(null)} />}
     {creating && <CreateOrder products={products.data?.products ?? []} onClose={() => setCreating(false)} />}

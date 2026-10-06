@@ -1,5 +1,6 @@
 "use client";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
+import { PendingContent, Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,7 +38,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState<typeof tabs[number]>("Description");
   const [zoom, setZoom] = useState(false);
-  const [notice, setNotice] = useState("");
+  const feedback = useFeedback();
   const media = [...product.images.map(src => ({ src, video: false })), ...product.videos.map(src => ({ src, video: true }))];
   const activeIndex = Math.min(mediaIndex, Math.max(0, media.length - 1));
   const activeMedia = media[activeIndex];
@@ -67,7 +68,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
   }, [product.id]);
 
   function selectColor(next: string) {
-    setColor(next); setQuantity(1); setNotice("");
+    setColor(next); setQuantity(1);
     if (product.variants.length && !product.variants.some(item => item.color === next && item.size === size && item.stock > 0)) {
       const nextVariant = product.variants.find(item => item.color === next && item.stock > 0) ?? product.variants.find(item => item.color === next);
       setSize(nextVariant?.size ?? "");
@@ -82,25 +83,24 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
       return;
     }
     if (!canBuy) return;
-    const added = cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id, color, selectedSize: size,
+    cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id, color, selectedSize: size,
       name: product.name, details: [product.category, product.subcategory, color].filter(Boolean).join(" / "), size: size ? `Size: ${size}` : "One size",
       price: Math.round(price * 100), image: product.images[0], quantity: purchaseQuantity, maxQuantity: stock,
     });
-    if (!added) { setNotice("Unable to add this quantity. Check your cart and try again."); return; }
-    setNotice(`${purchaseQuantity} ${purchaseQuantity === 1 ? "item" : "items"} added to your cart.`);
+
 
   }
   async function share() {
     try {
-      if (navigator.share) await navigator.share({ title: product.name, url: window.location.href });
-      else { await navigator.clipboard.writeText(window.location.href); setNotice("Product link copied."); }
-    } catch (error) { if (!(error instanceof DOMException && error.name === "AbortError")) setNotice("Copy this page’s URL to share the product."); }
+      if (navigator.share) { await navigator.share({ title: product.name, url: window.location.href }); feedback.success("Product shared."); }
+      else { await navigator.clipboard.writeText(window.location.href); feedback.success("Product link copied."); }
+    } catch (error) { if (!(error instanceof DOMException && error.name === "AbortError")) feedback.warning("Copy this page’s URL to share the product."); }
   }
 
-  if (query.error instanceof CatalogError && query.error.status === 404) return <main className={styles.page}><div className={styles.unavailable}><Package size={36} /><h1>This product is no longer available</h1><Link href="/search">Explore the collection <ArrowRight size={16} /></Link></div></main>;
+  if (query.error instanceof CatalogError && query.error.status === 404) return <main className={styles.page}><div className={styles.unavailable}><Package size={36} /><FeedbackNotice kind="warning">This product is no longer available.</FeedbackNotice><Link href="/search">Explore the collection <ArrowRight size={16} /></Link></div></main>;
   return <main className={styles.page}><div className={styles.container}>
     <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><ChevronRight size={12} /><Link href={`/search?q=${encodeURIComponent(product.category)}`}>{product.category}</Link><ChevronRight size={12} /><span aria-current="page">{product.name}</span></nav>
-    {query.error && <div className={styles.error} role="alert">We couldn’t refresh this product. <button type="button" onClick={() => query.refetch()}>Try again</button></div>}
+    {query.error && <FeedbackNotice>We couldn’t refresh this product. <button type="button" onClick={() => query.refetch()}>Try again</button></FeedbackNotice>}
     <div className={styles.productLayout}>
       <section className={styles.gallery} aria-label="Product images and videos">
         <div className={styles.thumbnails}>{media.map((item, index) => <button type="button" key={`${item.src}-${index}`} className={index === activeIndex ? styles.selectedThumb : ""} aria-label={`View ${item.video ? "video" : "image"} ${index + 1}`} aria-pressed={index === activeIndex} onClick={() => setMediaIndex(index)}>
@@ -118,10 +118,10 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
         <div className={styles.price}><strong>{formatProductPrice(price)}</strong>{discount > 0 && <><del>{formatProductPrice(product.price)}</del><span>{discount}% OFF</span></>}</div>
         {product.shortDescription && <p className={styles.summary}>{product.shortDescription}</p>}
         {colors.length > 0 && <fieldset className={styles.options}><legend>Color: <span>{color}</span></legend><div className={styles.colorOptions}>{colors.map(option => <button type="button" key={option} aria-pressed={color === option} onClick={() => selectColor(option)}><span style={{ backgroundColor: colorHex(option) }} />{option}</button>)}</div></fieldset>}
-        {sizes.length > 0 && <fieldset className={styles.options}><legend>Size: <span>{size || "Select a size"}</span></legend><div className={styles.sizeOptions}>{sizes.map(option => <button type="button" key={option} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); setNotice(""); }}>{option}</button>)}</div></fieldset>}
+        {sizes.length > 0 && <fieldset className={styles.options}><legend>Size: <span>{size || "Select a size"}</span></legend><div className={styles.sizeOptions}>{sizes.map(option => <button type="button" key={option} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); }}>{option}</button>)}</div></fieldset>}
         <p className={`${styles.stock} ${stock === 0 ? styles.outOfStock : ""}`}>{stock > 0 ? <><Check size={14} />In stock · {stock} available{cartQuantity > 0 ? ` (${cartQuantity} in your cart)` : ""}</> : <><Package size={14} />Out of stock{product.variants.length ? " for this selection" : ""}</>}</p>
-        <div className={styles.purchase}><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" disabled={purchaseQuantity <= 1} aria-label="Decrease quantity" onClick={() => setQuantity(purchaseQuantity - 1)}><Minus size={15} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" disabled={!canBuy || purchaseQuantity >= available} aria-label="Increase quantity" onClick={() => setQuantity(purchaseQuantity + 1)}><Plus size={15} /></button></div><button type="button" className={styles.addToCart} disabled={!canBuy} onClick={() => addToCart()}><ShoppingBag size={17} />Add to Cart</button><button type="button" className={styles.buyNow} disabled={!validSelection || stock < 1 || !!query.error} onClick={() => addToCart(true)}><Zap size={16} />Buy Now</button></div>
-        <p className={styles.notice} role="status">{cart.error ? <>Unable to load your cart. <button type="button" onClick={cart.retry}>Try again</button></> : cart.isLoading ? <Skeleton width={180} /> : notice}{notice.includes("added to your cart") && <> <Link href="/cart">View cart <ArrowRight size={13} /></Link></>}</p>
+        <div className={styles.purchase}><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" disabled={purchaseQuantity <= 1} aria-label="Decrease quantity" onClick={() => setQuantity(purchaseQuantity - 1)}><Minus size={15} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" disabled={!canBuy || purchaseQuantity >= available} aria-label="Increase quantity" onClick={() => setQuantity(purchaseQuantity + 1)}><Plus size={15} /></button></div><button type="button" className={styles.addToCart} disabled={!canBuy} onClick={() => addToCart()}><PendingContent pending={cart.isLoading}><ShoppingBag size={17} />Add to Cart</PendingContent></button><button type="button" className={styles.buyNow} disabled={!validSelection || stock < 1 || !!query.error} onClick={() => addToCart(true)}><Zap size={16} />Buy Now</button></div>
+        {cart.error && <FeedbackNotice>{cart.error}<button type="button" onClick={cart.retry}>Try again</button></FeedbackNotice>}{cart.isLoading && !cart.error && <Skeleton width={180} />}
         <div className={styles.benefits}><div><Package size={21} /><span>Product details<small>See materials & specifications</small></span></div><Link href="/account"><MapPin size={21} /><span>Saved addresses<small>Keep your delivery details ready</small></span></Link></div>
       </section>
     </div>

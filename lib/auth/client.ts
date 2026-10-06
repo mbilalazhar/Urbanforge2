@@ -1,4 +1,5 @@
 "use client";
+import { useFeedback } from "@/components/ui/Feedback";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { mergeGuestCart } from "@/lib/cart-store";
@@ -25,6 +26,7 @@ async function request(path: string, body?: LoginInput | SignupInput | Record<st
 
 export function useLogin(role: AccountRole = "user") {
   const client = useQueryClient();
+  const feedback = useFeedback();
   return useMutation({
     mutationFn: (input: LoginInput) => request(`${basePath(role)}/login`, input),
     onSuccess: async data => {
@@ -32,12 +34,14 @@ export function useLogin(role: AccountRole = "user") {
       if (role === "user" && data.account) await mergeGuestCart(data.account.id);
       client.setQueryData(sessionKey(role), data);
       if (role === "user") { client.removeQueries({ queryKey: ["user-profile"] }); notifyUserSessionChanged(); }
+      feedback.success("You are signed in.");
     },
   });
 }
 
 export function useSignup() {
   const client = useQueryClient();
+  const feedback = useFeedback();
   return useMutation({
     mutationFn: (input: SignupInput) => request("/api/auth/signup", input),
     onSuccess: async data => {
@@ -46,6 +50,7 @@ export function useSignup() {
       client.setQueryData(sessionKey("user"), data);
       client.removeQueries({ queryKey: ["user-profile"] });
       notifyUserSessionChanged();
+      feedback.success("Your account has been created.");
     },
   });
 }
@@ -62,6 +67,7 @@ export function useSession(role: AccountRole, initialData?: SessionResponse) {
 
 export function useLogout(role: AccountRole) {
   const client = useQueryClient();
+  const feedback = useFeedback();
   return useMutation({
     mutationFn: () => request(`${basePath(role)}/logout`, {}),
     onSuccess: async data => {
@@ -71,6 +77,7 @@ export function useLogout(role: AccountRole) {
       if (role === "user") { client.removeQueries({ queryKey: ["user-profile"] }); notifyUserSessionChanged(); }
       // Remove cached mutation inputs, which may contain login credentials.
       client.getMutationCache().clear();
+      feedback.success("You have been signed out.");
     },
   });
 }

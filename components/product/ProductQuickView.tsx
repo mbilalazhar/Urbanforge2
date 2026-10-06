@@ -1,6 +1,7 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 
-import { Skeleton, ProductDetailsSkeleton } from "@/components/ui/Skeleton";
+import { PendingContent, Skeleton, ProductDetailsSkeleton } from "@/components/ui/Skeleton";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
@@ -57,7 +58,7 @@ export default function ProductQuickView({ product, onClose }: { product: Produc
     <div className={styles.content}>
       <p className={styles.eyebrow}>Quick view <span>/</span> {live?.category ?? product.category}</p>
       <h2 id={titleId}>{name}</h2>
-      {query.isPending ? <ProductDetailsSkeleton /> : query.error ? <div className={styles.feedback} role="alert"><p>{query.error.message}</p><button type="button" onClick={() => { void query.refetch(); }}>Try again</button></div> : live && <ProductOptions key={live.id} product={live} onClose={onClose} />}
+      {query.isPending ? <ProductDetailsSkeleton /> : query.error ? <FeedbackNotice><p>{query.error.message}</p><button type="button" onClick={() => { void query.refetch(); }}>Try again</button></FeedbackNotice> : live && <ProductOptions key={live.id} product={live} onClose={onClose} />}
       <Link href={`/products/${encodeURIComponent(product.id)}`} className={styles.fullDetails} onClick={onClose}>View full product details <ArrowRight size={15} /></Link>
     </div>
   </dialog>, document.body);
@@ -69,7 +70,7 @@ function ProductOptions({ product, onClose }: { product: AdminProduct; onClose: 
   const [color, setColor] = useState(initialVariant?.color ?? product.colors[0] ?? "");
   const [size, setSize] = useState(initialVariant?.size ?? product.sizes[0] ?? "");
   const [quantity, setQuantity] = useState(1);
-  const [feedback, setFeedback] = useState("");
+
   const colors = product.variants.length ? [...new Set(product.variants.map(item => item.color).filter(Boolean))] : product.colors;
   const sizes = product.variants.length ? [...new Set(product.variants.map(item => item.size).filter(Boolean))] : product.sizes;
   const variant = product.variants.find(item => item.color === color && item.size === size);
@@ -82,7 +83,7 @@ function ProductOptions({ product, onClose }: { product: AdminProduct; onClose: 
   const details = [product.brand && `Brand: ${product.brand}`, product.material && `Material: ${product.material}`, product.subcategory && `Category: ${product.subcategory}`, `SKU: ${variant?.sku ?? product.sku}`].filter(Boolean);
 
   function selectColor(next: string) {
-    setColor(next); setQuantity(1); setFeedback("");
+    setColor(next); setQuantity(1);
     if (product.variants.length && !product.variants.some(item => item.color === next && item.size === size && item.stock > 0)) {
       const nextVariant = product.variants.find(item => item.color === next && item.stock > 0) ?? product.variants.find(item => item.color === next);
       setSize(nextVariant?.size ?? "");
@@ -90,10 +91,10 @@ function ProductOptions({ product, onClose }: { product: AdminProduct; onClose: 
   }
   function addToCart() {
     if (!canAdd) return;
-    const added = cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id, color, selectedSize: size,
+    cart.addItem({ id: JSON.stringify([product.id, variant?.id ?? "", color, size]), productId: product.id, variantId: variant?.id, color, selectedSize: size,
       name: product.name, details: [product.category, product.subcategory, color].filter(Boolean).join(" / "), size: size ? `Size: ${size}` : "One size",
       price: Math.round(price * 100), image: product.images[0], quantity: purchaseQuantity, maxQuantity: stock });
-    setFeedback(added ? `${purchaseQuantity} ${purchaseQuantity === 1 ? "item" : "items"} added to your cart.` : "Unable to add this quantity. Check your cart and try again.");
+
   }
 
   return <>
@@ -101,9 +102,9 @@ function ProductOptions({ product, onClose }: { product: AdminProduct; onClose: 
     <p className={styles.description}>{product.shortDescription || product.description || "No description has been added yet."}</p>
     <ul className={styles.details}>{details.map(detail => <li key={String(detail)}><Check size={13} />{detail}</li>)}</ul>
     {colors.length > 0 && <fieldset className={styles.options}><legend>Color <span>— {color}</span></legend><div className={styles.colors}>{colors.map(option => <button key={option} type="button" aria-label={option} title={option} aria-pressed={color === option} className={styles.color} onClick={() => selectColor(option)}><span style={{ backgroundColor: colorHex(option) }} /></button>)}</div></fieldset>}
-    {sizes.length > 0 && <fieldset className={styles.options}><legend>Size <span>— {size}</span></legend><div className={styles.sizes}>{sizes.map(option => <button key={option} type="button" aria-label={`Size ${option}`} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); setFeedback(""); }}>{option}</button>)}</div></fieldset>}
-    <div className={styles.quantityRow}><span>Quantity</span><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" aria-label="Decrease quantity" disabled={purchaseQuantity <= 1} onClick={() => { setQuantity(purchaseQuantity - 1); setFeedback(""); }}><Minus size={14} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" aria-label="Increase quantity" disabled={!canAdd || purchaseQuantity >= available} onClick={() => { setQuantity(purchaseQuantity + 1); setFeedback(""); }}><Plus size={14} /></button></div></div>
-    <div className={styles.actions}><button type="button" className={styles.add} disabled={!canAdd} onClick={addToCart}><ShoppingBag size={17} />Add to Cart</button><Link href="/cart" className={styles.shop} onClick={onClose}>View Cart<ArrowRight size={17} /></Link></div>
-    <p className={styles.feedback} role="status">{cart.error ? <>Unable to load your cart. <button type="button" onClick={cart.retry}>Try again</button></> : cart.isLoading ? <Skeleton width={180} /> : feedback || (available === 0 && inCart > 0 ? "All available units of this selection are already in your cart." : "")}</p>
+    {sizes.length > 0 && <fieldset className={styles.options}><legend>Size <span>— {size}</span></legend><div className={styles.sizes}>{sizes.map(option => <button key={option} type="button" aria-label={`Size ${option}`} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); }}>{option}</button>)}</div></fieldset>}
+    <div className={styles.quantityRow}><span>Quantity</span><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" aria-label="Decrease quantity" disabled={purchaseQuantity <= 1} onClick={() => { setQuantity(purchaseQuantity - 1); }}><Minus size={14} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" aria-label="Increase quantity" disabled={!canAdd || purchaseQuantity >= available} onClick={() => { setQuantity(purchaseQuantity + 1); }}><Plus size={14} /></button></div></div>
+    <div className={styles.actions}><button type="button" className={styles.add} disabled={!canAdd} onClick={addToCart}><PendingContent pending={cart.isLoading}><ShoppingBag size={17} />Add to Cart</PendingContent></button><Link href="/cart" className={styles.shop} onClick={onClose}>View Cart<ArrowRight size={17} /></Link></div>
+    {cart.error && <FeedbackNotice>{cart.error}<button type="button" onClick={cart.retry}>Try again</button></FeedbackNotice>}{cart.isLoading && !cart.error && <Skeleton width={180} />}
   </>;
 }

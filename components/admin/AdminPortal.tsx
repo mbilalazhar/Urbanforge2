@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 
 import { PendingContent } from "@/components/ui/Skeleton";
 import { useState } from "react";
@@ -54,7 +55,7 @@ export default function AdminPortal({ account }: { account: PublicAccount }) {
       </header>
       <main className={styles.main}>
         <div className={styles.utility}><label className={styles.search}><Search size={17} /><input type="search" placeholder="Search products, orders, customers…" aria-label="Search admin records" value={search} onChange={event => setSearch(event.target.value)} />{search && <button onClick={() => setSearch("")} aria-label="Clear search"><X size={15} /></button>}</label><span className={styles.date}><CalendarDays size={15} />{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Karachi" })}</span></div>
-        {logout.error && <p className={styles.error} role="alert">{logout.error.message}</p>}
+        {logout.error && <FeedbackNotice>{logout.error.message}</FeedbackNotice>}
         {section === "overview" && <Dashboard name={account.name} navigate={navigate} search={search} />}
         {section === "products" && <ProductsPanel search={search} />}
         {section === "inventory" && <InventoryPanel search={search} />}

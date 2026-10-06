@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 
 import { PendingContent } from "@/components/ui/Skeleton";
 import { type FormEvent } from "react";
@@ -54,7 +55,7 @@ export default function AdminLoginForm() {
           />
 
           <button type="submit" disabled={login.isPending}><PendingContent pending={login.isPending}>{"Sign in to your store →"}</PendingContent></button>
-          <p className={styles.feedback} role="status" aria-live="polite">{login.error?.message}</p>
+          <FeedbackNotice>{login.error?.message}</FeedbackNotice>
         </form>
       </section>
     </main>

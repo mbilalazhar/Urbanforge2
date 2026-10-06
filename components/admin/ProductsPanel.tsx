@@ -1,9 +1,10 @@
 "use client";
+import { FeedbackDialog, FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 
 import { Skeleton, TableSkeleton, PendingContent } from "@/components/ui/Skeleton";
 import { useState, type FormEvent, type ReactNode } from "react";
 import Image from "next/image";
-import { AlertCircle, ArrowLeft, CheckCircle2, Copy, Layers3, Package, PackageCheck, PackageX, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, Copy, Layers3, Package, PackageCheck, PackageX, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { useAdminMutation, useAdminQuery } from "@/lib/admin/client";
 import type { AdminProduct } from "@/lib/admin/types";
 import { productCategories, subcategoriesFor, productTypesFor } from "@/lib/product-categories";
@@ -44,7 +45,7 @@ function Field({ label, children, wide = false, hint }: { label: string; childre
 
 function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; onClose: () => void; onSaved: (message: string) => void }) {
   const [draft, setDraft] = useState<ProductDraft>(() => makeDraft(product));
-  const [localError, setLocalError] = useState("");
+  const warn = useFeedback().warning;
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const productTypes = productTypesFor(draft.category, draft.subcategory);
@@ -63,30 +64,30 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
     const allowed = kind === "images" ? IMAGE_TYPES : VIDEO_TYPES;
     const limit = kind === "images" ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES;
     if (added.some(file => !allowed.includes(file.type) || !file.size || file.size > limit)) {
-      setLocalError(kind === "images" ? "Choose JPEG, PNG, WebP, or GIF images, up to 10 MB each." : "Choose MP4, WebM, or MOV videos, up to 50 MB each."); return;
+      warn(kind === "images" ? "Choose JPEG, PNG, WebP, or GIF images, up to 10 MB each." : "Choose MP4, WebM, or MOV videos, up to 50 MB each."); return;
     }
     if ([...imageFiles, ...videoFiles, ...added].reduce((total, file) => total + file.size, 0) > MAX_MEDIA_BYTES) {
-      setLocalError("Uploads must total no more than 100 MB."); return;
+      warn("Uploads must total no more than 100 MB."); return;
     }
-    setLocalError("");
+
     (kind === "images" ? setImageFiles : setVideoFiles)(files => [...files, ...added]);
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (save.isPending) return;
-    setLocalError("");
+
     if (draft.salePrice !== "" && Number(draft.salePrice) > Number(draft.price)) {
-      setLocalError("Sale price must be less than or equal to the regular price.");
+      warn("Sale price must be less than or equal to the regular price.");
       return;
     }
     const images = mediaList(draft.images);
     const videos = mediaList(draft.videos);
-    if (!images.length && !imageFiles.length) { setLocalError("Add at least one product image."); return; }
-    if (images.length + imageFiles.length > 30 || videos.length + videoFiles.length > 10) { setLocalError("Use at most 30 images and 10 videos."); return; }
-    if (!subcategoriesFor(draft.category).includes(draft.subcategory) || (productTypes.length && !productTypes.includes(draft.productType))) { setLocalError("Select a valid category, subcategory, and product type."); return; }
+    if (!images.length && !imageFiles.length) { warn("Add at least one product image."); return; }
+    if (images.length + imageFiles.length > 30 || videos.length + videoFiles.length > 10) { warn("Use at most 30 images and 10 videos."); return; }
+    if (!subcategoriesFor(draft.category).includes(draft.subcategory) || (productTypes.length && !productTypes.includes(draft.productType))) { warn("Select a valid category, subcategory, and product type."); return; }
     if ([...images, ...videos].some(url => !/^https?:\/\//i.test(url) && !/^\/(?!\/)/.test(url))) {
-      setLocalError("Use an https:// URL or a local /path for every image and video.");
+      warn("Use an https:// URL or a local /path for every image and video.");
       return;
     }
     const data = { ...draft, name: draft.name.trim(), sku: draft.sku.trim(), category: draft.category.trim(), brand: draft.brand.trim(),
@@ -106,7 +107,7 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
     <form className={styles.editor} onSubmit={submit} aria-busy={save.isPending}>
       <button type="button" className={styles.back} onClick={onClose} disabled={save.isPending}><PendingContent pending={save.isPending}><ArrowLeft size={15} /> Back to products</PendingContent></button>
       <div className={styles.heading}><div><h1>{product ? "Edit product" : "Add a product"}</h1><p>{product ? `Update the details for ${product.name}.` : "Add something your customers will love."}</p></div><button className={styles.primary} disabled={save.isPending}><PendingContent pending={save.isPending}>{"Save product"}</PendingContent></button></div>
-      {(localError || save.error) && <div role="alert" className={`${styles.message} ${styles.error}`}><AlertCircle size={16} />{localError || save.error?.message}</div>}
+      <FeedbackNotice>{save.error?.message}</FeedbackNotice>
       <div className={styles.editorGrid}>
         <div className={styles.column}>
           <section className={styles.card}>
@@ -197,7 +198,7 @@ export default function ProductsPanel({ search = "" }: { search?: string }) {
   const [stock, setStock] = useState("");
   const [status, setStatus] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
-  const [message, setMessage] = useState("");
+  const notifySuccess = useFeedback().success;
   const [page, setPage] = useState(1);
   const products = query.data?.products ?? [];
   const categories = [...new Set(products.map(product => product.category).filter(Boolean))].sort();
@@ -213,11 +214,10 @@ export default function ProductsPanel({ search = "" }: { search?: string }) {
   const visible = filtered.slice((activePage - 1) * PER_PAGE, activePage * PER_PAGE);
 
   function perform(path: string, method: string, body: unknown, success: string) {
-    setMessage("");
-    action.mutate({ path, method, body }, { onSuccess: () => { setMessage(success); setDeleteTarget(null); } });
+    action.mutate({ path, method, body }, { onSuccess: () => { notifySuccess(success); setDeleteTarget(null); } });
   }
 
-  if (editor) return <ProductEditor product={editor === "new" ? undefined : editor} onClose={() => setEditor(null)} onSaved={notice => { setMessage(notice); setEditor(null); }} />;
+  if (editor) return <ProductEditor product={editor === "new" ? undefined : editor} onClose={() => setEditor(null)} onSaved={notice => { notifySuccess(notice); setEditor(null); }} />;
 
   return (
     <div className={styles.panel}>
@@ -228,8 +228,8 @@ export default function ProductsPanel({ search = "" }: { search?: string }) {
         <div className={styles.stat}><div className={styles.statIcon}><Layers3 size={20} /></div><div><span>Low stock</span><strong>{query.isPending ? <Skeleton width={56} height={25} /> : products.filter(product => product.stock > 0 && product.stock <= 5).length.toLocaleString()}</strong></div></div>
         <div className={styles.stat}><div className={styles.statIcon}><PackageX size={20} /></div><div><span>Out of stock</span><strong>{query.isPending ? <Skeleton width={56} height={25} /> : products.filter(product => product.stock === 0).length.toLocaleString()}</strong></div></div>
       </div>
-      {message && <div className={styles.message} role="status"><CheckCircle2 size={16} />{message}<button aria-label="Dismiss message" onClick={() => setMessage("")}><X size={15} /></button></div>}
-      {action.error && <div className={`${styles.message} ${styles.error}`} role="alert"><AlertCircle size={16} />{action.error.message}<button aria-label="Dismiss error" onClick={() => action.reset()}><X size={15} /></button></div>}
+
+      {action.error && <FeedbackNotice><AlertCircle size={16} />{action.error.message}<button aria-label="Dismiss error" onClick={() => action.reset()}><X size={15} /></button></FeedbackNotice>}
       <section className={styles.card}>
         <div className={styles.toolbar}><h2>All products <span className={styles.toolbarCount}>{filtered.length} products</span></h2><label className={styles.search}><Search size={15} /><input aria-label="Search products" placeholder="Search by name, SKU, or brand…" value={localSearch} onChange={event => { setLocalSearch(event.target.value); setPage(1); }} /></label></div>
         <div className={styles.filters}>
@@ -239,8 +239,8 @@ export default function ProductsPanel({ search = "" }: { search?: string }) {
           <select aria-label="Filter by status" value={status} onChange={event => { setStatus(event.target.value); setPage(1); }}><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
           {(category || brand || stock || status || localSearch) && <button className={styles.reset} onClick={() => { setCategory(""); setBrand(""); setStock(""); setStatus(""); setLocalSearch(""); setPage(1); }}>Clear filters</button>}
         </div>
-        {deleteTarget && <div className={styles.confirmation} role="alert"><p>Delete <strong>{deleteTarget.name}</strong> ({deleteTarget.sku})? This removes the product from your catalog.</p><button className={styles.secondary} disabled={action.isPending} onClick={() => setDeleteTarget(null)}><PendingContent pending={action.isPending}>Keep product</PendingContent></button><button className={styles.danger} disabled={action.isPending} onClick={() => perform(`products/${deleteTarget.id}`, "DELETE", undefined, "Product deleted.")}><PendingContent pending={action.isPending}>{"Delete product"}</PendingContent></button></div>}
-        {query.isPending ? <TableSkeleton /> : query.error ? <div className={styles.empty} role="alert"><AlertCircle size={28} /><h3>Products couldn’t load</h3><p>{query.error.message}</p><button className={styles.secondary} onClick={() => query.refetch()}>Try again</button></div> : filtered.length === 0 ? <div className={styles.empty}><Package size={33} /><h3>{products.length ? "No matching products" : "Start your collection"}</h3><p>{products.length ? "Try a different search or adjust your filters." : "Add your first product, then manage prices, variants, and availability here."}</p>{!products.length && <button className={styles.primary} onClick={() => setEditor("new")}><Plus size={15} /> Add your first product</button>}</div> : <>
+        {deleteTarget && <FeedbackDialog title="Delete product?" onClose={() => { if (!action.isPending) setDeleteTarget(null); }}><p>Delete <strong>{deleteTarget.name}</strong> ({deleteTarget.sku})? This removes the product from your catalog.</p><button className={styles.secondary} disabled={action.isPending} onClick={() => setDeleteTarget(null)}><PendingContent pending={action.isPending}>Keep product</PendingContent></button><button className={styles.danger} disabled={action.isPending} onClick={() => perform(`products/${deleteTarget.id}`, "DELETE", undefined, "Product deleted.")}><PendingContent pending={action.isPending}>{"Delete product"}</PendingContent></button></FeedbackDialog>}
+        {query.isPending ? <TableSkeleton /> : query.error ? <FeedbackNotice><AlertCircle size={28} /><h3>Products couldn’t load</h3><p>{query.error.message}</p><button className={styles.secondary} onClick={() => query.refetch()}>Try again</button></FeedbackNotice> : filtered.length === 0 ? <div className={styles.empty}><Package size={33} /><h3>{products.length ? "No matching products" : "Start your collection"}</h3><p>{products.length ? "Try a different search or adjust your filters." : "Add your first product, then manage prices, variants, and availability here."}</p>{!products.length && <button className={styles.primary} onClick={() => setEditor("new")}><Plus size={15} /> Add your first product</button>}</div> : <>
           <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody>{visible.map(product => <tr key={product.id}>
             <td><div className={styles.productCell}><div className={styles.thumbnail}>{product.images[0] ? <Image src={product.images[0]} alt="" width={45} height={49} unoptimized /> : <Package size={21} />}</div><div><button className={styles.productName} onClick={() => setEditor(product)}>{product.name}</button><span className={styles.subtle}>{product.sku}{product.brand ? ` · ${product.brand}` : ""}</span>{(product.featured || product.newArrival || product.bestseller) && <span className={styles.subtle}>{[product.featured && "Featured", product.newArrival && "New arrival", product.bestseller && "Bestseller"].filter(Boolean).join(" · ")}</span>}</div></div></td>
             <td>{product.category}<span className={styles.subtle}>{product.subcategory}</span></td>

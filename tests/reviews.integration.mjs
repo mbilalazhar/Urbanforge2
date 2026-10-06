@@ -152,7 +152,7 @@ test('product reviews persist, validate input, and work in the browser', { timeo
     assert.equal(await evaluate(`${section}.querySelector('button[type="submit"]').disabled`), true);
     await evaluate(`${section}.querySelector('input[value="5"]').click()`);
     await click('Post review');
-    await until(() => evaluate(`${section}.textContent.includes('Your review has been posted')`), 'rating-only submission');
+    await until(() => evaluate(`document.querySelector('[aria-label="Notifications"]')?.textContent.includes('Your review has been posted') && !${section}.querySelector('form')`), 'rating-only submission');
     assert.equal(await evaluate(`${section}.querySelectorAll('article').length`), 1);
     assert.equal(await evaluate(`${section}.textContent.includes('No reviews yet')`), false);
     assert.equal(await evaluate(`${section}.textContent.includes('5.0 / 5')`), true);
@@ -161,11 +161,13 @@ test('product reviews persist, validate input, and work in the browser', { timeo
     await evaluate(`(()=>{const el=${section}.querySelector('textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(el,${JSON.stringify(comment)});el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
     await call('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
     await click('Post review');
-    await until(() => evaluate(`!!${section}.querySelector('form [role="alert"]')`), 'submission error');
+    await until(() => evaluate(`!!document.querySelector('dialog[role="alertdialog"][open]')`), 'submission error');
     assert.equal(await evaluate(`${section}.querySelector('textarea').value`), comment);
+    assert.equal(await evaluate(`!!${section}.querySelector('[role="alert"]')`), false);
+    await evaluate(`document.querySelector('dialog[role="alertdialog"] button[aria-label="Close message"]').click()`);
     await call('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
     await click('Post review');
-    await until(() => evaluate(`${section}.textContent.includes('Your review has been posted')`), 'comment submission');
+    await until(() => evaluate(`document.querySelector('[aria-label="Notifications"]')?.textContent.includes('Your review has been posted') && !${section}.querySelector('form')`), 'comment submission');
     assert.equal(await evaluate(`${section}.textContent.includes(${JSON.stringify(comment)})`), true);
     assert.equal(await evaluate('window.reviewInjected === undefined'), true);
     assert.equal(await evaluate(`${section}.textContent.includes('4.0 / 5')`), true);

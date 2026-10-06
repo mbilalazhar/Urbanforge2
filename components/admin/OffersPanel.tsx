@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 
 import { SummarySkeleton, PendingContent } from "@/components/ui/Skeleton";
 import Image from "next/image";
@@ -41,31 +42,32 @@ function CategoryPicker({ scope, onScopeChange, selected, onChange }: { scope: "
 
 function OfferEditor({ section, offer, onClose }: { section: Section; offer?: Offer; onClose: () => void }) {
   const mutation = useAdminMutation(section, "api");
+  const feedback = useFeedback();
   const coupon = section === "coupons" ? offer as AdminCoupon | undefined : undefined;
   const promotion = section === "promotions" ? offer as AdminPromotion | undefined : undefined;
   const [type, setType] = useState<AdminCoupon["type"]>(coupon?.type ?? "percentage");
   const [kind, setKind] = useState<AdminCoupon["kind"]>(coupon?.kind ?? "coupon");
   const [categories, setCategories] = useState<string[]>(offer?.categories?.filter(category => offerCategories.includes(category)) ?? []);
   const [scope, setScope] = useState<"store" | "categories">(offer && (!validOfferScope(offer) || offer.categories?.length) ? "categories" : "store");
-  const [error, setError] = useState("");
+  const warn = useFeedback().warning;
   const [initialStart] = useState(() => localDate(offer?.startsAt ?? new Date().toISOString()));
   const [initialEnd] = useState(() => localDate(offer?.endsAt ?? new Date(Date.now() + 30 * 86_400_000).toISOString()));
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
+
     const form = new FormData(event.currentTarget);
     const startsAt = isoDate(form.get("startsAt"));
     const endsAt = isoDate(form.get("endsAt"));
-    if (startsAt && endsAt && endsAt <= startsAt) { setError("The end date must be after the start date."); return; }
-    if (scope === "categories" && categories.length === 0) { setError("Select at least one main category or choose the entire store."); return; }
+    if (startsAt && endsAt && endsAt <= startsAt) { warn("The end date must be after the start date."); return; }
+    if (scope === "categories" && categories.length === 0) { warn("Select at least one main category or choose the entire store."); return; }
     const common = { startsAt, endsAt, active: form.get("active") === "on", productIds: [], categories: scope === "store" ? [] : categories };
     const body = section === "coupons" ? {
       ...common, kind, code: String(form.get("code")).trim().toUpperCase(), type, value: type === "free_shipping" ? 0 : Number(form.get("value")),
       minimumPurchase: Number(form.get("minimumPurchase") || 0), maximumDiscount: form.get("maximumDiscount") ? Number(form.get("maximumDiscount")) : null,
       usageLimit: Number(form.get("usageLimit") || 0), customerEmails: splitList(form.get("customerEmails")).map(email => email.toLowerCase()), firstOrderOnly: form.get("firstOrderOnly") === "on",
     } : { ...common, name: String(form.get("name")).trim(), banner: String(form.get("banner") ?? "").trim(), discountPercent: Number(form.get("discountPercent")) };
-    try { await mutation.mutateAsync({ path: offer ? `${section}/${offer.id}` : section, method: offer ? "PATCH" : "POST", body }); onClose(); } catch { /* Server errors shown below. */ }
+    try { await mutation.mutateAsync({ path: offer ? `${section}/${offer.id}` : section, method: offer ? "PATCH" : "POST", body }); feedback.success(`${section === "coupons" ? "Discount code" : "Sale"} ${offer ? "saved" : "created"}.`); onClose(); } catch { /* Server errors shown below. */ }
   }
 
   return <Dialog title={`${offer ? "Edit" : "Create"} ${section === "coupons" ? "discount code" : "sale"}`} onClose={onClose}>
@@ -85,13 +87,13 @@ function OfferEditor({ section, offer, onClose }: { section: Section; offer?: Of
       </div>}
       <div className={styles.grid}><label className={styles.field}>Starts at<input name="startsAt" type="datetime-local" className={styles.input} required={section === "promotions"} defaultValue={initialStart} /></label><label className={styles.field}>Ends at<input name="endsAt" type="datetime-local" className={styles.input} required={section === "promotions"} defaultValue={initialEnd} /></label></div>
       <p className={styles.muted}>Dates use your local time. Enabled offers become active at the start time and end automatically.</p>
-      {offer && !validOfferScope(offer) && <p className={styles.notice}>This older offer needs a new scope before it can apply. Select main categories or the entire store and save.</p>}
+      {offer && !validOfferScope(offer) && <FeedbackNotice kind="warning">This older offer needs a new scope before it can apply. Select main categories or the entire store and save.</FeedbackNotice>}
       <CategoryPicker scope={scope} onScopeChange={setScope} selected={categories} onChange={setCategories} />
       {section === "coupons" ? <><div className={styles.grid}>
         <label className={styles.field}>Eligible customer emails<textarea name="customerEmails" className={styles.textarea} defaultValue={coupon?.customerEmails.join(", ")} placeholder="customer@urbanforge.example" /><small>Separate emails with commas; leave empty for all customers.</small></label>
       </div><label className={styles.checkbox}><input type="checkbox" name="firstOrderOnly" defaultChecked={coupon?.firstOrderOnly ?? false} />First-order customers only</label></> : <p className={styles.muted}>Sale prices apply automatically during the active period. If sales overlap, the lowest available price applies. Customers can also apply an eligible discount code at checkout.</p>}
       <label className={styles.checkbox}><input type="checkbox" name="active" defaultChecked={offer?.active ?? true} />Enable {section === "coupons" ? "discount code" : "sale"}</label>
-      {(error || mutation.error) && <p className={styles.error} role="alert">{error || mutation.error?.message}</p>}
+      <FeedbackNotice>{mutation.error?.message}</FeedbackNotice>
       <div className={styles.dialogFooter}><button type="button" className={styles.secondary} onClick={onClose}>Cancel</button><button className={styles.button} disabled={mutation.isPending}><PendingContent pending={mutation.isPending}>{`${offer ? "Save" : "Create"} ${section === "coupons" ? "discount code" : "sale"}`}</PendingContent></button></div>
     </form>
   </Dialog>;
@@ -100,6 +102,7 @@ function OfferEditor({ section, offer, onClose }: { section: Section; offer?: Of
 function OffersView({ section, search }: { section: Section; search: string }) {
   const query = useAdminQuery<{ coupons?: AdminCoupon[]; promotions?: AdminPromotion[] }>(section, "api", { refetchInterval: 30_000 });
   const mutation = useAdminMutation(section, "api");
+  const feedback = useFeedback();
   const [localSearch, setLocalSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [editor, setEditor] = useState<Offer | "new" | null>(null);
@@ -110,18 +113,18 @@ function OffersView({ section, search }: { section: Section; search: string }) {
 
   async function remove() {
     if (!deleting) return;
-    try { await mutation.mutateAsync({ path: `${section}/${deleting.id}`, method: "DELETE" }); setDeleting(null); } catch { /* Shown in the dialog. */ }
+    try { await mutation.mutateAsync({ path: `${section}/${deleting.id}`, method: "DELETE" }); feedback.success("Offer deleted."); setDeleting(null); } catch { /* Shown in the dialog. */ }
   }
 
   async function toggle(offer: Offer) {
-    try { await mutation.mutateAsync({ path: `${section}/${offer.id}`, method: "PATCH", body: { active: !offer.active } }); } catch { /* Shown above the list. */ }
+    try { await mutation.mutateAsync({ path: `${section}/${offer.id}`, method: "PATCH", body: { active: !offer.active } }); feedback.success(offer.active ? "Offer disabled." : "Offer enabled."); } catch { /* Shown above the list. */ }
   }
 
   return <section className={styles.panel}>
     <div className={styles.heading}><div><h2>{section === "coupons" ? "Discounts & coupons" : "Sales & promotions"}</h2><p>{section === "coupons" ? "Create coupons and promo codes for the entire store or selected main categories." : "Schedule automatic sales for the entire store or selected main categories."}</p></div><button className={styles.button} onClick={() => setEditor("new")}><Plus size={15} />{section === "coupons" ? "Create discount code" : "Create sale"}</button></div>
-    {mutation.error && !deleting && <div className={styles.error} role="alert">{mutation.error.message}</div>}
+    {mutation.error && !deleting && <FeedbackNotice>{mutation.error.message}</FeedbackNotice>}
     <div className={styles.card}><div className={styles.toolbar} style={{ borderBottom: 0 }}><label className={styles.search}><Search size={15} /><input aria-label={`Search ${section}`} value={localSearch} onChange={event => setLocalSearch(event.target.value)} placeholder={section === "coupons" ? "Search coupons or promo codes…" : "Search sales…"} /></label><select className={styles.select} aria-label="Filter offer status" value={filter} onChange={event => setFilter(event.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="scheduled">Scheduled</option><option value="ended">Ended</option><option value="inactive">Inactive</option></select><span className={styles.muted}>{filtered.length} {section}</span></div></div>
-    {query.isPending ? <div className={styles.offerGrid}>{[0, 1, 2].map(index => <SummarySkeleton key={index} />)}</div> : query.error ? <div className={`${styles.card} ${styles.empty}`}><p className={styles.error} role="alert">{query.error.message}</p><button className={styles.secondary} onClick={() => void query.refetch()}>Try again</button></div> : filtered.length ? <div className={styles.offerGrid}>{filtered.map(offer => {
+    {query.isPending ? <div className={styles.offerGrid}>{[0, 1, 2].map(index => <SummarySkeleton key={index} />)}</div> : query.error ? <div className={`${styles.card} ${styles.empty}`}><FeedbackNotice>{query.error.message}</FeedbackNotice><button className={styles.secondary} onClick={() => void query.refetch()}>Try again</button></div> : filtered.length ? <div className={styles.offerGrid}>{filtered.map(offer => {
       const isCoupon = "code" in offer;
       const state = isCoupon ? couponState(offer) : offer.state;
       return <article className={styles.offerCard} key={offer.id}>
@@ -134,7 +137,7 @@ function OffersView({ section, search }: { section: Section; search: string }) {
       </article>;
     })}</div> : <div className={`${styles.card} ${styles.empty}`}><Tag size={34} strokeWidth={1.3} /><h3>{terms.length || filter !== "all" ? `No matching ${section}` : section === "coupons" ? "Your next offer starts here" : "Make room for your next big sale"}</h3><p>{terms.length || filter !== "all" ? "Try another search or status filter." : section === "coupons" ? "Create a discount code, set your limits, and choose who can use it." : "Choose main categories or the entire store, then schedule your sale."}</p></div>}
     {editor && <OfferEditor section={section} offer={editor === "new" ? undefined : editor} onClose={() => setEditor(null)} />}
-    {deleting && <Dialog title={`Delete ${section === "coupons" ? "discount code" : "sale"}`} onClose={() => setDeleting(null)}><div className={styles.confirm}><p>Delete <strong>{"code" in deleting ? deleting.code : deleting.name}</strong>? This offer will be removed from your store. You can disable it instead if you want to keep its settings.</p>{mutation.error && <p className={styles.error} role="alert">{mutation.error.message}</p>}<div className={styles.dialogFooter}><button className={styles.secondary} onClick={() => setDeleting(null)}>Keep offer</button><button className={styles.danger} disabled={mutation.isPending} onClick={() => void remove()}><PendingContent pending={mutation.isPending}>{"Delete offer"}</PendingContent></button></div></div></Dialog>}
+    {deleting && <Dialog title={`Delete ${section === "coupons" ? "discount code" : "sale"}`} onClose={() => setDeleting(null)}><div className={styles.confirm}><p>Delete <strong>{"code" in deleting ? deleting.code : deleting.name}</strong>? This offer will be removed from your store. You can disable it instead if you want to keep its settings.</p>{mutation.error && <FeedbackNotice>{mutation.error.message}</FeedbackNotice>}<div className={styles.dialogFooter}><button className={styles.secondary} onClick={() => setDeleting(null)}>Keep offer</button><button className={styles.danger} disabled={mutation.isPending} onClick={() => void remove()}><PendingContent pending={mutation.isPending}>{"Delete offer"}</PendingContent></button></div></div></Dialog>}
   </section>;
 }
 

@@ -1,9 +1,10 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 
 import { PendingContent } from "@/components/ui/Skeleton";
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
-import { ArrowRight, CheckCircle2, LockKeyhole, Send } from "lucide-react";
+import { ArrowRight, LockKeyhole, Send } from "lucide-react";
 import { supportSubjects } from "@/lib/support";
 import styles from "./support.module.css";
 
@@ -55,8 +56,8 @@ export default function ContactForm() {
       <label>Message <span>*</span><textarea name="message" placeholder="Tell us how we can help…" required minLength={10} maxLength={1000} value={message} onChange={event => setMessage(event.target.value)} aria-describedby="message-count" /><small id="message-count" className={styles.characterCount}>{message.length}/1000</small></label>
       <div className={styles.formActions}><button type="submit" className={styles.primaryButton} disabled={pending}><PendingContent pending={pending}><Send size={17} />{"Send message"}<ArrowRight size={16} /></PendingContent></button><Link href="/faqs" className={styles.secondaryButton}>Explore FAQs <ArrowRight size={16} /></Link></div>
       <p className={styles.privacy}><LockKeyhole size={12} />Your details are used to respond to your enquiry. <Link href="/privacy-policy">Privacy policy</Link></p>
-      {error && <p className={styles.error} role="alert">{error} You can also email <a href="mailto:info@urbanforge.com">info@urbanforge.com</a>.</p>}
-      {reference && <div className={styles.success} role="status"><CheckCircle2 size={20} /><div><strong>Message received. Thank you!</strong><p>Your reference is {reference}. Keep it handy for any follow-up.</p></div></div>}
+      {error && <FeedbackNotice>{error} You can also email <a href="mailto:info@urbanforge.com">info@urbanforge.com</a>.</FeedbackNotice>}
+      {reference && <FeedbackNotice kind="success"><div><strong>Message received. Thank you!</strong><p>Your reference is {reference}. Keep it handy for any follow-up.</p></div></FeedbackNotice>}
     </form>
   </section>;
 }

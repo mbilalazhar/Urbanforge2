@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 
 import { PendingContent } from "@/components/ui/Skeleton";
 import { useState, type FormEvent } from "react";
@@ -36,7 +37,7 @@ const copy = {
 
 export default function AuthScreen({ mode }: { mode: AuthMode }) {
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("");
+  const feedback = useFeedback();
   const isSignup = mode === "signup";
   const isReset = mode === "reset";
   const content = copy[mode];
@@ -47,7 +48,7 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
   const pending = mutation.isPending;
 
   function clearFeedback() {
-    setMessage("");
+
     mutation.reset();
   }
 
@@ -58,16 +59,16 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
     const data = new FormData(event.currentTarget);
 
     if (isSignup && !String(data.get("name") ?? "").trim()) {
-      setMessage("Please enter your full name.");
+      feedback.warning("Please enter your full name.");
       return;
     }
     if (isSignup && data.get("password") !== data.get("confirmPassword")) {
-      setMessage("Your passwords don’t match. Please try again.");
+      feedback.warning("Your passwords don’t match. Please try again.");
       return;
     }
 
     if (isReset) {
-      setMessage("Password reset isn’t available yet. Please try again later.");
+      feedback.warning("Password reset isn’t available yet. Please try again later.");
       return;
     }
 
@@ -152,7 +153,7 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
               )}
               {mode === "login" && <Link href="/forgot-password" className={styles.forgot}>Forgot password?</Link>}
 
-              <p className={styles.feedback} role="status" aria-live="polite">{message || mutation.error?.message}</p>
+              <FeedbackNotice>{mutation.error?.message}</FeedbackNotice>
               <button type="submit" disabled={pending} className={styles.submit}><PendingContent pending={pending}>{content.action}<ArrowRight size={17} strokeWidth={1.5} /></PendingContent></button>
             </form>
 
@@ -160,8 +161,8 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
               <>
                 <div className={styles.divider}><span />Or<span /></div>
                 <div className={styles.socials}>
-                  <button type="button" onClick={() => setMessage("Google sign-in isn’t available yet. Please try again later.")}><FcGoogle size={21} />Continue with Google</button>
-                  <button type="button" onClick={() => setMessage("Apple sign-in isn’t available yet. Please try again later.")}><FaApple size={22} />Continue with Apple</button>
+                  <button type="button" onClick={() => feedback.warning("Google sign-in isn’t available yet. Please try again later.")}><FcGoogle size={21} />Continue with Google</button>
+                  <button type="button" onClick={() => feedback.warning("Apple sign-in isn’t available yet. Please try again later.")}><FaApple size={22} />Continue with Apple</button>
                 </div>
                 <p className={styles.terms}>By continuing, you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>.</p>
               </>

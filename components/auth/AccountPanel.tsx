@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 
 import { PendingContent } from "@/components/ui/Skeleton";
 import { useRouter } from "next/navigation";
@@ -44,7 +45,7 @@ export default function AccountPanel({ account, profile }: { account: PublicAcco
           <button type="button" disabled={logout.isPending} onClick={() => logout.mutate(undefined, {
             onSuccess: () => { router.replace(loginPath); router.refresh(); },
           })}><PendingContent pending={logout.isPending}>{"Log Out"}</PendingContent></button>
-          <p className={styles.feedback} role="status">{logout.error?.message || session.error?.message}</p>
+          <FeedbackNotice>{logout.error?.message || session.error?.message}</FeedbackNotice>
         </div>
       </section>
     </main>

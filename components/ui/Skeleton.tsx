@@ -5,9 +5,9 @@ export function Skeleton({ width = "100%", height = 14, circle = false, classNam
   return <span aria-hidden="true" data-skeleton="" className={`${styles.bone} ${circle ? styles.circle : ""} ${className}`} style={{ width, height, ...style }} />;
 }
 
-/** Keep the action's accessible name and dimensions while showing only a bone. */
+/** Keep the action's accessible name and dimensions while showing a spinner. */
 export function PendingContent({ pending, children }: { pending: boolean; children: ReactNode }) {
-  return <span className={styles.action} aria-busy={pending || undefined}><span className={`${styles.actionLabel} ${pending ? styles.concealed : ""}`}>{children}</span>{pending && <Skeleton className={styles.actionBone} height="70%" />}</span>;
+  return <span className={styles.action} aria-busy={pending || undefined}><span className={`${styles.actionLabel} ${pending ? styles.concealed : ""}`}>{children}</span>{pending && <span data-spinner="" aria-hidden="true" className={styles.spinner} />}</span>;
 }
 
 function Frame({ children, label, className = "" }: { children: ReactNode; label: string; className?: string }) {

@@ -1,3 +1,4 @@
+import { FeedbackNotice } from "@/components/ui/Feedback";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Search } from "lucide-react";
@@ -15,7 +16,7 @@ export default function NotFound() {
         </nav>
         <p className={styles.eyebrow}><span />Looks like a wrong turn</p>
         <h1><span className={styles.code}>4<span>0</span>4</span><span className={styles.title}>Off the <em>grid.</em></span></h1>
-        <p className={styles.description}>This page couldn’t be found.<br />Your next fit is still out there. Let’s get you back on track.</p>
+        <FeedbackNotice kind="warning">This page couldn’t be found. Use the links below to find your next fit.</FeedbackNotice><p className={styles.description}>Your next fit is still out there. Explore our latest arrivals.</p>
         <div className={styles.actions}>
           <Link href="/" className={styles.home}><ArrowLeft size={16} strokeWidth={1.5} />Back to home</Link>
           <Link href="/search" className={styles.search}><Search size={16} strokeWidth={1.5} />Find your fit</Link>
@@ -23,7 +24,7 @@ export default function NotFound() {
         <Link href="/new-in" className={styles.explore}>Explore new arrivals<ArrowRight size={15} strokeWidth={1.5} /></Link>
       </div>
       <div className={styles.signature} aria-hidden="true"><span />UrbanForge<br />Built for the streets.</div>
-      <p className={styles.errorLabel}>Error 404 / Page not found</p>
+
     </main>
   );
 }

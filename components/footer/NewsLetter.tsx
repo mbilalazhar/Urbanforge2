@@ -1,16 +1,16 @@
 "use client";
 
+import { useFeedback } from "@/components/ui/Feedback";
 import { useState } from "react";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const feedback = useFeedback();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    setSubmitted(true);
-    setEmail("");
+    feedback.warning("Newsletter subscriptions are not available yet. Please check back soon.");
   };
 
   return (
@@ -28,11 +28,6 @@ export default function Newsletter() {
           to stay up to date on all the latest news and offers from us
         </p>
 
-        {submitted ? (
-          <p className="mt-10 text-sm font-medium text-emerald-400">
-            Thanks! You&apos;re subscribed. 🎉
-          </p>
-        ) : (
           <form
             onSubmit={handleSubmit}
             className="mx-auto mt-10 flex w-full max-w-xl items-center rounded-full bg-white p-1 shadow-lg"
@@ -52,7 +47,6 @@ export default function Newsletter() {
               Subscribe
             </button>
           </form>
-        )}
       </div>
     </section>
   );

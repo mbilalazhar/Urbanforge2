@@ -1,0 +1,23 @@
+.toasts { inset: auto; margin: 0; border: 0; padding: 0; background: transparent; overflow: visible; position: fixed; top: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; width: min(400px, calc(100vw - 32px)); pointer-events: none; }
+.toast { pointer-events: auto; display: flex; align-items: flex-start; gap: 12px; padding: 18px; border: 1px solid #e2e8e2; border-radius: 12px; background: #fff; color: #202520; box-shadow: 0 12px 45px #0002; font-size: 14px; line-height: 1.5; animation: enter .2s ease-out; }
+.toast > svg { color: #257346; flex-shrink: 0; margin-top: 1px; }
+.toast > div { flex: 1; overflow-wrap: anywhere; }
+.toast button, .close { display: grid; place-items: center; border: 0; background: transparent; color: #666; padding: 3px; cursor: pointer; }
+.dialog { position: fixed; inset: 0; margin: auto; width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 32px; border: 1px solid #eee; border-radius: 16px; color: #202020; background: white; box-shadow: 0 24px 90px #0004; font-family: inherit; animation: enter .2s ease-out; }
+.dialog::backdrop { background: #1118; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.close { position: absolute; right: 16px; top: 16px; }
+.icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; margin-bottom: 20px; }
+.error { color: #cf1732; background: #fff0f2; }
+.warning { color: #a45e00; background: #fff5df; }
+.dialog h2 { font-size: 23px; font-weight: 700; line-height: 1.25; margin: 0 0 14px; }
+.message { color: #555; font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.message h1, .message h2, .message h3 { font-size: 17px; margin: 0 0 8px; }
+.message > svg { display: none; }
+.message button, .message a, .dismiss { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; margin: 16px 8px 0 0; border: 1px solid #dedede; border-radius: 6px; color: #202020; background: #fafafa; font: inherit; font-size: 13px; cursor: pointer; }
+.dismiss { width: 100%; margin-top: 24px; border-color: #191919; background: #191919; color: #fff; font-weight: 600; }
+.dialog button:focus-visible, .toast button:focus-visible { outline: 2px solid #cc1230; outline-offset: 4px; }
+@keyframes enter { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 600px) { .toasts { right: 16px; top: 16px; } .dialog { padding: 26px 22px; } }
+@media (prefers-reduced-motion: reduce) { .toast, .dialog { animation: none; } }
+
+.toasts:not(:popover-open) { display: none; }

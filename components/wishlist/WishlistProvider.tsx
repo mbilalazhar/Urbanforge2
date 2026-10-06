@@ -1,4 +1,5 @@
 "use client";
+import { useFeedback } from "@/components/ui/Feedback";
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
@@ -22,7 +23,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const accountId = !session.isError && session.data?.account?.role === "user" ? session.data.account.id : null;
   const [prompt, setPrompt] = useState(false);
   const [pending, setPending] = useState(false);
-  const [notice, setNotice] = useState<{ accountId: string | null; text: string } | null>(null);
+  const feedback = useFeedback();
   const busy = useRef(false);
   const [consumers, setConsumers] = useState(0);
   const subscribe = useCallback(() => {
@@ -43,15 +44,16 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   async function toggle(productId: string) {
     if (busy.current || session.isPending) return;
-    if (session.error) { setNotice({ accountId, text: "Unable to check your account. Please try again." }); void session.refetch(); return; }
+    if (session.error) { feedback.error("Unable to check your account. Please try again."); void session.refetch(); return; }
     if (!accountId) { setPrompt(true); return; }
-    if (query.error) { setNotice({ accountId, text: query.error.message }); void query.refetch(); return; }
+    if (query.error) { feedback.error(query.error.message); void query.refetch(); return; }
     if (!data) return;
-    busy.current = true; setPending(true); setNotice(null);
+    busy.current = true; setPending(true);
     try {
       const result = await wishlistRequest(accountId, productId, !data.productIds.includes(productId));
       await client.cancelQueries({ queryKey: ["wishlist", accountId] });
       client.setQueryData(["wishlist", accountId], result);
+      feedback.success(result.productIds.includes(productId) ? "Product saved to your wishlist." : "Product removed from your wishlist.");
       try { localStorage.setItem(WISHLIST_EVENT, crypto.randomUUID()); } catch { /* Saving still updates this tab when cross-tab storage is unavailable. */ }
     } catch (caught) {
       const currentId = client.getQueryData<SessionResponse>(["session", "user"])?.account?.id;
@@ -59,7 +61,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         if (caught instanceof WishlistError && caught.status === 401) {
           client.setQueryData(["session", "user"], { account: null }); setPrompt(true);
         } else {
-          setNotice({ accountId, text: caught instanceof Error ? caught.message : "Unable to save your wishlist." });
+          feedback.error(caught instanceof Error ? caught.message : "Unable to save your wishlist.");
           if (caught instanceof WishlistError && caught.status === 409) void client.invalidateQueries({ queryKey: ["session", "user"] });
         }
       }
@@ -69,7 +71,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   return <WishlistContext.Provider value={{ subscribe, data, isSignedIn: Boolean(accountId), isLoading: session.isPending || Boolean(accountId && query.isPending), pending, error, retry: () => { void session.refetch(); if (accountId) void query.refetch(); }, toggle: id => { void toggle(id); } }}>
     {children}
     {prompt && !accountId && <AccountRequiredModal onClose={() => setPrompt(false)} />}
-    {notice && notice.accountId === accountId && <div className={styles.toast} role="alert"><p>{notice.text}</p><button type="button" aria-label="Dismiss wishlist message" onClick={() => setNotice(null)}><X size={16} /></button></div>}
+
   </WishlistContext.Provider>;
 }
 export function useWishlist() {

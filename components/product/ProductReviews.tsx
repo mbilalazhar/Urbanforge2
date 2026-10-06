@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 
 import { ReviewsSkeleton, PendingContent } from "@/components/ui/Skeleton";
 import { useRef, useState, type FormEvent } from "react";
@@ -24,7 +25,7 @@ export default function ProductReviews({ productId }: { productId: string }) {
   const [editing, setEditing] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [notice, setNotice] = useState("");
+  const notifySuccess = useFeedback().success;
   const addButton = useRef<HTMLButtonElement>(null);
   const endpoint = `/api/catalog/${encodeURIComponent(productId)}/reviews`;
   const key = ["product-reviews", productId];
@@ -49,7 +50,7 @@ export default function ProductReviews({ productId }: { productId: string }) {
         page: 1, limit: 20,
       });
       setPage(1); setEditing(false); setRating(0); setComment("");
-      setNotice("Your review has been posted. Thank you!");
+      notifySuccess("Your review has been posted. Thank you!");
       void client.invalidateQueries({ queryKey: key });
       requestAnimationFrame(() => addButton.current?.focus());
     },
@@ -58,11 +59,11 @@ export default function ProductReviews({ productId }: { productId: string }) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!rating || post.isPending) return;
-    setNotice(""); post.mutate();
+     post.mutate();
   }
 
   return <section className={styles.reviews} aria-label="Customer reviews">
-    <p className={styles.notice} role="status">{notice}</p>
+
     {editing ? <form className={styles.form} onSubmit={submit} aria-label="Add a product review">
       <div><h3>Add your review</h3><p>How was this product? Select a rating to share your experience.</p></div>
       <fieldset disabled={post.isPending} className={styles.ratingField}>
@@ -76,14 +77,14 @@ export default function ProductReviews({ productId }: { productId: string }) {
       <label className={styles.commentLabel} htmlFor="product-review-comment">Your review <span>(optional)</span></label>
       <textarea id="product-review-comment" rows={4} maxLength={2000} value={comment} disabled={post.isPending} onChange={event => setComment(event.target.value)} placeholder="Tell others what you liked or what could be better…" aria-describedby="review-comment-limit" />
       <p id="review-comment-limit" className={styles.counter}>{comment.length}/2,000 characters</p>
-      {post.error && <p className={styles.error} role="alert">{post.error.message}</p>}
+      {post.error && <FeedbackNotice>{post.error.message}</FeedbackNotice>}
       <div className={styles.actions}><button type="submit" className={styles.primary} disabled={!rating || post.isPending}><PendingContent pending={post.isPending}>{"Post review"}</PendingContent></button><button type="button" className={styles.secondary} disabled={post.isPending} onClick={() => { setEditing(false); post.reset(); requestAnimationFrame(() => addButton.current?.focus()); }}><PendingContent pending={post.isPending}>Cancel</PendingContent></button></div>
     </form> : <div className={styles.heading}>
       <div><h3>Customer reviews</h3>{query.data && query.data.total > 0 && <p className={styles.summary}><strong>{query.data.average.toFixed(1)} / 5</strong><span>Based on {query.data.total} {query.data.total === 1 ? "review" : "reviews"}</span></p>}</div>
-      <button ref={addButton} type="button" className={styles.primary} onClick={() => { setEditing(true); setNotice(""); post.reset(); }}>Add review</button>
+      <button ref={addButton} type="button" className={styles.primary} onClick={() => { setEditing(true);  post.reset(); }}>Add review</button>
     </div>}
     {query.isPending && <ReviewsSkeleton />}
-    {query.error && <div className={styles.error} role="alert">{query.error.message} <button type="button" onClick={() => query.refetch()}>Try again</button></div>}
+    {query.error && <FeedbackNotice>{query.error.message} <button type="button" onClick={() => query.refetch()}>Try again</button></FeedbackNotice>}
     {query.data?.total === 0 && !editing && <div className={styles.empty}><MessageSquare size={28} aria-hidden="true" /><h4>No reviews yet</h4><p>Be the first to share your thoughts about this product.</p></div>}
     {!!query.data?.reviews.length && <ul className={styles.list}>{query.data.reviews.map(review => <li key={review.id}>
       <article><div className={styles.reviewHeading}><div><strong>{review.author}</strong><Stars rating={review.rating} /></div><time dateTime={review.createdAt}>{new Date(review.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}</time></div>{review.comment && <p className={styles.comment}>{review.comment}</p>}</article>

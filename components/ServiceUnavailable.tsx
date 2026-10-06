@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 
 import { PendingContent } from "@/components/ui/Skeleton";
 import { useTransition } from "react";
@@ -11,8 +12,7 @@ export default function ServiceUnavailable({ title }: { title: string }) {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-white px-6 py-32 text-center text-neutral-900">
-      <h1 className="text-2xl font-semibold">{title}</h1>
-      <p className="max-w-md text-neutral-600">We’re having trouble connecting. Please try again in a moment.</p>
+      <FeedbackNotice>{title}. We’re having trouble connecting. Please try again in a moment.</FeedbackNotice>
       <button
         type="button"
         disabled={pending}

@@ -1,4 +1,5 @@
 "use client";
+import { FeedbackNotice } from "@/components/ui/Feedback";
 import { PendingContent } from "@/components/ui/Skeleton";
 import { useState } from "react";
 import { MapPin } from "lucide-react";
@@ -36,6 +37,6 @@ export default function SavedAddress({ profile, save, pending }: { profile: User
       {fields.map(field => <label key={field.key}>{field.label}{field.required ? " *" : ""}<input name={field.key} type={field.key === "contact" ? "tel" : "text"} autoComplete={field.autoComplete} required={field.required} maxLength={field.maxLength ?? 150} disabled={pending} defaultValue={address?.[field.key] ?? (field.key === "recipient" ? profile.name : field.key === "contact" ? profile.contact : "")} /></label>)}
       <div className={styles.formActions}><button type="button" className={styles.outlineButton} disabled={pending} onClick={() => { setEditing(false); setError(""); }}><PendingContent pending={pending}>Cancel</PendingContent></button><button className={styles.primaryButton} disabled={pending}><PendingContent pending={pending}>{"Save address"}</PendingContent></button></div>
     </form>}
-    {error && <p className={styles.feedback} role="alert">{error}</p>}
+    {error && <FeedbackNotice>{error}</FeedbackNotice>}
   </section>;
 }

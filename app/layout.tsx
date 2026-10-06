@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
+import { FeedbackProvider } from "@/components/ui/Feedback";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Inter } from 'next/font/google';
 export const metadata: Metadata = {
@@ -18,11 +19,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${inter.variable}`}>
       {/* Browser extensions can inject attributes on body before React hydrates. */}
       <body suppressHydrationWarning className="bg-[#111111] text-white antialiased">
+        <FeedbackProvider>
         <QueryProvider>
         <CartProvider>
           {children}
         </CartProvider>
         </QueryProvider>
+        </FeedbackProvider>
       </body>
     </html>
   );
