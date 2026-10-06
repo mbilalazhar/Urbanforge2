@@ -42,6 +42,7 @@
 .sizeOptions button[aria-pressed="true"] { background: #191919; border-color: #191919; color: #fff; }
 .sizeOptions button:disabled { text-decoration: line-through; opacity: .35; cursor: not-allowed; }
 .stock { display: flex; align-items: center; gap: 6px; color: #426d48; font-size: 11px; margin: 19px 0 15px; }
+.stock.lowStock { color: #946014; }
 .outOfStock { color: #b52532; }
 .purchase { display: grid; grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .quantity { display: flex; align-items: center; justify-content: space-between; border: 1px solid #dddfe3; background: #fff; border-radius: 5px; height: 46px; }

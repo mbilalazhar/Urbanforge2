@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import CheckoutPage from "@/components/checkout/CheckoutPage";
 import { checkoutItemSchema } from "@/lib/checkout/schema";
-export const metadata: Metadata = { title: "Checkout | UrbanForge", description: "Complete your UrbanForge order." };
+export const metadata: Metadata = { title: "Checkout", description: "Complete your UrbanForge order. Review your items, choose delivery and add your shipping details at checkout." };
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
   const direct = "productId" in params;

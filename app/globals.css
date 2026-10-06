@@ -1,3 +1,5 @@
 @import "tailwindcss";
+/* Keep the viewport within the document at both scroll boundaries. */
+html, body { overscroll-behavior-y: none; }
 /* Consistent blur for native dialogs across the store and admin. */
 dialog::backdrop { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }

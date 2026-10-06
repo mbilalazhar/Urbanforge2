@@ -1,6 +1,9 @@
 import type { Product } from "@/components/product/ProductCard";
 import type { AdminProduct } from "@/lib/admin/types";
 export const formatProductPrice = (value: number) => `Rs. ${new Intl.NumberFormat("en-PK", { maximumFractionDigits: 2 }).format(value)}`;
+export function stockLabel(stock: number) {
+  return stock <= 0 ? "Out of stock" : stock <= 5 ? "Low in stock" : "In stock";
+}
 export function productPrice(product: Product) { return product.amount ?? Number(product.price.replace(/[^0-9.]/g, "")); }
 export function colorHex(name: string) {
   const colors: Record<string, string> = { black: "#171717", white: "#fafafa", red: "#c82032", blue: "#385f9b", green: "#496449", olive: "#737447", beige: "#d7c6a5", sand: "#d7c6a5", grey: "#929292", gray: "#929292", pink: "#df9dae", brown: "#795b47", navy: "#253247", cream: "#eee8d6", yellow: "#e6cd57", orange: "#d88745", purple: "#80628a" };

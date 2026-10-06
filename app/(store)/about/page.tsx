@@ -8,7 +8,7 @@ import { milestones, pressNames, statistics } from "@/components/about/about-con
 import styles from "@/components/about/about.module.css";
 
 export const metadata: Metadata = {
-  title: "Our Story | UrbanForge",
+  title: "Our Story",
   description: "Built for the streets. Designed for real life. Discover the people, purpose, and creative spirit behind UrbanForge.",
 };
 

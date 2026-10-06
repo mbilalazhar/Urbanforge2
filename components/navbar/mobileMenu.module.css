@@ -1,5 +1,7 @@
 .trigger, .close { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; cursor: pointer; color: #171717; border-radius: 50%; transition: background .2s; }
 .trigger:hover, .close:hover { background: #f2f2f2; }
+.trigger { color: inherit; }
+.trigger:hover { background: #80808020; }
 .dialog { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: #171717; overflow: hidden; }
 .dialog::backdrop { background: #0008; backdrop-filter: blur(4px); }
 .panel { display: flex; flex-direction: column; width: min(88%, 380px); height: 100%; background: #fff; box-shadow: 16px 0 60px #0002; overflow-y: auto; overscroll-behavior: contain; }

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, MapPin, Minus, Package, Play, Plus, Share2, ShoppingBag, X, Zap, ZoomIn } from "lucide-react";
 import { CatalogError, useProduct, type ProductResponse } from "@/lib/catalog/client";
-import { colorHex, formatProductPrice, toProductCard } from "@/lib/products";
+import { colorHex, formatProductPrice, stockLabel, toProductCard } from "@/lib/products";
 import { useCart } from "@/components/cart/CartProvider";
 import { useCookiePreference } from "@/lib/cookie-preferences";
 import WishlistButton from "@/components/wishlist/WishlistButton";
@@ -80,7 +80,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
   function addToCart(buyNow = false) {
     if (buyNow) {
       if (!validSelection || stock < 1 || query.error) return;
-      const params = new URLSearchParams({ productId: product.id, color, size, quantity: String(Math.min(quantity, stock, 99)) });
+      const params = new URLSearchParams({ productId: product.id, color, size, quantity: String(purchaseQuantity) });
       if (variant) params.set("variantId", variant.id);
       router.push(`/checkout?${params}`);
       return;
@@ -122,7 +122,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
         {product.shortDescription && <p className={styles.summary}>{product.shortDescription}</p>}
         {colors.length > 0 && <fieldset className={styles.options}><legend>Color: <span>{color}</span></legend><div className={styles.colorOptions}>{colors.map(option => <button type="button" key={option} aria-pressed={color === option} onClick={() => selectColor(option)}><span style={{ backgroundColor: colorHex(option) }} />{option}</button>)}</div></fieldset>}
         {sizes.length > 0 && <fieldset className={styles.options}><legend>Size: <span>{size || "Select a size"}</span></legend><div className={styles.sizeOptions}>{sizes.map(option => <button type="button" key={option} aria-pressed={size === option} disabled={product.variants.length > 0 && !product.variants.some(item => item.color === color && item.size === option && item.stock > 0)} onClick={() => { setSize(option); setQuantity(1); }}>{option}</button>)}</div></fieldset>}
-        <p className={`${styles.stock} ${stock === 0 ? styles.outOfStock : ""}`}>{stock > 0 ? <><Check size={14} />In stock · {stock} available{cartQuantity > 0 ? ` (${cartQuantity} in your cart)` : ""}</> : <><Package size={14} />Out of stock{product.variants.length ? " for this selection" : ""}</>}</p>
+        <p aria-label="Stock availability" aria-live="polite" className={`${styles.stock} ${stock <= 0 ? styles.outOfStock : stock <= 5 ? styles.lowStock : ""}`}>{stock > 0 ? <Check size={14} /> : <Package size={14} />}{stockLabel(stock)}</p>
         <div className={styles.purchase}><div className={styles.quantity} role="group" aria-label="Quantity"><button type="button" disabled={purchaseQuantity <= 1} aria-label="Decrease quantity" onClick={() => setQuantity(purchaseQuantity - 1)}><Minus size={15} /></button><output aria-live="polite">{purchaseQuantity}</output><button type="button" disabled={!canBuy || purchaseQuantity >= available} aria-label="Increase quantity" onClick={() => setQuantity(purchaseQuantity + 1)}><Plus size={15} /></button></div><button type="button" className={styles.addToCart} disabled={!canBuy} onClick={() => addToCart()}><PendingContent pending={cart.isLoading}><ShoppingBag size={17} />Add to Cart</PendingContent></button><button type="button" className={styles.buyNow} disabled={!validSelection || stock < 1 || !!query.error} onClick={() => addToCart(true)}><Zap size={16} />Buy Now</button></div>
         {cart.error && <FeedbackNotice>{cart.error}<button type="button" onClick={cart.retry}>Try again</button></FeedbackNotice>}{cart.isLoading && !cart.error && <Skeleton width={180} />}
         <div className={styles.benefits}><div><Package size={21} /><span>Product details<small>See materials & specifications</small></span></div><Link href="/account"><MapPin size={21} /><span>Saved addresses<small>Keep your delivery details ready</small></span></Link></div>
@@ -130,7 +130,7 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
     </div>
     <section className={styles.information} aria-label="More product information"><div className={styles.tabs} role="tablist" aria-label="Product information">{tabs.map((item, index) => <button type="button" role="tab" key={item} id={`product-tab-${index}`} aria-controls="product-tab-content" aria-selected={tab === item} tabIndex={tab === item ? 0 : -1} onClick={() => setTab(item)} onKeyDown={event => { const next = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1; if (next >= 0) { event.preventDefault(); setTab(tabs[next]); document.getElementById(`product-tab-${next}`)?.focus(); } }}>{item}</button>)}</div>
       <div className={styles.tabContent} role="tabpanel" id="product-tab-content" aria-labelledby={`product-tab-${tabs.indexOf(tab)}`} tabIndex={0}>
-        {(tab === "Description" || tab === "Specifications") && <div className={styles.descriptionGrid}>{tab === "Description" && <div><p className={styles.description}>{product.description || product.shortDescription || "No description has been added for this product yet."}</p>{product.tags.length > 0 && <div className={styles.tags}>{product.tags.map(tag => <span key={tag}>{tag}</span>)}</div>}</div>}<dl className={styles.specs}>{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div>}
+        {(tab === "Description" || tab === "Specifications") && <div className={styles.descriptionGrid}>{tab === "Description" && <div><p className={styles.description}>{product.description || product.shortDescription || "No description has been added for this product yet."}</p>{product.tags.length > 0 && <div className={styles.tags}>{product.tags.map(tag => <span key={tag}>{tag.charAt(0).toUpperCase() + tag.slice(1)}</span>)}</div>}</div>}<dl className={styles.specs}>{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div>}
         {tab === "Reviews" && <ProductReviews key={product.id} productId={product.id} />}
         {tab === "Shipping & Returns" && <div className={styles.tabEmpty}><h3>Delivery & returns</h3><p>Choose standard or express delivery at checkout. Standard shipping is free on orders of Rs. 5,000 or more.</p><Link href="/account">Save your delivery address <ArrowRight size={14} /></Link></div>}
       </div>

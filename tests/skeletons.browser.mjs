@@ -93,6 +93,33 @@ test('page skeletons, button spinners, toasts, and modal feedback across the sto
   await call('Emulation.setEmulatedMedia', { features: [] });
   await call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
 
+  // A delayed quick view keeps the dark surface and uses translucent gray placeholders.
+  hold('/api/catalog/skeleton-shoe');
+  await evaluate(`document.querySelector('button[aria-label="Quick view Skeleton Sneaker"]').click()`);
+  await skeleton('Product details pending');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('dialog[open] [aria-label="Product details pending"]')).backgroundColor`), 'rgba(0, 0, 0, 0)');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('dialog[open] [data-skeleton]')).backgroundColor`), 'rgba(128, 128, 128, 0.22)');
+  await writeFile('/tmp/urbanforge-dark-quick-view-skeleton.png', Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+  await release('/api/catalog/skeleton-shoe');
+  await until(() => evaluate(`document.querySelector('dialog[open] [aria-label="Stock availability"]')?.textContent === 'In stock'`), 'quick-view availability without numbers');
+  await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+
+  // Client navigation, history navigation, and search-query changes all reset scrolling.
+  await evaluate(`window.scrollTo(0, document.body.scrollHeight)`);
+  await until(() => evaluate('scrollY > 100'), 'search scrolled');
+  await evaluate(`document.querySelector('a[aria-label="View details for Skeleton Sneaker"]').click()`);
+  await until(() => evaluate(`location.pathname === '/products/skeleton-shoe' && !!document.querySelector('#product-tab-2') && scrollY === 0`), 'product navigation scrolls to top');
+  await delay(300);
+  await evaluate(`window.scrollTo(0, document.body.scrollHeight)`);
+  await until(() => evaluate('scrollY > 100'), 'product scrolled');
+  await evaluate('history.back()');
+  await until(() => evaluate(`location.pathname === '/search' && !!document.querySelector('#product-search') && scrollY === 0`), 'history navigation scrolls to top');
+  await fill('q', 'Skeleton');
+  await evaluate(`window.scrollTo(0, document.body.scrollHeight)`);
+  await until(() => evaluate('scrollY > 100'), 'search scrolled before query change');
+  await evaluate(`document.querySelector('form[role="search"]').requestSubmit()`);
+  await until(() => evaluate(`location.search === '?q=Skeleton' && scrollY === 0`), 'query navigation scrolls to top');
+
   for (const [path, label, settled] of [['/cart', 'Items pending', 'Your next fit is waiting'], ['/checkout', 'Checkout pending', 'Nothing to check out yet'], ['/wishlist', 'Products pending', 'Your wishlist belongs to you']]) {
     hold('/api/auth/session'); await navigate(path); await skeleton(label); await release('/api/auth/session');
     await until(() => evaluate(`document.body.innerText.includes(${JSON.stringify(settled)})`), `${path} settled`);
@@ -105,6 +132,32 @@ test('page skeletons, button spinners, toasts, and modal feedback across the sto
 
   await navigate('/products/skeleton-shoe');
   await until(() => evaluate('!!document.querySelector("#product-tab-2")'), 'product tabs'); await delay(300);
+  // Labels conceal inventory counts, while quantity and Buy Now honor remaining stock.
+  assert.equal(await evaluate(`document.querySelector('[aria-label="Stock availability"]').textContent`), 'In stock');
+  await db.collection('admin_products').updateOne({ id: product.id }, { $set: { stock: 5 } });
+  await call('Page.reload');
+  await until(() => evaluate(`document.querySelector('[aria-label="Stock availability"]')?.textContent === 'Low in stock' && !document.querySelector('button[aria-label="Increase quantity"]').disabled`), 'low-stock product ready');
+  for (let count = 1; count < 5; count++) await evaluate(`document.querySelector('button[aria-label="Increase quantity"]').click()`);
+  assert.equal(await evaluate(`document.querySelector('[aria-label="Quantity"] output').textContent`), '5');
+  assert.equal(await evaluate(`document.querySelector('button[aria-label="Increase quantity"]').disabled`), true, 'cannot exceed stock');
+  for (let count = 0; count < 2; count++) await evaluate(`document.querySelector('button[aria-label="Decrease quantity"]').click()`);
+  await clickText('Add to Cart');
+  await until(() => evaluate(`document.querySelector('[aria-label="Quantity"] output').textContent === '2'`), 'quantity clamps to remaining stock after adding three');
+  assert.equal(await evaluate(`document.querySelector('button[aria-label="Increase quantity"]').disabled`), true);
+  await clickText('Buy Now');
+  await until(() => evaluate(`location.pathname === '/checkout' && new URLSearchParams(location.search).get('quantity') === '2'`), 'buy now uses the displayed quantity');
+  await navigate('/cart');
+  await until(() => evaluate(`!!document.querySelector('button[aria-label="Remove Skeleton Sneaker"]')`), 'cart ready');
+  await evaluate(`document.querySelector('button[aria-label="Remove Skeleton Sneaker"]').click()`);
+  await db.collection('admin_products').updateOne({ id: product.id }, { $set: { stock: 0 } });
+  await navigate('/products/skeleton-shoe');
+  await until(() => evaluate(`document.querySelector('[aria-label="Stock availability"]')?.textContent === 'Out of stock'`), 'out-of-stock label');
+  assert.equal(await evaluate(`Array.from(document.querySelectorAll('button')).filter(b => ['Add to Cart', 'Buy Now'].includes(b.textContent.trim())).every(b => b.disabled)`), true);
+  assert.equal(await evaluate(`document.querySelector('button[aria-label="Increase quantity"]').disabled`), true);
+  await db.collection('admin_products').updateOne({ id: product.id }, { $set: { stock: 10 } });
+  await call('Page.reload');
+  await until(() => evaluate(`document.querySelector('[aria-label="Stock availability"]')?.textContent === 'In stock'`), 'stock restored');
+  await delay(300);
   const reviewPath = '/api/catalog/skeleton-shoe/reviews'; hold(reviewPath);
   await evaluate('document.querySelector("#product-tab-2").click()'); await skeleton('Reviews pending'); await release(reviewPath);
   await until(() => evaluate('document.body.innerText.includes("No reviews yet")'), 'reviews settled');

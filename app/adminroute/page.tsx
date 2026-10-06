@@ -5,7 +5,8 @@ import { getCurrentAccount } from "@/lib/auth/session";
 import ServiceUnavailable from "@/components/ServiceUnavailable";
 
 export const metadata: Metadata = {
-  title: "Admin Portal | UrbanForge",
+  title: "Admin Portal",
+  description: "Manage the UrbanForge store, including products, inventory, orders, customers, discounts and promotions.",
   robots: { index: false, follow: false },
 };
 

@@ -6,7 +6,8 @@ import AccountPanel from "@/components/auth/AccountPanel";
 import ServiceUnavailable from "@/components/ServiceUnavailable";
 
 export const metadata: Metadata = {
-  title: "My Account | UrbanForge",
+  title: "My Account",
+  description: "Manage your UrbanForge profile, saved addresses and order history. Keep your account details ready for your next order.",
   robots: { index: false, follow: false },
 };
 

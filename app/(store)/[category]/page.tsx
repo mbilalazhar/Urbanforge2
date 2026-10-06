@@ -13,7 +13,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const section = getCatalogSection((await params).category);
   if (!section) notFound();
-  return { title: `${section.label} | UrbanForge`, description: section.hero.description.join(" ") };
+  return { title: section.label, description: section.hero.description.join(" ") };
 }
 
 export default async function CategoryPage({ params }: Props) {

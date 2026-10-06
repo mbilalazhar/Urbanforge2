@@ -1,10 +1,13 @@
 .mobileNav { display: none; }
+.lightHeader { background: #fafafa; }
 @media (max-width: 767px) {
-  .header { display: block; padding: 0; background: #fff; color: #171717; border-bottom: 1px solid #e5e5e5; }
+  .header { display: block; padding: 0; background: transparent; color: #fff; border-bottom: 1px solid transparent; }
+  .header[data-surface="light"] { background: #fff; color: #171717; border-bottom-color: #e5e5e5; }
   .header .desktopNav { display: none; }
-  .mobileNav { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 16px; min-height: 72px; padding: env(safe-area-inset-top, 0px) 16px 0; }
+  .mobileNav { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 16px; min-height: calc(72px + env(safe-area-inset-top, 0px)); padding: env(safe-area-inset-top, 0px) 16px 0; }
   .mobileLogo { justify-self: center; display: flex; align-items: center; justify-content: center; max-width: 160px; }
-  .mobileLogo img { width: 100%; height: 40px; object-fit: contain; }
+  .mobileLogo img { width: 100%; height: 40px; object-fit: contain; filter: brightness(0) invert(1); transition: filter .3s; }
+  .header[data-surface="light"] .mobileLogo img { filter: none; }
   .mobileCart { position: relative; display: grid; place-items: center; width: 44px; height: 44px; }
   .mobileCart span { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 20px; background: #c82032; color: white; font-size: 10px; font-weight: 600; text-align: center; line-height: 17px; }
   .mobileNav :is(a, button):focus-visible { outline: 2px solid #c82032; outline-offset: 3px; border-radius: 4px; }

@@ -64,7 +64,7 @@ export default function SearchPage({ query }: { query: string }) {
   }
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push(draft.trim() ? `/search?q=${encodeURIComponent(draft.trim())}` : "/search", { scroll: false });
+    router.push(draft.trim() ? `/search?q=${encodeURIComponent(draft.trim())}` : "/search");
   }
 
   return (
@@ -77,7 +77,7 @@ export default function SearchPage({ query }: { query: string }) {
             <label htmlFor="product-search" className={styles.srOnly}>Search products</label>
             <Search size={18} strokeWidth={1.5} aria-hidden="true" />
             <input id="product-search" type="search" name="q" value={draft} onChange={event => setDraft(event.target.value)} placeholder="Search sneakers, hoodies, everyday essentials…" />
-            {draft && <button type="button" aria-label="Clear search" onClick={() => { setDraft(""); router.push("/search", { scroll: false }); }}><X size={16} /></button>}
+            {draft && <button type="button" aria-label="Clear search" onClick={() => { setDraft(""); router.push("/search"); }}><X size={16} /></button>}
             <button type="submit" aria-label="Search"><ArrowRight size={18} /></button>
           </form>
           <p className={styles.resultCount} role="status">{catalog.isPending && (tab === "All" || tab === "Products") ? <Skeleton width={25} /> : counts[tab]} {tab === "All" ? "results" : tab.toLowerCase()}{query.trim() ? <> for <strong>“{query.trim()}”</strong></> : <span> to make your own</span>}</p>

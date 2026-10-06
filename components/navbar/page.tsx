@@ -2,7 +2,7 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,22 +12,22 @@ import { menuItems } from "@/lib/catalog-sections";
 import { useCart } from "@/components/cart/CartProvider";
 import styles from "./navbar.module.css";
 
+function subscribeToScroll(update: () => void) {
+  window.addEventListener("scroll", update, { passive: true });
+  return () => window.removeEventListener("scroll", update);
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const { itemCount, isLoading } = useCart();
   const isCart = pathname === "/cart";
-  const isLightPage = pathname.startsWith("/products/") || ["/about", "/search", "/cart", "/checkout", "/wishlist", "/account", "/login", "/signup", "/forgot-password", "/privacy-policy", "/terms", "/cookie-policy"].includes(pathname);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const isLightPage = pathname !== "/" && !menuItems.some(item => item.href === pathname);
+  const isScrolled = useSyncExternalStore(subscribeToScroll, () => window.scrollY > 10, () => false);
 
   return (
     <header
-      className={`${styles.header} fixed top-0 z-50 w-full transition-all duration-500 ease-out ${
+      data-surface={isScrolled || isLightPage ? "light" : "dark"}
+      className={`${styles.header} ${isLightPage && !isScrolled ? styles.lightHeader : ""} fixed top-0 z-50 w-full transition-all duration-500 ease-out ${
         isScrolled ? "flex justify-center py-3" : "py-4"
       }`}
     >

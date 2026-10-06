@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import { FeedbackNotice } from "@/components/ui/Feedback";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Search } from "lucide-react";
 import background from "@/public/404.png";
 import styles from "./not-found.module.css";
+
+export const metadata: Metadata = {
+  title: "Page Not Found",
+  description: "This UrbanForge page could not be found. Explore our latest streetwear, browse collections or search for your next fit.",
+};
 
 export default function NotFound() {
   return (

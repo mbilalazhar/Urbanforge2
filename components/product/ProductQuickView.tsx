@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Minus, Package, Plus, ShoppingBag, X } from "lucide-react";
 import { useProductPreview } from "@/lib/catalog/client";
 import type { AdminProduct } from "@/lib/admin/types";
-import { colorHex, formatProductPrice } from "@/lib/products";
+import { colorHex, formatProductPrice, stockLabel } from "@/lib/products";
 import { useCart } from "@/components/cart/CartProvider";
 import type { Product } from "./ProductCard";
 import styles from "./quick-view.module.css";
@@ -98,7 +98,7 @@ function ProductOptions({ product, onClose }: { product: AdminProduct; onClose: 
   }
 
   return <>
-    <div className={styles.priceRow}><span className={styles.price}>{formatProductPrice(price)}{price < product.price && <del>{formatProductPrice(product.price)}</del>}</span><span className={`${styles.stock} ${stock === 0 ? styles.outOfStock : ""}`}><span />{stock > 0 ? `${stock} in stock` : "Out of stock"}</span></div>
+    <div className={styles.priceRow}><span className={styles.price}>{formatProductPrice(price)}{price < product.price && <del>{formatProductPrice(product.price)}</del>}</span><span aria-label="Stock availability" aria-live="polite" className={`${styles.stock} ${stock <= 0 ? styles.outOfStock : stock <= 5 ? styles.lowStock : ""}`}><span />{stockLabel(stock)}</span></div>
     <p className={styles.description}>{product.shortDescription || product.description || "No description has been added yet."}</p>
     <ul className={styles.details}>{details.map(detail => <li key={String(detail)}><Check size={13} />{detail}</li>)}</ul>
     {colors.length > 0 && <fieldset className={styles.options}><legend>Color <span>— {color}</span></legend><div className={styles.colors}>{colors.map(option => <button key={option} type="button" aria-label={option} title={option} aria-pressed={color === option} className={styles.color} onClick={() => selectColor(option)}><span style={{ backgroundColor: colorHex(option) }} /></button>)}</div></fieldset>}

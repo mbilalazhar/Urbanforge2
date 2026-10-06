@@ -212,14 +212,31 @@
   .drop { top: 110px; }
   .motto, .scroll { display: none; }
 }
-/* Match the existing fixed white navbar, including its border and safe area. */
+/* The mobile hero extends behind the transparent navigation. */
 @media (max-width: 767px) {
-  .hero { padding-top: calc(73px + env(safe-area-inset-top, 0px)); }
-  .drop { top: 18px; }
+  .scene { height: clamp(620px, 100svh, 900px); }
+  .artwork { filter: brightness(.62) saturate(.73); }
+  .readability {
+    background: linear-gradient(180deg, #080a0b99, transparent 28%),
+      linear-gradient(0deg, #080a0b66, #080a0b26 40%, transparent 68%);
+  }
+  .scene::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 3;
+    height: clamp(220px, 38%, 320px);
+    pointer-events: none;
+    /* A soft, raised center conceals the soles and blends into the dark base. */
+    background:
+      radial-gradient(ellipse 90% 100% at 50% 100%, #080a0b 0%, #080a0bf2 35%, #080a0b99 60%, #080a0b00 100%),
+      linear-gradient(to top, #080a0b 0%, #080a0b99 25%, transparent 70%);
+  }
+  .drop { top: calc(90px + env(safe-area-inset-top, 0px)); }
 }
 @media (max-width: 599px) {
   .scene {
-    height: clamp(560px, calc(100svh - 73px - env(safe-area-inset-top, 0px)), 760px);
     --background-ratio: var(--mobile-background-ratio);
     --background-x: var(--mobile-background-x);
     --background-y: var(--mobile-background-y);
@@ -234,13 +251,12 @@
     --shadow-opacity: var(--mobile-shadow-opacity);
     --shadow-width: var(--mobile-shadow-width);
   }
-  .readability { background: linear-gradient(0deg, #080a0b66, #080a0b26 40%, transparent 68%); }
   .content { left: 7%; right: 5%; bottom: 24px; }
   .content::before { display: none; }
   .headline { font-size: clamp(36px, 10.8vw, 64px); margin-bottom: 18px; }
   .eyebrow { font-size: 8px; letter-spacing: .24em; margin-bottom: 16px; }
   .description { max-width: 340px; font-size: 9px; color: #deded8; }
-  .drop { top: 18px; right: 6%; }
+  .drop { right: 6%; }
   .drop > span { font-size: 6px; }
   .drop p { font-size: 22px; }
   .shop { font-size: 9px; }

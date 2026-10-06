@@ -5,7 +5,7 @@ import SupportHero from "@/components/support/SupportHero";
 import { faqGroups } from "@/components/support/faq-data";
 import styles from "@/components/support/support.module.css";
 
-export const metadata: Metadata = { title: "Frequently Asked Questions | UrbanForge", description: "Find answers to 25 common questions about UrbanForge orders, shipping, returns, sizing and accounts." };
+export const metadata: Metadata = { title: "Frequently Asked Questions", description: "Find answers to 25 common questions about UrbanForge orders, shipping, returns, sizing and accounts." };
 
 export default function FAQsPage() {
   return <main className={styles.page}>

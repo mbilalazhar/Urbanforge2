@@ -6,7 +6,7 @@ import ContactForm from "@/components/support/ContactForm";
 import { exampleStore } from "@/lib/support";
 import styles from "@/components/support/support.module.css";
 
-export const metadata: Metadata = { title: "Contact Us | UrbanForge", description: "Get in touch with UrbanForge for help with orders, products, delivery and returns." };
+export const metadata: Metadata = { title: "Contact Us", description: "Get in touch with UrbanForge for help with orders, products, delivery and returns." };
 
 export default function ContactPage() {
   return <main className={styles.page}>

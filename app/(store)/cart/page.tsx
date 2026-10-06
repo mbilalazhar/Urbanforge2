@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CartPage from "@/components/cart/CartPage";
 
 export const metadata: Metadata = {
-  title: "Your Cart | UrbanForge",
+  title: "Your Cart",
   description: "Your next rotation starts here. Review your UrbanForge cart.",
 };
 
