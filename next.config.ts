@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   compiler: { removeConsole: true },
+  output: "standalone",
   logging: false,
   devIndicators: false,
   images: {
