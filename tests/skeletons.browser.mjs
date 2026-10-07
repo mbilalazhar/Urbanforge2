@@ -342,10 +342,17 @@ test('page skeletons, button spinners, toasts, and modal feedback across the sto
   await writeFile('/tmp/urbanforge-profile-clear.png', Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
   await navigate('/about'); await until(() => evaluate('!!document.querySelector("#testimonial-track img")'), 'testimonials');
   await evaluate('document.querySelector("#testimonial-track").scrollIntoView({block:"center"})');
-  await until(() => evaluate(`Array.from(document.querySelectorAll('#testimonial-track img')).slice(0, 3).every(img => img.complete && img.naturalWidth > 0)`), 'remote testimonial portraits loaded', 300);
-  await evaluate(`Promise.all(Array.from(document.querySelectorAll('#testimonial-track img')).slice(0, 3).map(img => img.decode())).then(() => true)`);
+  const portraitCount = await evaluate('document.querySelectorAll("#testimonial-track img").length');
+  assert.equal(portraitCount, 8);
+  for (let index = 0; index < portraitCount; index++) {
+    const portrait = `document.querySelectorAll('#testimonial-track img')[${index}]`;
+    await evaluate(`${portrait}.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })`);
+    await until(() => evaluate(`${portrait}.complete && ${portrait}.naturalWidth > 0`), `local testimonial portrait ${index + 1} decoded`);
+    assert.equal(await evaluate(`new URL(${portrait}.currentSrc).searchParams.get('url')?.startsWith('/optimized/testimonials/')`), true, 'portraits load through the local optimizer');
+  }
+  await evaluate('document.querySelector("#testimonial-track").scrollTo({ left: 0, behavior: "instant" })');
   await delay(250);
-  await checkPortrait('#testimonial-track img', 80, '80');
+  await checkPortrait('#testimonial-track img', 80, '75');
   await writeFile('/tmp/urbanforge-testimonials-clear.png', Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
   assert.deepEqual(consoleMessages, [], 'no application console messages');
   assert.deepEqual(errors, []);

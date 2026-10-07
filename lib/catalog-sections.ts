@@ -1,11 +1,11 @@
-import { heroScenes, type HeroSceneConfig } from "./hero-scenes";
+import type { heroScenes } from "./hero-scenes";
 
 export type HeroContent = {
   eyebrow: string;
   heading: [string, string];
   description: [string, string];
   button: string;
-  scene: HeroSceneConfig;
+  scene: keyof typeof heroScenes;
 };
 
 type CatalogSection = {
@@ -20,7 +20,7 @@ export const homeHero: HeroContent = {
   heading: ["Built For", "The Streets."],
   description: ["Premium urban wear for everyday explorers.", "Jackets / Cargos / Boots / Backpacks / Accessories & More."],
   button: "Shop New Arrivals",
-  scene: heroScenes.home,
+  scene: "home",
 };
 
 export const catalogSections: CatalogSection[] = [
@@ -31,7 +31,7 @@ export const catalogSections: CatalogSection[] = [
       heading: ["Her Style.", "Her Rules."],
       description: ["Bold silhouettes. Uncompromising attitude.", "Discover streetwear made to move your way."],
       button: "Shop Women",
-      scene: heroScenes.women,
+      scene: "women",
     },
   },
   {
@@ -41,7 +41,7 @@ export const catalogSections: CatalogSection[] = [
       heading: ["Built To", "Stand Out."],
       description: ["Everyday essentials with a utility edge.", "Explore bold layers, relaxed fits, and street-ready style."],
       button: "Shop Men",
-      scene: heroScenes.men,
+      scene: "men",
     },
   },
   {
@@ -51,7 +51,7 @@ export const catalogSections: CatalogSection[] = [
       heading: ["Fresh Fits.", "New Energy."],
       description: ["Your next rotation starts here.", "Discover the latest layers, essentials, and everyday favorites."],
       button: "Shop New In",
-      scene: heroScenes.newIn,
+      scene: "newIn",
     },
   },
   {
@@ -61,7 +61,7 @@ export const catalogSections: CatalogSection[] = [
       heading: ["Make Your", "Next Move."],
       description: ["Street-ready from the ground up.", "Find the sneakers and statement pairs that finish your fit."],
       button: "Explore Shoes",
-      scene: heroScenes.shoes,
+      scene: "shoes",
     },
   },
   {
@@ -71,7 +71,7 @@ export const catalogSections: CatalogSection[] = [
       heading: ["Small Details.", "Big Impact."],
       description: ["The finishing touches that make it yours.", "Explore bags, watches, caps, and everyday extras."],
       button: "Shop Accessories",
-      scene: heroScenes.accessories,
+      scene: "accessories",
     },
   },
   {
@@ -81,7 +81,7 @@ export const catalogSections: CatalogSection[] = [
       heading: ["Big Fits.", "Less Spend."],
       description: ["Freshen up your rotation for less.", "Explore the sale edit and find your next favorite fit."],
       button: "Explore the Sale",
-      scene: heroScenes.sale,
+      scene: "sale",
     },
   },
 ];

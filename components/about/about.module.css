@@ -135,20 +135,16 @@
 .collection h2 { color: #fff; font-size: 29px; }
 .collection .button { margin-top: 13px; }
 .collection .collectionMotto { text-transform: uppercase; font-family: Impact, "Arial Narrow", sans-serif; font-style: italic; color: #c6c8c0; font-size: 23px; line-height: .95; transform: rotate(-9deg); margin-right: 22px; }
-.endNote { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 17px; color: #8b8c85; font-size: 8px; letter-spacing: 1px; }
+.endNote { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 17px; color: #686963; font-size: 8px; letter-spacing: 1px; }
 
-/* Only selected editorial elements animate. The mission, benefit, and review
-   cards remain static. Content is visible by default without JavaScript. */
-.motionRoot[data-motion="enabled"] [data-reveal] { transition: opacity .8s ease, transform .8s cubic-bezier(.2,.65,.25,1), clip-path 1s cubic-bezier(.2,.65,.25,1); }
+/* Reveals replay in both scroll directions. Content stays visible without JS. */
+.motionRoot[data-motion="enabled"] [data-reveal] { transition: opacity .4s ease, translate .45s cubic-bezier(.2,.65,.25,1); }
+.motionRoot[data-motion="enabled"] [data-reveal][data-visible="true"] { transition-duration: .65s, .75s; transition-delay: var(--reveal-delay, 0ms); }
 .motionRoot[data-motion="enabled"] [data-reveal]:not([data-visible="true"]) { opacity: 0; }
-.motionRoot[data-motion="enabled"] [data-reveal="up"]:not([data-visible="true"]) { transform: translateY(32px); }
-.motionRoot[data-motion="enabled"] [data-reveal="left"]:not([data-visible="true"]) { transform: translateX(-32px); }
-.motionRoot[data-motion="enabled"] [data-reveal="right"]:not([data-visible="true"]) { transform: translateX(32px); }
-.motionRoot[data-motion="enabled"] [data-reveal="scale"]:not([data-visible="true"]) { transform: scale(.95); }
-/* Clip the contents, leaving the observed wrapper's intersection area intact. */
-.motionRoot[data-motion="enabled"] [data-reveal="wipe"] > * { transition: clip-path 1s cubic-bezier(.2,.65,.25,1); }
-.motionRoot[data-motion="enabled"] [data-reveal="wipe"]:not([data-visible="true"]) > * { clip-path: inset(0 100% 0 0); }
-.motionRoot [data-reveal="wipe"][data-visible="true"] > * { clip-path: inset(0 0 0 0); }
+.motionRoot[data-motion="enabled"] [data-reveal="up"]:not([data-visible="true"]) { translate: 0 48px; }
+.motionRoot[data-motion="enabled"] [data-reveal="left"]:not([data-visible="true"]) { translate: -64px 0; }
+.motionRoot[data-motion="enabled"] [data-reveal="right"]:not([data-visible="true"]) { translate: 64px 0; }
+.motionRoot[data-motion="enabled"] [data-reveal]:not([data-visible="true"]):focus-within { opacity: 1; translate: none; transition-delay: 0ms; }
 .motionRoot { overflow: clip; }
 
 @media (min-width: 1500px) { .hero { min-height: 650px; } .heroInner { padding-block: 90px; } }
@@ -273,10 +269,10 @@
   .detailMosaic { grid-template-columns: 1fr; grid-template-rows: 125px 125px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .motionRoot[data-motion="enabled"] [data-reveal], .motionRoot [data-reveal="wipe"] > * { opacity: 1 !important; transform: none !important; clip-path: none !important; transition: none !important; }
+  .motionRoot[data-motion="enabled"] [data-reveal] { opacity: 1 !important; translate: none !important; transition: none !important; }
   .button { transition: none; }
 }
 @media print {
   .page { padding-top: 0; }
-  .motionRoot[data-motion="enabled"] [data-reveal], .motionRoot [data-reveal="wipe"] > * { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+  .motionRoot[data-motion="enabled"] [data-reveal] { opacity: 1 !important; translate: none !important; }
 }

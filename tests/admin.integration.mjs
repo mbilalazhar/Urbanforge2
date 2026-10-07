@@ -280,6 +280,20 @@ test('admin commerce APIs, inventory integrity, and public catalog', { timeout: 
     assert.equal(updated.body.product.name, input.name); assert.equal(updated.body.product.stock, 3);
     assert.deepEqual(updated.body.product.images, saved.images);
     const videoUrl = updated.body.product.videos[0];
+    const webpageUrl = 'https://www.magnific.com/free-video/studio-portrait-shot-young-woman-wearing-hoodie-dancing-with-low-key-lighting-against-grey-background-7_2455895';
+    const rejectedVideo = await patch(`/api/admin/products/${saved.id}`, { videos: [webpageUrl] });
+    assert.equal(rejectedVideo.status, 400);
+    assert.match(rejectedVideo.body.message, /direct \.mp4/);
+    assert.deepEqual((await db.collection('admin_products').findOne({ _id: saved.id })).videos, [videoUrl]);
+    const beforeInvalidMedia = await db.collection('product_media.files').countDocuments();
+    assert.equal((await multipart({ ...input, sku: 'WEBPAGE-VIDEO', videos: [webpageUrl] })).status, 400);
+    assert.equal(await db.collection('product_media.files').countDocuments(), beforeInvalidMedia, 'invalid video URLs do not leave uploaded images behind');
+    for (const invalidUrl of ['javascript:alert(1)', '//example.com/video.mp4', 'https://example.com/watch?v=123', 'https://example.com/video.html']) {
+      assert.equal((await patch(`/api/admin/products/${saved.id}`, { videos: [invalidUrl] })).status, 400);
+    }
+    for (const validUrl of ['https://example.com/video.mp4?token=example#t=1', 'https://example.com/video.webm', '/local-video.mov', videoUrl]) {
+      assert.equal((await patch(`/api/admin/products/${saved.id}`, { videos: [validUrl] })).status, 200);
+    }
     const range = await fetch(base + videoUrl, { headers: { Range: 'bytes=4-7' } });
     assert.equal(range.status, 206); assert.equal(range.headers.get('content-range'), `bytes 4-7/${video.length}`);
     assert.equal(await range.text(), 'ftyp');

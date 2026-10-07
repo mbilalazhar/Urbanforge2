@@ -9,12 +9,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, BarChart3, Boxes, CalendarDays, ChevronRight, ExternalLink, LayoutDashboard, LogOut, Menu, Package, Percent, Search, ShoppingBag, Tag, Users, X } from "lucide-react";
 import type { PublicAccount } from "@/lib/auth/types";
 import { useLogout } from "@/lib/auth/client";
+import dynamic from "next/dynamic";
 import Dashboard from "./Dashboard";
-import ProductsPanel from "./ProductsPanel";
-import InventoryPanel from "./InventoryPanel";
-import OrdersPanel from "./OrdersPanel";
-import OffersPanel from "./OffersPanel";
-import CustomersPanel from "./CustomersPanel";
+const ProductsPanel = dynamic(() => import("./ProductsPanel"));
+const InventoryPanel = dynamic(() => import("./InventoryPanel"));
+const OrdersPanel = dynamic(() => import("./OrdersPanel"));
+const OffersPanel = dynamic(() => import("./OffersPanel"));
+const CustomersPanel = dynamic(() => import("./CustomersPanel"));
 import styles from "./portal.module.css";
 
 const navigation = [

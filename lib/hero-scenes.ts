@@ -2,12 +2,14 @@ import type { StaticImageData } from "next/image";
 import background from "@/public/hero-bg.png";
 import shoes from "@/public/shoes.png";
 import sale from "@/public/sales.png";
+import optimized from "./hero-image-manifest.json";
 
 export type HeroImageAsset = {
   src: string | StaticImageData;
   width: number;
   height: number;
   alt?: string;
+  optimized?: { src: string; avif: string; webp: string };
 };
 
 export type HeroSceneFrame = {
@@ -44,17 +46,17 @@ export function resolveHeroScene(config: HeroSceneConfig) {
 }
 
 const environment: HeroImageAsset = {
-  src: background, width: background.width, height: background.height,
+  src: background, width: background.width, height: background.height, optimized: optimized["hero-bg"],
 };
 
 const models = {
-  home: { src: "/home-models.png", width: 1086, height: 1448, alt: "Two models wearing UrbanForge streetwear" },
-  women: { src: "/women.png", width: 1122, height: 1402, alt: "Woman wearing a black streetwear outfit and sneakers" },
-  men: { src: "/MenSection.png", width: 1086, height: 1448, alt: "Man wearing a black utility jacket and cargo pants" },
-  newIn: { src: "/newIn.png", width: 1122, height: 1402, alt: "Man wearing a bomber jacket, cargo pants, and sneakers" },
-  shoes: { src: shoes, width: shoes.width, height: shoes.height, alt: "Two models presenting the UrbanForge footwear collection" },
-  accessories: { src: "/accessories.png", width: 1122, height: 1402, alt: "Man styling a cap, sunglasses, crossbody bag, and watch" },
-  sale: { src: sale, width: sale.width, height: sale.height, alt: "Models wearing the UrbanForge sale collection" },
+  home: { src: "/home-models.png", width: 1086, height: 1448, optimized: optimized["home-models"], alt: "Two models wearing UrbanForge streetwear" },
+  women: { src: "/women.png", width: 1122, height: 1402, optimized: optimized.women, alt: "Woman wearing a black streetwear outfit and sneakers" },
+  men: { src: "/MenSection.png", width: 1086, height: 1448, optimized: optimized.MenSection, alt: "Man wearing a black utility jacket and cargo pants" },
+  newIn: { src: "/newIn.png", width: 1122, height: 1402, optimized: optimized.newIn, alt: "Man wearing a bomber jacket, cargo pants, and sneakers" },
+  shoes: { src: shoes, width: shoes.width, height: shoes.height, optimized: optimized.shoes, alt: "Two models presenting the UrbanForge footwear collection" },
+  accessories: { src: "/accessories.png", width: 1122, height: 1402, optimized: optimized.accessories, alt: "Man styling a cap, sunglasses, crossbody bag, and watch" },
+  sale: { src: sale, width: sale.width, height: sale.height, optimized: optimized.sales, alt: "Models wearing the UrbanForge sale collection" },
 } satisfies Record<string, HeroImageAsset>;
 
 /** Retain the existing desktop editorial crop, including models continuing below the frame. */

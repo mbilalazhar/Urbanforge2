@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        SITE_URL: ${SITE_URL:-http://localhost:3000}
 
     container_name: urbanforge-app
 

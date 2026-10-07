@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Non-hero pages do not load Inter; keep their font stacks valid. */
+:root { --font-inter: Arial; }
 /* Keep the viewport within the document at both scroll boundaries. */
 html, body { overscroll-behavior-y: none; }
 /* Consistent blur for native dialogs across the store and admin. */

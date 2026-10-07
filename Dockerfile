@@ -23,6 +23,8 @@ COPY . .
 
 # Disable Next.js telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG SITE_URL=http://localhost:3000
+ENV SITE_URL=$SITE_URL
 
 # Build production version
 RUN npm run build

@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import Image from "next/image";
+import Image from "@/components/product/ProductImage";
 import Link from "next/link";
 import { ArrowRight, Eye, Package } from "lucide-react";
 
 import WishlistButton from "@/components/wishlist/WishlistButton";
-import ProductQuickView from "./ProductQuickView";
+import dynamic from "next/dynamic";
+
+const ProductQuickView = dynamic(() => import("./ProductQuickView"));
 
 const QUICK_VIEW_DELAY = 700;
 
@@ -43,8 +45,8 @@ export default function ProductCard({ product, showTag = true, showColors = true
   return <><article className="group relative w-full" onPointerEnter={startHover} onPointerLeave={cancelHover} onPointerDown={cancelHover}>
     <Link onClick={cancelHover} href={product.href ?? `/products/${encodeURIComponent(product.id)}`} aria-label={`View details for ${product.name}`} className="block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c8202d]">
       <span className="relative block aspect-[4/5] w-full overflow-hidden rounded-md bg-neutral-100">
-        {product.image ? <Image src={product.image} alt={product.name} fill unoptimized sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none" /> : <Package className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-neutral-400" size={32} />}
-        {showTag && product.tag && <span className="absolute left-3 top-3 bg-[#e53e3e] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white">{product.tag}</span>}
+        {product.image ? <Image src={product.image} alt={product.name} fill sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none" /> : <Package className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-neutral-400" size={32} />}
+        {showTag && product.tag && <span className="absolute left-3 top-3 bg-[#c8202d] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white">{product.tag}</span>}
       </span>
       <span className="mt-3 flex flex-col">
         <span className="truncate text-[15px] font-medium leading-snug text-black sm:text-[17px]">{product.name}</span>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight, Clock3, Mail, MapPin, MessageCircle, Navigation, Phone } from "lucide-react";
 import SupportHero from "@/components/support/SupportHero";
@@ -6,7 +7,7 @@ import ContactForm from "@/components/support/ContactForm";
 import { exampleStore } from "@/lib/support";
 import styles from "@/components/support/support.module.css";
 
-export const metadata: Metadata = { title: "Contact Us", description: "Get in touch with UrbanForge for help with orders, products, delivery and returns." };
+export const metadata: Metadata = pageMetadata("/contact", "Contact Us", "Get in touch with UrbanForge for help with orders, products, delivery and returns.");
 
 export default function ContactPage() {
   return <main className={styles.page}>

@@ -122,7 +122,7 @@ export default function SearchPage({ query }: { query: string }) {
         </div>
       </div>
       <aside className={styles.editorial} aria-label="UrbanForge streetwear">
-        <Image src="/search/search.png" alt="Model wearing UrbanForge streetwear" fill sizes="20vw" priority />
+        <Image src="/search/search.png" alt="Model wearing UrbanForge streetwear" fill sizes="(max-width: 767px) 1px, 20vw" />
         <p>Built for<br />the streets.</p><span>More<br />than<br />fashion.</span>
       </aside>
       <Link href="/new-in" className={styles.banner}><Image src="/hero-bg.png" alt="" fill sizes="100vw" /><span>Find your fit.<br /><em>Move different.</em></span><span className={styles.bannerCaption}>UrbanForge<br />Streetwear worldwide<ArrowRight size={24} /></span></Link>

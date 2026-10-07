@@ -1,0 +1,58 @@
+{
+  "hero-bg": {
+    "width": 1672,
+    "height": 941,
+    "avif": "/optimized/hero/hero-bg.92407c197986.360.avif 360w, /optimized/hero/hero-bg.92407c197986.640.avif 640w, /optimized/hero/hero-bg.92407c197986.800.avif 800w, /optimized/hero/hero-bg.92407c197986.960.avif 960w, /optimized/hero/hero-bg.92407c197986.1280.avif 1280w, /optimized/hero/hero-bg.92407c197986.1440.avif 1440w, /optimized/hero/hero-bg.92407c197986.1672.avif 1672w",
+    "webp": "/optimized/hero/hero-bg.92407c197986.360.webp 360w, /optimized/hero/hero-bg.92407c197986.640.webp 640w, /optimized/hero/hero-bg.92407c197986.800.webp 800w, /optimized/hero/hero-bg.92407c197986.960.webp 960w, /optimized/hero/hero-bg.92407c197986.1280.webp 1280w, /optimized/hero/hero-bg.92407c197986.1440.webp 1440w, /optimized/hero/hero-bg.92407c197986.1672.webp 1672w",
+    "src": "/optimized/hero/hero-bg.92407c197986.1672.webp"
+  },
+  "home-models": {
+    "width": 1086,
+    "height": 1448,
+    "avif": "/optimized/hero/home-models.7560338b3a03.360.avif 360w, /optimized/hero/home-models.7560338b3a03.640.avif 640w, /optimized/hero/home-models.7560338b3a03.800.avif 800w, /optimized/hero/home-models.7560338b3a03.960.avif 960w, /optimized/hero/home-models.7560338b3a03.1086.avif 1086w",
+    "webp": "/optimized/hero/home-models.7560338b3a03.360.webp 360w, /optimized/hero/home-models.7560338b3a03.640.webp 640w, /optimized/hero/home-models.7560338b3a03.800.webp 800w, /optimized/hero/home-models.7560338b3a03.960.webp 960w, /optimized/hero/home-models.7560338b3a03.1086.webp 1086w",
+    "src": "/optimized/hero/home-models.7560338b3a03.1086.webp"
+  },
+  "women": {
+    "width": 1122,
+    "height": 1402,
+    "avif": "/optimized/hero/women.d44c4daf4dc8.360.avif 360w, /optimized/hero/women.d44c4daf4dc8.640.avif 640w, /optimized/hero/women.d44c4daf4dc8.800.avif 800w, /optimized/hero/women.d44c4daf4dc8.960.avif 960w, /optimized/hero/women.d44c4daf4dc8.1122.avif 1122w",
+    "webp": "/optimized/hero/women.d44c4daf4dc8.360.webp 360w, /optimized/hero/women.d44c4daf4dc8.640.webp 640w, /optimized/hero/women.d44c4daf4dc8.800.webp 800w, /optimized/hero/women.d44c4daf4dc8.960.webp 960w, /optimized/hero/women.d44c4daf4dc8.1122.webp 1122w",
+    "src": "/optimized/hero/women.d44c4daf4dc8.1122.webp"
+  },
+  "MenSection": {
+    "width": 1086,
+    "height": 1448,
+    "avif": "/optimized/hero/MenSection.6ee9322dd005.360.avif 360w, /optimized/hero/MenSection.6ee9322dd005.640.avif 640w, /optimized/hero/MenSection.6ee9322dd005.800.avif 800w, /optimized/hero/MenSection.6ee9322dd005.960.avif 960w, /optimized/hero/MenSection.6ee9322dd005.1086.avif 1086w",
+    "webp": "/optimized/hero/MenSection.6ee9322dd005.360.webp 360w, /optimized/hero/MenSection.6ee9322dd005.640.webp 640w, /optimized/hero/MenSection.6ee9322dd005.800.webp 800w, /optimized/hero/MenSection.6ee9322dd005.960.webp 960w, /optimized/hero/MenSection.6ee9322dd005.1086.webp 1086w",
+    "src": "/optimized/hero/MenSection.6ee9322dd005.1086.webp"
+  },
+  "newIn": {
+    "width": 1122,
+    "height": 1402,
+    "avif": "/optimized/hero/newIn.bf4e90ca6123.360.avif 360w, /optimized/hero/newIn.bf4e90ca6123.640.avif 640w, /optimized/hero/newIn.bf4e90ca6123.800.avif 800w, /optimized/hero/newIn.bf4e90ca6123.960.avif 960w, /optimized/hero/newIn.bf4e90ca6123.1122.avif 1122w",
+    "webp": "/optimized/hero/newIn.bf4e90ca6123.360.webp 360w, /optimized/hero/newIn.bf4e90ca6123.640.webp 640w, /optimized/hero/newIn.bf4e90ca6123.800.webp 800w, /optimized/hero/newIn.bf4e90ca6123.960.webp 960w, /optimized/hero/newIn.bf4e90ca6123.1122.webp 1122w",
+    "src": "/optimized/hero/newIn.bf4e90ca6123.1122.webp"
+  },
+  "shoes": {
+    "width": 1086,
+    "height": 1448,
+    "avif": "/optimized/hero/shoes.fa5a28a02642.360.avif 360w, /optimized/hero/shoes.fa5a28a02642.640.avif 640w, /optimized/hero/shoes.fa5a28a02642.800.avif 800w, /optimized/hero/shoes.fa5a28a02642.960.avif 960w, /optimized/hero/shoes.fa5a28a02642.1086.avif 1086w",
+    "webp": "/optimized/hero/shoes.fa5a28a02642.360.webp 360w, /optimized/hero/shoes.fa5a28a02642.640.webp 640w, /optimized/hero/shoes.fa5a28a02642.800.webp 800w, /optimized/hero/shoes.fa5a28a02642.960.webp 960w, /optimized/hero/shoes.fa5a28a02642.1086.webp 1086w",
+    "src": "/optimized/hero/shoes.fa5a28a02642.1086.webp"
+  },
+  "accessories": {
+    "width": 1122,
+    "height": 1402,
+    "avif": "/optimized/hero/accessories.8cec0da31904.360.avif 360w, /optimized/hero/accessories.8cec0da31904.640.avif 640w, /optimized/hero/accessories.8cec0da31904.800.avif 800w, /optimized/hero/accessories.8cec0da31904.960.avif 960w, /optimized/hero/accessories.8cec0da31904.1122.avif 1122w",
+    "webp": "/optimized/hero/accessories.8cec0da31904.360.webp 360w, /optimized/hero/accessories.8cec0da31904.640.webp 640w, /optimized/hero/accessories.8cec0da31904.800.webp 800w, /optimized/hero/accessories.8cec0da31904.960.webp 960w, /optimized/hero/accessories.8cec0da31904.1122.webp 1122w",
+    "src": "/optimized/hero/accessories.8cec0da31904.1122.webp"
+  },
+  "sales": {
+    "width": 1024,
+    "height": 1536,
+    "avif": "/optimized/hero/sales.7624acc4d5d1.360.avif 360w, /optimized/hero/sales.7624acc4d5d1.640.avif 640w, /optimized/hero/sales.7624acc4d5d1.800.avif 800w, /optimized/hero/sales.7624acc4d5d1.960.avif 960w, /optimized/hero/sales.7624acc4d5d1.1024.avif 1024w",
+    "webp": "/optimized/hero/sales.7624acc4d5d1.360.webp 360w, /optimized/hero/sales.7624acc4d5d1.640.webp 640w, /optimized/hero/sales.7624acc4d5d1.800.webp 800w, /optimized/hero/sales.7624acc4d5d1.960.webp 960w, /optimized/hero/sales.7624acc4d5d1.1024.webp 1024w",
+    "src": "/optimized/hero/sales.7624acc4d5d1.1024.webp"
+  }
+}

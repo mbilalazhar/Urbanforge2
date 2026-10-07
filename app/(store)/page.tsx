@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import FeaturedProducts from "@/components/featured/FeaturedProducts";
+import { pageMetadata } from "@/lib/seo";
+import FeaturedProducts from "@/components/featured/FeaturedProductsServer";
 import HeroSection from "@/components/hero/page";
 
-export const metadata: Metadata = {
-  title: "Streetwear, Clothing & Accessories",
-  description: "Shop UrbanForge streetwear for men and women. Discover jackets, cargos, hoodies, sneakers and accessories, plus the latest arrivals and sale styles.",
-};
+export const metadata: Metadata = pageMetadata("/", "Streetwear, Clothing & Accessories", "Shop UrbanForge streetwear for men and women. Discover jackets, cargos, hoodies, sneakers and accessories, plus the latest arrivals and sale styles.");
 
 export default function Home() {
   return (
-    <div>
+    <main>
      <HeroSection/>
     <FeaturedProducts/>
-    </div>
+    </main>
   );
 }

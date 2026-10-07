@@ -2,7 +2,7 @@
 import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 import { PendingContent, Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/product/ProductImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, MapPin, Minus, Package, Play, Plus, Share2, ShoppingBag, X, Zap, ZoomIn } from "lucide-react";
@@ -10,9 +10,11 @@ import { CatalogError, useProduct, type ProductResponse } from "@/lib/catalog/cl
 import { colorHex, formatProductPrice, stockLabel, toProductCard } from "@/lib/products";
 import { useCart } from "@/components/cart/CartProvider";
 import { useCookiePreference } from "@/lib/cookie-preferences";
+import { isProductVideoUrl } from "@/lib/product-media";
 import WishlistButton from "@/components/wishlist/WishlistButton";
 import ProductCard from "./ProductCard";
-import ProductReviews from "./ProductReviews";
+import dynamic from "next/dynamic";
+const ProductReviews = dynamic(() => import("./ProductReviews"));
 import styles from "./product-page.module.css";
 
 const tabs = ["Description", "Specifications", "Reviews", "Shipping & Returns"] as const;
@@ -24,7 +26,7 @@ function ZoomImage({ src, name, onClose }: { src: string; name: string; onClose:
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = previous; };
   }, []);
-  return <dialog ref={dialog} className={styles.zoomDialog} aria-label={`Enlarged image of ${name}`} onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><button type="button" className={styles.zoomClose} onClick={onClose} aria-label="Close enlarged image"><X /></button><Image src={src} alt={name} fill unoptimized sizes="90vw" className={styles.zoomImage} /></dialog>;
+  return <dialog ref={dialog} className={styles.zoomDialog} aria-label={`Enlarged image of ${name}`} onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><button type="button" className={styles.zoomClose} onClick={onClose} aria-label="Close enlarged image"><X /></button><Image src={src} alt={name} fill sizes="90vw" className={styles.zoomImage} /></dialog>;
 }
 
 export default function ProductPage({ initialData }: { initialData: ProductResponse }) {
@@ -77,6 +79,18 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
       setSize(nextVariant?.size ?? "");
     }
   }
+  function selectMedia(index: number) {
+    const item = media[index];
+    if (item?.video && !isProductVideoUrl(item.src)) {
+      feedback.warning("This product video is not available to play here. You can continue browsing the product photos.");
+      return;
+    }
+    setMediaIndex(index);
+  }
+  function videoFailed() {
+    setMediaIndex(0);
+    feedback.error("This video could not be played. Its source may be unavailable or its format may not be supported by your browser. You can continue browsing the product photos.");
+  }
   function addToCart(buyNow = false) {
     if (buyNow) {
       if (!validSelection || stock < 1 || query.error) return;
@@ -106,12 +120,12 @@ export default function ProductPage({ initialData }: { initialData: ProductRespo
     {query.error && <FeedbackNotice>We couldn’t refresh this product. <button type="button" onClick={() => query.refetch()}>Try again</button></FeedbackNotice>}
     <div className={styles.productLayout}>
       <section className={styles.gallery} aria-label="Product images and videos">
-        <div className={styles.thumbnails}>{media.map((item, index) => <button type="button" key={`${item.src}-${index}`} className={index === activeIndex ? styles.selectedThumb : ""} aria-label={`View ${item.video ? "video" : "image"} ${index + 1}`} aria-pressed={index === activeIndex} onClick={() => setMediaIndex(index)}>
-          <Image src={item.video ? product.images[0] : item.src} alt="" fill unoptimized sizes="80px" />{item.video && <span className={styles.play}><Play size={18} fill="currentColor" /></span>}
+        <div className={styles.thumbnails}>{media.map((item, index) => <button type="button" key={`${item.src}-${index}`} className={index === activeIndex ? styles.selectedThumb : ""} aria-label={`View ${item.video ? "video" : "image"} ${index + 1}`} aria-pressed={index === activeIndex} onClick={() => selectMedia(index)}>
+          <Image src={item.video ? product.images[0] : item.src} alt="" fill sizes="80px" />{item.video && <span className={styles.play}><Play size={18} fill="currentColor" /></span>}
         </button>)}</div>
         <div className={styles.mainMedia}>
-          {activeMedia?.video ? <video key={activeMedia.src} src={activeMedia.src} controls playsInline preload="metadata" poster={product.images[0]} /> : activeMedia && <Image src={activeMedia.src} alt={`${product.name} — image ${activeIndex + 1}`} fill unoptimized priority sizes="(max-width: 767px) 100vw, 50vw" />}
-          {media.length > 1 && <><span className={styles.mediaCount}>{activeIndex + 1}/{media.length}</span><div className={styles.galleryArrows}><button type="button" aria-label="Previous media" onClick={() => setMediaIndex((activeIndex + media.length - 1) % media.length)}><ChevronLeft size={18} /></button><button type="button" aria-label="Next media" onClick={() => setMediaIndex((activeIndex + 1) % media.length)}><ChevronRight size={18} /></button></div></>}
+          {activeMedia?.video ? <video key={activeMedia.src} src={activeMedia.src} controls playsInline preload="metadata" poster={product.images[0]} onError={videoFailed} aria-label={`${product.name} product video`} /> : activeMedia && <Image src={activeMedia.src} alt={`${product.name} — image ${activeIndex + 1}`} fill loading="eager" fetchPriority="high" sizes="(max-width: 767px) 100vw, 50vw" />}
+          {media.length > 1 && <><span className={styles.mediaCount}>{activeIndex + 1}/{media.length}</span><div className={styles.galleryArrows}><button type="button" aria-label="Previous media" onClick={() => selectMedia((activeIndex + media.length - 1) % media.length)}><ChevronLeft size={18} /></button><button type="button" aria-label="Next media" onClick={() => selectMedia((activeIndex + 1) % media.length)}><ChevronRight size={18} /></button></div></>}
           {activeMedia && !activeMedia.video && <button type="button" className={styles.zoom} aria-label="Enlarge product image" onClick={() => setZoom(true)}><ZoomIn size={20} /></button>}
         </div>
       </section>

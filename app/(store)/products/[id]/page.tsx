@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { catalogProduct } from "@/lib/admin/server";
 import type { ProductResponse } from "@/lib/catalog/client";
 import ProductPage from "@/components/product/ProductPage";
+import { pageMetadata, jsonLd, siteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 const loadProduct = cache(async (id: string): Promise<ProductResponse> => {
@@ -19,9 +20,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = [product.seoDescription, product.shortDescription, product.description]
     .map(value => (value ?? "").replace(/\s+/g, " ").trim()).find(Boolean)
     || `Shop ${product.name} at UrbanForge. Explore product details, available sizes and colors, and find your next streetwear essential.`;
-  return { title, description: description.length > 160 ? `${description.slice(0, 157).replace(/\s+\S*$/, "")}…` : description };
+  const metadata = pageMetadata(`/products/${encodeURIComponent(product.id)}`, title, description.length > 160 ? `${description.slice(0, 157).replace(/\s+\S*$/, "")}…` : description);
+  if (product.images[0]) {
+    metadata.openGraph = { ...metadata.openGraph, images: [{ url: product.images[0], alt: product.name }] };
+    metadata.twitter = { ...metadata.twitter, images: [product.images[0]] };
+  }
+  return metadata;
 }
 export default async function Page({ params }: Props) {
   const { id } = await params;
-  return <ProductPage key={id} initialData={await loadProduct(id)} />;
+  const initialData = await loadProduct(id);
+  const { product } = initialData;
+  const url = new URL(`/products/${encodeURIComponent(id)}`, siteUrl).href;
+  const stock = product.variants.length ? product.variants.reduce((total, variant) => total + variant.stock, 0) : product.stock;
+  const structuredData = { "@context": "https://schema.org", "@graph": [
+    { "@type": "Product", name: product.name, description: product.description || product.shortDescription, sku: product.sku,
+      image: product.images.map(image => new URL(image, siteUrl).href),
+      ...(product.brand ? { brand: { "@type": "Brand", name: product.brand } } : {}),
+      offers: { "@type": "Offer", url, priceCurrency: "PKR", price: product.salePrice ?? product.price, availability: `https://schema.org/${stock > 0 ? "InStock" : "OutOfStock"}` } },
+    { "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl.href },
+      { "@type": "ListItem", position: 2, name: product.name, item: url },
+    ] },
+  ] };
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }} /><ProductPage key={id} initialData={initialData} /></>;
 }

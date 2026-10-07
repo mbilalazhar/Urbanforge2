@@ -3,12 +3,12 @@ import { FeedbackDialog, FeedbackNotice, useFeedback } from "@/components/ui/Fee
 
 import { Skeleton, TableSkeleton, PendingContent } from "@/components/ui/Skeleton";
 import { useState, type FormEvent, type ReactNode } from "react";
-import Image from "next/image";
+import Image from "@/components/product/ProductImage";
 import { AlertCircle, ArrowLeft, Copy, Layers3, Package, PackageCheck, PackageX, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { useAdminMutation, useAdminQuery } from "@/lib/admin/client";
 import type { AdminProduct } from "@/lib/admin/types";
 import { productCategories, subcategoriesFor, productTypesFor } from "@/lib/product-categories";
-import { IMAGE_TYPES, VIDEO_TYPES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, MAX_MEDIA_BYTES } from "@/lib/product-media";
+import { IMAGE_TYPES, VIDEO_TYPES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, MAX_MEDIA_BYTES, isProductVideoUrl, VIDEO_URL_GUIDANCE } from "@/lib/product-media";
 import ProductMediaFiles from "./ProductMediaFiles";
 import styles from "./catalog.module.css";
 
@@ -90,6 +90,7 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
       warn("Use an https:// URL or a local /path for every image and video.");
       return;
     }
+    if (videos.some(url => !isProductVideoUrl(url))) { warn(VIDEO_URL_GUIDANCE); return; }
     const data = { ...draft, name: draft.name.trim(), sku: draft.sku.trim(), category: draft.category.trim(), brand: draft.brand.trim(),
         price: Number(draft.price), salePrice: draft.salePrice === "" ? null : Number(draft.salePrice), stock: totalStock,
         images, videos, colors: list(draft.colors), sizes: list(draft.sizes), tags: list(draft.tags),
@@ -131,9 +132,9 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
               <Field label="Upload product images *" wide hint="JPEG, PNG, WebP, GIF. Up to 10 MB each; 30 images total."><input type="file" multiple accept={IMAGE_TYPES.join(",")} disabled={save.isPending} onChange={event => { addFiles("images", event.target.files); event.target.value = ""; }} /></Field>
               <div className={styles.wide}><ProductMediaFiles files={imageFiles} disabled={save.isPending} onRemove={index => setImageFiles(files => files.filter((_, i) => i !== index))} /></div>
               <Field label="Image URLs (optional if uploading)" wide hint="One URL or existing local path per line."><textarea rows={3} value={draft.images} onChange={event => set("images", event.target.value)} placeholder="https://example.com/product-front.jpg" /></Field>
-              <Field label="Upload product videos (optional)" wide hint="MP4, WebM, MOV. Up to 50 MB each; 10 videos total. All uploads combined: 100 MB."><input type="file" multiple accept={VIDEO_TYPES.join(",")} disabled={save.isPending} onChange={event => { addFiles("videos", event.target.files); event.target.value = ""; }} /></Field>
+              <Field label="Upload product videos (optional)" wide hint="MP4 (H.264) is recommended for broad browser support. WebM and MOV are also accepted. Up to 50 MB each; 10 videos total. All uploads combined: 100 MB."><input type="file" multiple accept={VIDEO_TYPES.join(",")} disabled={save.isPending} onChange={event => { addFiles("videos", event.target.files); event.target.value = ""; }} /></Field>
               <div className={styles.wide}><ProductMediaFiles files={videoFiles} disabled={save.isPending} onRemove={index => setVideoFiles(files => files.filter((_, i) => i !== index))} /></div>
-              <Field label="Video URLs (optional)" wide><textarea rows={2} value={draft.videos} onChange={event => set("videos", event.target.value)} placeholder="https://example.com/product-video.mp4" /></Field>
+              <Field label="Video URLs (optional)" wide hint="One direct .mp4, .webm or .mov file URL per line. For Magnific/Freepik video pages, download the video and upload the file above."><textarea rows={2} value={draft.videos} onChange={event => set("videos", event.target.value)} placeholder="https://example.com/product-video.mp4" /></Field>
             </div>
           </section>
           <section className={styles.card}>
@@ -242,7 +243,7 @@ export default function ProductsPanel({ search = "" }: { search?: string }) {
         {deleteTarget && <FeedbackDialog title="Delete product?" onClose={() => { if (!action.isPending) setDeleteTarget(null); }}><p>Delete <strong>{deleteTarget.name}</strong> ({deleteTarget.sku})? This removes the product from your catalog.</p><button className={styles.secondary} disabled={action.isPending} onClick={() => setDeleteTarget(null)}><PendingContent pending={action.isPending}>Keep product</PendingContent></button><button className={styles.danger} disabled={action.isPending} onClick={() => perform(`products/${deleteTarget.id}`, "DELETE", undefined, "Product deleted.")}><PendingContent pending={action.isPending}>{"Delete product"}</PendingContent></button></FeedbackDialog>}
         {query.isPending ? <TableSkeleton /> : query.error ? <FeedbackNotice><AlertCircle size={28} /><h3>Products couldn’t load</h3><p>{query.error.message}</p><button className={styles.secondary} onClick={() => query.refetch()}>Try again</button></FeedbackNotice> : filtered.length === 0 ? <div className={styles.empty}><Package size={33} /><h3>{products.length ? "No matching products" : "Start your collection"}</h3><p>{products.length ? "Try a different search or adjust your filters." : "Add your first product, then manage prices, variants, and availability here."}</p>{!products.length && <button className={styles.primary} onClick={() => setEditor("new")}><Plus size={15} /> Add your first product</button>}</div> : <>
           <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody>{visible.map(product => <tr key={product.id}>
-            <td><div className={styles.productCell}><div className={styles.thumbnail}>{product.images[0] ? <Image src={product.images[0]} alt="" width={45} height={49} unoptimized /> : <Package size={21} />}</div><div><button className={styles.productName} onClick={() => setEditor(product)}>{product.name}</button><span className={styles.subtle}>{product.sku}{product.brand ? ` · ${product.brand}` : ""}</span>{(product.featured || product.newArrival || product.bestseller) && <span className={styles.subtle}>{[product.featured && "Featured", product.newArrival && "New arrival", product.bestseller && "Bestseller"].filter(Boolean).join(" · ")}</span>}</div></div></td>
+            <td><div className={styles.productCell}><div className={styles.thumbnail}>{product.images[0] ? <Image src={product.images[0]} alt="" width={45} height={49} /> : <Package size={21} />}</div><div><button className={styles.productName} onClick={() => setEditor(product)}>{product.name}</button><span className={styles.subtle}>{product.sku}{product.brand ? ` · ${product.brand}` : ""}</span>{(product.featured || product.newArrival || product.bestseller) && <span className={styles.subtle}>{[product.featured && "Featured", product.newArrival && "New arrival", product.bestseller && "Bestseller"].filter(Boolean).join(" · ")}</span>}</div></div></td>
             <td>{product.category}<span className={styles.subtle}>{product.subcategory}</span></td>
             <td><strong>{money(product.salePrice ?? product.price)}</strong>{product.salePrice !== null && <span className={styles.subtle}><s>{money(product.price)}</s></span>}</td>
             <td><span className={`${styles.badge} ${product.stock === 0 ? styles.red : product.stock <= 5 ? styles.amber : styles.green}`}>{product.stock === 0 ? "Out of stock" : `${product.stock} in stock`}</span>{product.variants.length > 0 && <span className={styles.subtle}>{product.variants.length} variants</span>}</td>

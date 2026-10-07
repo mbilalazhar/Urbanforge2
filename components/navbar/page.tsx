@@ -34,11 +34,11 @@ export default function Navbar() {
       <nav className={styles.mobileNav} aria-label="Main navigation">
         <MobileMenu menuItems={menuItems} />
         <Link href="/" className={styles.mobileLogo} aria-label="UrbanForge home">
-          <Image src="/logo.svg" alt="UrbanForge" width={160} height={40} priority />
+          <Image src="/logo.svg" alt="UrbanForge" width={160} height={40} />
         </Link>
-        <Link href="/cart" className={styles.mobileCart} aria-label={`Cart (${itemCount} ${itemCount === 1 ? "item" : "items"})`} aria-current={isCart ? "page" : undefined}>
+        <Link href="/cart" className={styles.mobileCart} aria-label={`${itemCount} ${itemCount === 1 ? "item" : "items"} in cart`} aria-current={isCart ? "page" : undefined}>
           <ShoppingBag size={22} strokeWidth={1.75} />
-          <span>{isLoading ? <Skeleton width={8} height={8} /> : itemCount}</span>
+          <span aria-hidden="true">{isLoading ? <Skeleton width={8} height={8} /> : itemCount}</span>
         </Link>
       </nav>
 <nav
@@ -60,7 +60,7 @@ export default function Navbar() {
               alt="Urbanforge"
               width={isScrolled ? 120 : 200}
               height={isScrolled ? 24 : 40}
-              priority
+
               className={`w-auto transition-all duration-500 ease-out ${
                 isScrolled ? "h-7 lg:h-8" : "h-10 lg:h-14"
               } ${isScrolled || isLightPage ? "" : "brightness-0 invert"}`}
@@ -94,7 +94,7 @@ export default function Navbar() {
                       : "text-[14px] tracking-[0.2em]"
                   } ${
                     item.highlight || pathname === item.href
-                      ? "font-semibold text-rose-600 hover:text-[#B22222]"
+                      ? (isScrolled || isLightPage ? "font-semibold text-rose-700 hover:text-[#B22222]" : "font-semibold text-rose-500 hover:text-rose-400")
                       : isScrolled || isLightPage
                         ? "font-medium text-neutral-700 hover:text-black"
                         : "font-medium text-white/90 hover:text-white"
@@ -116,6 +116,7 @@ export default function Navbar() {
         >
           <Link
             href="/search"
+            prefetch={false}
             aria-label="Search"
             className={`transition-all duration-500 ease-out hover:scale-110 ${
               isScrolled || isLightPage
@@ -150,7 +151,7 @@ export default function Navbar() {
 
           <Link
             href="/cart"
-            aria-label={`Cart (${itemCount} ${itemCount === 1 ? "item" : "items"})`}
+            aria-label={`${itemCount} ${itemCount === 1 ? "item" : "items"} in cart`}
             aria-current={isCart ? "page" : undefined}
             className={`relative transition-all duration-500 ease-out hover:scale-110 ${
               isScrolled || isLightPage
@@ -165,6 +166,7 @@ export default function Navbar() {
               strokeWidth={1.75}
             />
             <span
+              aria-hidden="true"
               className={`absolute -right-2 -top-2 flex items-center justify-center rounded-full font-semibold transition-all duration-500 ease-out ${
                 isScrolled
                   ? "h-3.5 min-w-3.5 px-0.5 bg-[#c82032] text-[9px] text-white"

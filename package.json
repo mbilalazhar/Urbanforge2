@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:seo": "npm run build && node --test tests/seo.integration.mjs tests/routes.integration.mjs",
     "test:auth": "npm run build && node --test tests/auth.integration.mjs",
     "test:reviews": "npm run build && node --test tests/reviews.integration.mjs",
     "test:admin-preview": "node --test tests/admin-preview.test.mjs",

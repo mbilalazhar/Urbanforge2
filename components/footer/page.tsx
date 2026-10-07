@@ -80,7 +80,7 @@ export default function Footer() {
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-14 md:grid-cols-3 lg:px-8">
           {/* Contact us */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rose-600">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rose-500">
               <Link href="/contact" className="transition-colors hover:text-white">Contact us</Link>
             </h3>
             <ul className="space-y-2 text-sm text-neutral-200">
@@ -100,7 +100,7 @@ export default function Footer() {
 
           {/* Warehouse */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rose-600">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rose-500">
               Warehouse address:
             </h3>
             <address className="not-italic text-sm text-neutral-200">
@@ -112,7 +112,7 @@ export default function Footer() {
 
           {/* Opening hours */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rose-600">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rose-500">
               Warehouse Opening Times:
             </h3>
             <div className="text-sm text-neutral-200">
@@ -131,7 +131,7 @@ export default function Footer() {
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
             {linkGroups.map((group) => (
               <div key={group.title}>
-                <h3 className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-rose-600">
+                <h3 className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-rose-500">
                   {group.title}
                 </h3>
                 <ul className="space-y-3 text-sm">
@@ -139,6 +139,7 @@ export default function Footer() {
                     <li key={link.label}>
                       <Link
                         href={link.href}
+                        prefetch={link.href === "/search" ? false : undefined}
                         className="text-neutral-400 transition-colors duration-200 hover:text-white"
                       >
                         {link.label}
@@ -172,7 +173,7 @@ export default function Footer() {
 <div className="border-t border-neutral-800">
   <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-6 sm:flex-row lg:px-8">
     {/* Left — copyright */}
-    <p className="order-2 text-center text-xs text-neutral-500 sm:order-1 sm:text-left">
+    <p className="order-2 text-center text-xs text-neutral-400 sm:order-1 sm:text-left">
       © {new Date().getFullYear()} UrbanForge. All rights reserved.
     </p>
 
@@ -185,7 +186,7 @@ export default function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={social.label}
-            className="block text-neutral-500 transition-all duration-200 hover:scale-110 hover:text-white"
+            className="block text-neutral-400 transition-all duration-200 hover:scale-110 hover:text-white"
           >
             <social.icon className="h-5 w-5" />
           </Link>
@@ -194,13 +195,13 @@ export default function Footer() {
     </ul>
 
     {/* Right — credit */}
-    <p className="order-3 text-center text-xs text-neutral-500 sm:text-right">
+    <p className="order-3 text-center text-xs text-neutral-400 sm:text-right">
       Designed &amp; Developed by{" "}
       <Link
         href="https://urbandesigns.com.au"
         target="_blank"
         rel="noopener noreferrer"
-        className="text-neutral-300 transition-colors hover:text-white"
+        className="text-neutral-300 underline underline-offset-4 transition-colors hover:text-white"
       >
         Urban Designs Studio
       </Link>

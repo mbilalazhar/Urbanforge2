@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url);
 const compile = source => `data:text/javascript;base64,${Buffer.from(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText).toString('base64')}`;
 const cartData = compile(await readFile(new URL('../lib/cart-data.ts', import.meta.url), 'utf8'));
 let source = await readFile(new URL('../lib/cart-store.ts', import.meta.url), 'utf8');
-for (const name of ['zustand/vanilla', 'zustand/middleware', 'zod']) source = source.replaceAll(`"${name}"`, JSON.stringify(pathToFileURL(require.resolve(name)).href));
+for (const name of ['zustand/vanilla', 'zustand/middleware', 'zod/mini']) source = source.replaceAll(`"${name}"`, JSON.stringify(pathToFileURL(require.resolve(name)).href));
 source = source.replace('"./cart-data"', JSON.stringify(cartData));
 const { createCartStore, cartStorageKey, guestCartStorageKey, mergeGuestCart } = await import(compile(source));
 const item = { id: 'shirt-blue-m', productId: 'shirt', variantId: 'blue-m', name: 'Blue shirt', details: 'Men / Tops / Blue', size: 'Size: M', price: 250000, image: '/shirt.png', quantity: 2, maxQuantity: 8 };
@@ -132,7 +132,14 @@ test('rehydration observes another tab’s updates and storage deletion without 
 
 test('untrusted and malformed persisted data cannot replace actions or inject invalid items', async () => {
   const { storage } = fixture();
-  storage.setItem(cartStorageKey('a'), JSON.stringify({ version: 1, state: { hydrated: true, clearCart: 'bad', items: [item, { ...item, price: -1 }, { ...item, quantity: 0 }, { ...item, image: 'javascript:bad' }] } }));
+  const invalid = [
+    { price: -1 }, { price: 1.5 }, { price: Number.MAX_SAFE_INTEGER + 1 },
+    { quantity: 0 }, { quantity: 100 }, { quantity: '2' },
+    { maxQuantity: -1 }, { maxQuantity: 1_000_001 },
+    { name: '' }, { productId: '' }, { variantId: null }, { color: 'a'.repeat(151) },
+    { image: 'javascript:bad' }, { image: '//other.example/image.png' }, { imageStyle: 'unknown' },
+  ];
+  storage.setItem(cartStorageKey('a'), JSON.stringify({ version: 1, state: { hydrated: true, clearCart: 'bad', items: [item, ...invalid.map(value => ({ ...item, ...value }))] } }));
   const a = await ready(createCartStore('a', storage));
   assert.deepEqual(a.getState().items, [item]); assert.equal(typeof a.getState().clearCart, 'function');
   storage.setItem(cartStorageKey('a'), '{broken');

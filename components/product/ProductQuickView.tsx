@@ -4,7 +4,7 @@ import { FeedbackNotice } from "@/components/ui/Feedback";
 import { PendingContent, Skeleton, ProductDetailsSkeleton } from "@/components/ui/Skeleton";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
+import Image from "@/components/product/ProductImage";
 import Link from "next/link";
 import { ArrowRight, Check, Minus, Package, Plus, ShoppingBag, X } from "lucide-react";
 import { useProductPreview } from "@/lib/catalog/client";
@@ -51,7 +51,7 @@ export default function ProductQuickView({ product, onClose }: { product: Produc
     }}>
     <button ref={closeRef} type="button" aria-label="Close product details" className={styles.close} onClick={onClose}><X size={20} strokeWidth={1.5} /></button>
     <div className={styles.photo}>
-      {image ? <Image src={image} alt={name} fill unoptimized sizes="(min-width: 768px) 440px, 100vw" className={styles.image} /> : <Package size={40} />}
+      {image ? <Image src={image} alt={name} fill sizes="(min-width: 768px) 440px, 100vw" className={styles.image} /> : <Package size={40} />}
       <span className={styles.photoLabel}>{live?.brand || live?.category || product.category}</span>
       {product.tag && <span className={styles.tag}>{product.tag}</span>}
     </div>

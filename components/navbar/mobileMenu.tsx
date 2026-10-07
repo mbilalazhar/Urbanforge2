@@ -80,7 +80,7 @@ export default function MobileMenu({ menuItems }: { menuItems: MenuItem[] }) {
           </div>
 
           <div className={styles.content}>
-            <Link href="/search" onClick={closeMenu} className={styles.search}><Search size={18} /><span>Search UrbanForge</span><ArrowRight size={16} /></Link>
+            <Link href="/search" prefetch={false} onClick={closeMenu} className={styles.search}><Search size={18} /><span>Search UrbanForge</span><ArrowRight size={16} /></Link>
             <div className={styles.intro}>
               <p>Made for your everyday.</p>
               <h2 id="mobile-menu-title">Find your next fit.</h2>

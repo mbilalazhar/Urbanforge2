@@ -15,12 +15,16 @@ export type SceneImageProps = {
     mobile: string;
   };
   decorative?: boolean;
-  priority?: boolean;
+  priority?: "mobile" | "desktop";
+  eager?: boolean;
 };
 
 function imageProps(asset: HeroImageAsset | null, sizes: string) {
   if (!asset) {
     return { src: transparentPixel, srcSet: undefined, sizes, width: 1, height: 1 };
+  }
+  if (asset.optimized) {
+    return { src: asset.optimized.src, srcSet: asset.optimized.webp, sizes, width: asset.width, height: asset.height };
   }
 
   return getImageProps({
@@ -39,7 +43,8 @@ export default function SceneImage({
   className,
   sizes,
   decorative = false,
-  priority = true,
+  priority,
+  eager = false,
 }: SceneImageProps) {
   const tabletAsset = tablet === undefined ? desktop : tablet;
   const mobileAsset = mobile === undefined ? tabletAsset : mobile;
@@ -52,7 +57,12 @@ export default function SceneImage({
   const alt = decorative ? "" : (desktop ?? tabletAsset ?? mobileAsset)?.alt ?? "";
 
   return (
+    <>
+      {priority === "mobile" && mobileAsset?.optimized && <link rel="preload" as="image" type="image/avif" media="(max-width: 599px)" imageSrcSet={mobileAsset.optimized.avif} imageSizes={sizes.mobile} fetchPriority="high" />}
+      {priority === "mobile" && tabletAsset?.optimized && <link rel="preload" as="image" type="image/avif" media="(min-width: 600px) and (max-width: 1023px)" imageSrcSet={tabletAsset.optimized.avif} imageSizes={sizes.tablet} fetchPriority="high" />}
+      {priority === "desktop" && desktop?.optimized && <link rel="preload" as="image" type="image/avif" media="(min-width: 1024px)" imageSrcSet={desktop.optimized.avif} imageSizes={sizes.desktop} fetchPriority="high" />}
     <picture>
+      {mobileAsset?.optimized && <source media="(max-width: 599px)" type="image/avif" srcSet={mobileAsset.optimized.avif} sizes={sizes.mobile} width={mobileAsset.width} height={mobileAsset.height} />}
       <source
         media="(max-width: 599px)"
         srcSet={mobileProps.srcSet ?? mobileProps.src}
@@ -60,6 +70,7 @@ export default function SceneImage({
         width={mobileProps.width}
         height={mobileProps.height}
       />
+      {tabletAsset?.optimized && <source media="(max-width: 1023px)" type="image/avif" srcSet={tabletAsset.optimized.avif} sizes={sizes.tablet} width={tabletAsset.width} height={tabletAsset.height} />}
       <source
         media="(max-width: 1023px)"
         srcSet={tabletProps.srcSet ?? tabletProps.src}
@@ -67,16 +78,18 @@ export default function SceneImage({
         width={tabletProps.width}
         height={tabletProps.height}
       />
-      {/* getImageProps optimizes these sources; picture selects one asset without separate preloads. */}
+      {desktop?.optimized && <source type="image/avif" srcSet={desktop.optimized.avif} sizes={sizes.desktop} />}
+      {/* Picture selects one format and responsive source for each visible layer. */}
       <img
         {...desktopProps}
         alt={alt}
         aria-hidden={decorative || undefined}
         className={className}
-        loading={priority ? "eager" : "lazy"}
+        loading={priority || eager ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : undefined}
         decoding="async"
       />
     </picture>
+    </>
   );
 }

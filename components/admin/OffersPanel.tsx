@@ -2,7 +2,7 @@
 import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 
 import { SummarySkeleton, PendingContent } from "@/components/ui/Skeleton";
-import Image from "next/image";
+import Image from "@/components/product/ProductImage";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { CalendarDays, CirclePercent, Pencil, Plus, Search, Tag, Trash2, Users, X } from "lucide-react";
 import { useAdminMutation, useAdminQuery } from "@/lib/admin/client";
@@ -128,7 +128,7 @@ function OffersView({ section, search }: { section: Section; search: string }) {
       const isCoupon = "code" in offer;
       const state = isCoupon ? couponState(offer) : offer.state;
       return <article className={styles.offerCard} key={offer.id}>
-        {!isCoupon && offer.banner && <Image src={offer.banner} alt={`${offer.name} banner`} width={500} height={220} className={styles.banner} unoptimized />}
+        {!isCoupon && offer.banner && <Image src={offer.banner} alt={`${offer.name} banner`} width={500} height={220} className={styles.banner} />}
         <div className={styles.offerBody}><div className={styles.offerTop}><span className={styles.offerIcon}>{isCoupon ? <Tag size={20} /> : <CirclePercent size={20} />}</span><span className={styles.badge} data-status={state}>{state}</span></div><h3>{isCoupon ? offer.code : offer.name}</h3>{isCoupon && <span className={styles.muted}>{offer.kind === "promo" ? "Promo code" : "Coupon"}</span>}
           <div className={styles.offerValue}>{isCoupon ? offer.type === "free_shipping" ? "Free shipping" : offer.type === "fixed" ? `${money(offer.value)} off` : `${offer.value}% off` : `${offer.discountPercent}% off`}</div>
           <div className={styles.offerFacts}><span><CalendarDays size={13} />{offer.startsAt ? displayDate(offer.startsAt) : "Any time"} – {offer.endsAt ? displayDate(offer.endsAt) : "No expiry"}</span><span><Tag size={13} />{!validOfferScope(offer) ? "Scope update required" : offer.categories.length ? offer.categories.join(", ") : "Entire store"}</span>

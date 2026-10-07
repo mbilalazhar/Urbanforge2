@@ -2,7 +2,7 @@
 import { FeedbackNotice, useFeedback } from "@/components/ui/Feedback";
 
 import { ListSkeleton, PendingContent } from "@/components/ui/Skeleton";
-import Image from "next/image";
+import Image from "@/components/product/ProductImage";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Check, ChevronRight, Hourglass, LogOut, Pencil, Phone, Truck, X } from "lucide-react";
@@ -18,7 +18,7 @@ const tabs = ["My Orders", "Addresses", "Wishlist", "Settings"] as const;
 type Tab = typeof tabs[number];
 
 function ProductImage({ item }: { item: OrderItem }) {
-  return <span className={styles.productImage}><Image src={item.image} alt={item.name} fill unoptimized sizes="80px" /></span>;
+  return <span className={styles.productImage}><Image src={item.image} alt={item.name} fill sizes="80px" /></span>;
 }
 
 function Status({ status }: { status: Order["status"] }) {

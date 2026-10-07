@@ -46,14 +46,18 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   let target;
   await until(async () => { try { target = (await (await fetch(`http://127.0.0.1:${debugPort}/json`)).json()).find(page => page.type === 'page'); return !!target; } catch { return false; } }, 'browser startup');
   ws = new WebSocket(target.webSocketDebuggerUrl); await once(ws, 'open');
-  let sequence = 0; const pending = new Map(), errors = [], wishlistGets = [];
+  let sequence = 0; const pending = new Map(), errors = [], wishlistGets = [], catalogGets = [];
   ws.addEventListener('message', event => {
     const message = JSON.parse(event.data);
     if (message.id) {
       const callback = pending.get(message.id); if (!callback) return;
       pending.delete(message.id); clearTimeout(callback.timer);
       if (message.error) callback.reject(new Error(JSON.stringify(message.error))); else callback.resolve(message.result);
-    } else if (message.method === 'Network.requestWillBeSent' && message.params.request.method === 'GET' && new URL(message.params.request.url).pathname === '/api/wishlist') wishlistGets.push(message.params.request.url);
+    } else if (message.method === 'Network.requestWillBeSent' && message.params.request.method === 'GET') {
+      const path = new URL(message.params.request.url).pathname;
+      if (path === '/api/wishlist') wishlistGets.push(message.params.request.url);
+      if (path === '/api/catalog') catalogGets.push(message.params.request.url);
+    }
     else if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails);
     else if (message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') errors.push(message.params.args.map(arg => arg.value));
   });
@@ -76,6 +80,19 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   async function point() { await evaluate(`${card}.scrollIntoView({block:'center'})`); await delay(150); return evaluate(`(()=>{const r=${card}.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+80};})()`); }
   await call('Page.enable'); await call('Runtime.enable'); await call('Network.enable');
   await call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
+  await call('Page.navigate', { url: base + '/shoes' });
+  await until(() => evaluate(`!!${card} && !!${quick}`), 'server-rendered collection');
+  await evaluate('document.fonts.ready');
+  await delay(500);
+  assert.equal(catalogGets.length, 0, 'hydration reuses the server catalog without a duplicate API request');
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true, 'collection fits desktop');
+  await evaluate(`${quick}.click()`);
+  await until(hasDialog, 'server-rendered card hydrates with working quick view');
+  await evaluate("document.querySelector('dialog[open] button[aria-label=\"Close product details\"]').click()");
+  await until(async () => !await hasDialog(), 'collection preview closes');
+  await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true, 'collection fits mobile');
+  await call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await call('Page.navigate', { url: base + '/search?q=Preview' });
   await until(() => evaluate(`!!${card}`), 'product card'); await delay(500);
   let position = await point(); await move(1, 1); await move(position.x, position.y); await delay(200);
@@ -91,7 +108,7 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   await evaluate("document.querySelector('dialog[open] button[aria-label=Black]').click()");
   await until(() => evaluate("!Array.from(document.querySelectorAll('dialog[open] button')).find(b=>b.textContent==='Add to Cart').disabled"), 'cart ready');
   await evaluate("Array.from(document.querySelectorAll('dialog[open] button')).find(b=>b.textContent==='Add to Cart').click()");
-  await until(() => evaluate("document.querySelector('dialog[open]').textContent.includes('1 item added to your cart')"), 'added to cart');
+  await until(() => evaluate("document.body.textContent.includes('1 item added to your cart')"), 'added to cart toast');
   const saved = await evaluate("JSON.parse(localStorage.getItem('urbanforge:cart:v1:guest')).state.items[0]");
   assert.equal(saved.productId, 'preview-shoe'); assert.equal(saved.variantId, 'b8'); assert.equal(saved.price, 2150000);
   await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });

@@ -3,7 +3,7 @@ import { FeedbackNotice } from "@/components/ui/Feedback";
 
 import { ListSkeleton, Skeleton, SummarySkeleton } from "@/components/ui/Skeleton";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import Image from "@/components/product/ProductImage";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CircleHelp, Headset, LockKeyhole, Minus, Plus, RotateCcw, ShoppingBag, Trash2, Truck } from "lucide-react";
 import { useCart } from "./CartProvider";
@@ -42,7 +42,7 @@ export default function CartPage() {
                     <li key={item.id} className={styles.product}>
                       <div className={styles.productInfo}>
                         <div className={`${styles.productImage} ${item.imageStyle ? styles[item.imageStyle] : ""}`}>
-                          <Image src={item.image} alt={item.name} fill unoptimized sizes={item.imageStyle === "sunglasses" ? "1300px" : item.imageStyle === "shoes" ? "260px" : "(max-width: 767px) 90px, 130px"} />
+                          <Image src={item.image} alt={item.name} fill sizes={item.imageStyle === "sunglasses" ? "1300px" : item.imageStyle === "shoes" ? "260px" : "(max-width: 767px) 90px, 130px"} />
                         </div>
                         <div className={styles.productDetails}>
                           <h2>{item.name}</h2><p>{item.details}</p><p>{item.size}</p>

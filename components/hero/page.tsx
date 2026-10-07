@@ -1,7 +1,10 @@
 import Image from "next/image";
+import localFont from "next/font/local";
+
+const inter = localFont({ src: "../../app/fonts/inter-latin-variable.woff2", weight: "100 900", style: "normal", variable: "--font-inter", display: "swap" });
 import type { CSSProperties } from "react";
 import SceneImage from "./SceneImage";
-import { resolveHeroScene, type HeroSceneFrame } from "@/lib/hero-scenes";
+import { heroScenes, resolveHeroScene, type HeroSceneFrame } from "@/lib/hero-scenes";
 import { ArrowDown, ArrowRight, Mouse } from "lucide-react";
 import styles from "./hero.module.css";
 import { homeHero, type HeroContent } from "@/lib/catalog-sections";
@@ -36,28 +39,32 @@ function frameVariables(frame: HeroSceneFrame, prefix: string): SceneVariables {
 }
 
 export default function HeroSection({ content = homeHero }: { content?: HeroContent }) {
-  const { desktop, tablet, mobile } = resolveHeroScene(content.scene);
+  const { desktop, tablet, mobile } = resolveHeroScene(heroScenes[content.scene]);
   const sceneStyle = {
     ...frameVariables(desktop, "desktop"),
     ...frameVariables(tablet, "tablet"),
     ...frameVariables(mobile, "mobile"),
   };
-  const environmentSizes = { desktop: "100vw", tablet: "180svh", mobile: "180svh" };
+  const environmentSizes = {
+    desktop: "100vw",
+    tablet: "(max-width: 767px) calc(clamp(620px, 100svh, 900px) * 1.777), calc(clamp(720px, 100svh - 100px, 880px) * 1.777)",
+    mobile: "calc(clamp(620px, 100svh, 900px) * 1.777)",
+  };
   const modelSizes = { desktop: desktop.modelSizes, tablet: tablet.modelSizes, mobile: mobile.modelSizes };
 
   return (
-    <section className={styles.hero} aria-labelledby="hero-heading">
+    <section className={`${styles.hero} ${inter.variable}`} aria-labelledby="hero-heading">
       <div className={styles.scene} style={sceneStyle}>
         <div className={styles.artwork}>
           <SceneImage desktop={desktop.background} tablet={tablet.background} mobile={mobile.background}
-            sizes={environmentSizes} className={styles.backdrop} decorative />
+            sizes={environmentSizes} className={styles.backdrop} decorative priority="mobile" eager />
           <div className={styles.models}>
             <div className={styles.contactShadow} aria-hidden="true" />
             <SceneImage desktop={desktop.model} tablet={tablet.model} mobile={mobile.model}
-              sizes={modelSizes} className={styles.modelImage} />
+              sizes={modelSizes} className={styles.modelImage} priority="desktop" eager />
           </div>
           <SceneImage desktop={desktop.foreground ?? null} tablet={tablet.foreground ?? null} mobile={mobile.foreground ?? null}
-            sizes={environmentSizes} className={styles.foregroundArchitecture} decorative />
+            sizes={environmentSizes} className={styles.foregroundArchitecture} decorative eager />
         </div>
         <div className={styles.sceneGrade} aria-hidden="true" />
         <div className={styles.readability} aria-hidden="true" />
@@ -90,7 +97,7 @@ export default function HeroSection({ content = homeHero }: { content?: HeroCont
               {collections.map((collection, index) => (
                 <a
                   key={collection.name}
-                  href={`#featured-product-${collection.id}`}
+                  href={`/search?q=${encodeURIComponent(collection.name)}`}
                   className={styles.collection}
                   tabIndex={isDuplicate ? -1 : undefined}
                 >

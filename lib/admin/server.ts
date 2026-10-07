@@ -7,6 +7,7 @@ import { mainCategory, matchesOfferCategory, validOfferScope } from "./offer-sco
 import { dashboardMetrics } from "./analytics";
 import { orderTransitions } from "./order-workflow";
 import { readProductBody } from "./product-upload";
+import { isProductVideoUrl, VIDEO_URL_GUIDANCE } from "@/lib/product-media";
 import { readInventoryHistory, summarizeInventory } from "./inventory";
 
 import { randomUUID } from "node:crypto";
@@ -31,7 +32,7 @@ export const productSchema = z.object({
   name: short.min(1), description: text.default(""), shortDescription: text.default(""),
   category: short.min(1), subcategory: short.min(1), productType: short.default(""), brand: short.default(""), gender: short.default(""),
   price: money, salePrice: money.nullable().default(null), sku,
-  images: z.array(media).min(1, "Add at least one product image.").max(30), videos: z.array(media).max(10).default([]),
+  images: z.array(media).min(1, "Add at least one product image.").max(30), videos: z.array(media.refine(isProductVideoUrl, VIDEO_URL_GUIDANCE)).max(10).default([]),
   colors: strings.default([]), sizes: strings.default([]), material: short.default(""), stock: quantity.default(0), tags: strings.default([]),
   status: z.enum(["active", "inactive"]).default("inactive"), featured: z.boolean().default(false), newArrival: z.boolean().default(false), bestseller: z.boolean().default(false),
   seoTitle: short.default(""), seoDescription: text.default(""), variants: z.array(variant).max(200).default([]),
@@ -77,6 +78,9 @@ async function database() {
     const db = await dbConnect();
     await Promise.all([
       db.collection("admin_products").createIndex({ skuKeys: 1 }, { unique: true }),
+      db.collection("admin_products").createIndex({ status: 1, deletedAt: 1, createdAt: -1 }),
+      db.collection("admin_products").createIndex({ category: 1, status: 1, deletedAt: 1, createdAt: -1 }),
+      db.collection("admin_promotions").createIndex({ active: 1, startsAt: 1, endsAt: 1 }),
       db.collection("admin_orders").createIndex({ number: 1 }, { unique: true }),
       db.collection("admin_orders").createIndex({ email: 1, createdAt: -1 }),
       db.collection("admin_orders").createIndex({ userId: 1, createdAt: -1 }),

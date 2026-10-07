@@ -9,6 +9,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const { q } = await searchParams;
   const query = ((Array.isArray(q) ? q[0] : q) ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
   return {
+    robots: { index: false, follow: true },
+    alternates: { canonical: "/search" },
     title: query ? `Search: ${query}` : "Search",
     description: query
       ? `Explore UrbanForge results for “${query}”. Find clothing, footwear, accessories and collections for your next fit.`

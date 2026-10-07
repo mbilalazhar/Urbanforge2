@@ -1,18 +1,18 @@
 import { createStore } from "zustand/vanilla";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
-import { z } from "zod";
+import * as z from "zod/mini";
 import { addCartItem, changeCartQuantity, type CartItem } from "./cart-data";
 
 export const guestCartStorageKey = "urbanforge:cart:v1:guest";
 export const cartStorageKey = (accountId: string) => `urbanforge:cart:v1:user:${encodeURIComponent(accountId)}`;
 const itemSchema = z.object({
-  id: z.string().min(1).max(1000), productId: z.string().min(1).max(100).optional(), variantId: z.string().max(100).optional(),
-  name: z.string().min(1).max(500), details: z.string().max(2000), size: z.string().max(200),
-  color: z.string().max(150).optional(), selectedSize: z.string().max(150).optional(),
-  price: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  image: z.string().min(1).max(2048).refine(value => /^\/(?!\/)/.test(value) || /^https?:\/\//.test(value)),
-  imageStyle: z.enum(["shoes", "sunglasses"]).optional(),
-  quantity: z.number().int().min(1).max(99), maxQuantity: z.number().int().nonnegative().max(1_000_000).optional(),
+  id: z.string().check(z.minLength(1), z.maxLength(1000)), productId: z.optional(z.string().check(z.minLength(1), z.maxLength(100))), variantId: z.optional(z.string().check(z.maxLength(100))),
+  name: z.string().check(z.minLength(1), z.maxLength(500)), details: z.string().check(z.maxLength(2000)), size: z.string().check(z.maxLength(200)),
+  color: z.optional(z.string().check(z.maxLength(150))), selectedSize: z.optional(z.string().check(z.maxLength(150))),
+  price: z.int().check(z.minimum(0), z.maximum(Number.MAX_SAFE_INTEGER)),
+  image: z.string().check(z.minLength(1), z.maxLength(2048), z.refine(value => /^\/(?!\/)/.test(value) || /^https?:\/\//.test(value))),
+  imageStyle: z.optional(z.enum(["shoes", "sunglasses"])),
+  quantity: z.int().check(z.minimum(1), z.maximum(99)), maxQuantity: z.optional(z.int().check(z.minimum(0), z.maximum(1_000_000))),
 });
 
 function restoredItems(value: unknown): CartItem[] {
