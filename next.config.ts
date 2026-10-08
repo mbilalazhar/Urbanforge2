@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   compiler: { removeConsole: true },
-  output: "standalone",
+  output: process.env.VERCEL
+    ? undefined
+    : "standalone",
+
   logging: false,
   devIndicators: false,
   images: {
