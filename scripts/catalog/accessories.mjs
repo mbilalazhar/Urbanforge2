@@ -1,0 +1,136 @@
+const accessories = [
+  {
+    name: 'Axis Minimal Steel Watch', code: 'WAT', subcategory: 'Jewelry & Watches', productType: 'Watches', price: 11900,
+    colors: ['Silver / Black Dial', 'Gunmetal / Black Dial', 'Silver / White Dial'], sizes: ['Adjustable'], material: 'Stainless steel case and bracelet; mineral glass', image: 'existing-watch', tags: ['watch', 'steel', 'minimal'],
+    shortDescription: 'A clean three-hand watch with a brushed metal bracelet and simple dial markers, adding an understated finishing detail to everyday outfits.',
+    description: 'Axis keeps timekeeping visually simple with a round dial, slim hour markers and three clear hands. The brushed stainless steel case sits alongside a matching link bracelet, giving the watch a consistent metal finish without an oversized decorative bezel. A folding clasp secures the bracelet; links can be adjusted by a watch professional for a closer fit. Wear silver beside light cotton layers or choose gunmetal with darker tailoring. The quartz movement suits straightforward daily use. Wipe the case and bracelet with a soft dry cloth, avoid immersion and have battery changes handled by a qualified watch service.',
+  },
+  {
+    name: 'Transit Utility Crossbody Bag', code: 'BAG', subcategory: 'Bags & Backpacks', productType: 'Crossbody Bags', price: 4900,
+    colors: ['Black', 'Olive', 'Taupe'], sizes: ['One Size'], material: 'Nylon outer; polyester lining; webbing strap', image: 'existing-accessories', tags: ['bag', 'crossbody', 'utility'],
+    shortDescription: 'A compact nylon crossbody with a zipped main compartment and adjustable webbing strap, keeping phone, wallet and small essentials close on the move.',
+    description: 'Transit is designed for the items you reach for throughout a day in the city. A zipped main compartment holds a phone and compact wallet, with an additional front pocket separating keys or small accessories. The nylon outer keeps the bag light, and an adjustable webbing strap lets you wear it across the body or over one shoulder. Matte hardware and a simple rectangular shape sit comfortably beside utility clothing and plain tees. Adjust the strap so the bag rests securely rather than swinging while you walk. Spot clean with a damp cloth and leave the pockets open to air dry.',
+  },
+  {
+    name: 'Structure Everyday Backpack', code: 'BAG', subcategory: 'Bags & Backpacks', productType: 'Backpacks', price: 7900,
+    colors: ['Black', 'Olive', 'Charcoal'], sizes: ['One Size'], material: 'Polyester canvas; polyester lining; nylon zips', image: 'existing-accessories', tags: ['bag', 'backpack', 'commute'],
+    shortDescription: 'A clean canvas backpack with adjustable shoulder straps, a roomy zipped body and separate pockets for keeping everyday carry items organized.',
+    description: 'Structure gives a daily backpack a straightforward shape and practical organization. The main zipped compartment has room for a notebook, light layer and personal essentials, with an internal sleeve to separate flat items. A front pocket keeps smaller objects easier to reach, while adjustable shoulder straps allow the bag to sit comfortably against your back. The canvas-textured outer adds a little structure without a hard shell. Use it for commuting, campus days or short outings where a crossbody feels too small. Avoid overfilling the seams, spot clean marks and dry the bag fully before closing it for storage.',
+  },
+  {
+    name: 'District Six-Panel Cotton Cap', code: 'CAP', subcategory: 'Other Accessories', productType: 'Hats & Beanies', price: 2400,
+    colors: ['Black', 'Burgundy', 'Stone', 'Olive'], sizes: ['Adjustable'], material: '100% cotton twill; metal rear adjuster', image: 'existing-accessories', tags: ['cap', 'cotton', 'six panel'],
+    shortDescription: 'A cotton six-panel cap with a curved brim and adjustable back strap, adding a simple finishing touch to everyday streetwear.',
+    description: 'District keeps a familiar six-panel cap clean and easy to wear. Cotton twill gives the crown a lightly textured surface, with embroidered eyelets and a curved brim shaping the profile. A rear strap and metal adjuster let you fine-tune the fit without choosing a clothing size. Wear it with an oversized tee and cargos, or use the burgundy colorway to add a small accent to a neutral outfit. The unstructured feel allows the cap to settle naturally on the head. Spot clean gently, reshape the crown while damp and air dry without flattening the brim or exposing it to strong heat.',
+  },
+  {
+    name: 'Arc Slim Leather-Strap Watch', code: 'WAT', subcategory: 'Jewelry & Watches', productType: 'Watches', price: 8900,
+    colors: ['Black / Silver', 'Chocolate / Gold'], sizes: ['Adjustable'], material: 'Stainless steel case; leather strap; mineral glass', image: 'existing-watch', tags: ['watch', 'leather strap', 'minimal'],
+    shortDescription: 'A slim round watch with a smooth leather strap and restrained dial, designed to sit comfortably beneath shirt cuffs and everyday sleeves.',
+    description: 'Arc trades a metal bracelet for a smooth leather strap, giving the watch a softer look beside shirts and knitwear. The round case has a restrained profile, with simple markers and clear hands keeping the dial easy to read. A buckle fastening offers several fit positions, and the quartz movement supports straightforward daily timekeeping. Wear black with silver-toned accessories or choose chocolate for a warmer combination with cream and navy layers. Keep the leather strap away from prolonged moisture, wipe the case with a soft cloth and use a qualified service for battery replacement or movement care.',
+  },
+  {
+    name: 'Form Compact Shoulder Bag', code: 'BAG', subcategory: 'Bags & Backpacks', productType: 'Handbags', price: 6200, gender: 'women',
+    colors: ['Black', 'Chocolate', 'Taupe'], sizes: ['One Size'], material: 'Polyurethane-coated outer; polyester lining; metal zip', image: 'existing-accessories', tags: ['bag', 'shoulder bag', 'minimal'],
+    shortDescription: 'A compact shoulder bag with a gently curved body, zip-top closure and simple strap, sized for the essentials of an everyday outing.',
+    description: 'Form keeps the shoulder bag close to the body with a compact shape and a simple strap. The leather-look outer has a smooth finish, while a zip across the top keeps smaller belongings contained. Inside, a lined compartment and slip pocket separate your phone from loose essentials. The softly curved outline works with both structured jackets and fluid dresses, and the neutral color options make it easy to repeat a tone elsewhere in your outfit. Avoid overpacking to preserve the silhouette. Wipe the outer with a damp soft cloth and store lightly filled when the bag is not in use.',
+  },
+  {
+    name: 'Canvas Daily Carry Tote', code: 'BAG', subcategory: 'Bags & Backpacks', productType: 'Totes', price: 3200,
+    colors: ['Cream', 'Black', 'Olive'], sizes: ['One Size'], material: '100% cotton canvas', image: 'existing-accessories', tags: ['bag', 'tote', 'canvas'],
+    shortDescription: 'A sturdy cotton canvas tote with long handles and an internal pocket, offering uncomplicated space for daily errands, books and a light layer.',
+    description: 'Daily Carry uses a simple open tote shape and substantial cotton canvas to keep everyday packing straightforward. Long handles allow the bag to sit over the shoulder, and an internal pocket gives small items a place away from the main compartment. The broad body accommodates a book, a folded layer and other daily essentials without multiple straps or hardware. Choose cream for a lighter look or black to coordinate with utility outerwear. Keep heavier objects balanced near the base to avoid pulling one handle. Spot clean where possible and reshape while damp if the bag needs a gentle wash.',
+  },
+  {
+    name: 'Nomad Roll-Top Daypack', code: 'BAG', subcategory: 'Bags & Backpacks', productType: 'Backpacks', price: 8900,
+    colors: ['Olive', 'Black', 'Taupe'], sizes: ['One Size'], material: 'Nylon outer; polyester lining; webbing straps', image: 'existing-accessories', tags: ['bag', 'roll top', 'backpack'],
+    shortDescription: 'A roll-top nylon daypack with adjustable straps and a front access pocket, giving a flexible silhouette to your daily carry setup.',
+    description: 'Nomad uses a roll-and-buckle top to adjust the upper profile around what you are carrying. The nylon outer is paired with a lined main compartment, while a separate front pocket keeps smaller items accessible without opening the top. Adjustable shoulder straps and a grab handle provide two practical carrying options. The clean shape works with casual layers for commutes, campus days and short trips. Roll the opening securely before fastening and avoid filling beyond the comfortable strap position. Keep heavier items close to the back panel for a more balanced carry. Spot clean, air dry thoroughly and store with the top open.',
+  },
+  {
+    name: 'Forge Low-Profile Dad Cap', code: 'CAP', subcategory: 'Other Accessories', productType: 'Hats & Beanies', price: 2200,
+    colors: ['Washed Black', 'Stone', 'Navy'], sizes: ['Adjustable'], material: '100% washed cotton twill', image: 'existing-accessories', tags: ['cap', 'washed cotton', 'low profile'],
+    shortDescription: 'A low-profile cotton cap with a softly washed finish, curved brim and adjustable strap, designed for a relaxed, worn-in everyday look.',
+    description: 'Forge gives a plain cap a softer character through washed cotton and an unstructured crown. The lower profile sits close to the head, with a curved brim that feels familiar from the first wear. A rear adjuster makes the fit easy to change, including when you wear the cap over longer hair. Pair washed black with faded denim or stone with a white tee and light trousers. The quiet finish makes it useful alongside both graphic and plain clothing. Clean small marks by hand, avoid bleach and reshape the crown over a towel while it dries naturally in the shade.',
+  },
+  {
+    name: 'North Ribbed Cuff Beanie', code: 'BEA', subcategory: 'Other Accessories', productType: 'Hats & Beanies', price: 1900,
+    colors: ['Black', 'Charcoal', 'Burgundy', 'Cream'], sizes: ['One Size'], material: '60% cotton, 40% acrylic rib knit', image: 'existing-accessories', tags: ['beanie', 'ribbed', 'winter'],
+    shortDescription: 'A soft rib-knit beanie with a fold-over cuff, adding an easy cold-weather layer without a heavy pattern or oversized shape.',
+    description: 'North keeps the winter beanie simple with a stretchy rib structure and a fold-over cuff. The cotton-blend knit feels soft at the edge, while the cuff allows a little adjustment to how high the hat sits. Wear it closer to the crown for a compact look or unfold a small amount for more coverage. The plain texture pairs easily with coats, bombers and casual hoodies, and the burgundy option adds a restrained accent to darker outfits. Fold rather than stretch during storage. Wash gently according to the care label and lay flat to dry so the ribbing retains its shape.',
+  },
+  {
+    name: 'Frame Square Acetate Sunglasses', code: 'SUN', subcategory: 'Other Accessories', productType: 'Sunglasses', price: 4200,
+    colors: ['Black', 'Tortoiseshell'], sizes: ['One Size'], material: 'Acetate frame; tinted polycarbonate lenses; metal hinges', image: 'existing-accessories', tags: ['sunglasses', 'square frame', 'minimal'],
+    shortDescription: 'Square acetate sunglasses with a substantial frame and clean temples, offering a bold but understated accessory for casual city outfits.',
+    description: 'Frame uses a slightly squared lens shape and a substantial acetate rim to create a defined accessory without decorative hardware. Smooth temples and hinged arms keep the side profile clean, while the tinted lenses give the pair a consistent visual finish. Wear black alongside monochrome layers or tortoiseshell with warmer neutrals such as cream and chocolate. The frame works particularly well with simple necklines and pulled-back hair that leave its shape visible. Keep lenses clean with a microfiber cloth and store in a protective case. Fold the arms carefully and avoid placing the lenses face down on hard or uneven surfaces.',
+  },
+  {
+    name: 'Arc Slim Oval Sunglasses', code: 'SUN', subcategory: 'Other Accessories', productType: 'Sunglasses', price: 3900,
+    colors: ['Black', 'Chocolate'], sizes: ['One Size'], material: 'Acetate frame; tinted polycarbonate lenses; metal hinges', image: 'existing-accessories', tags: ['sunglasses', 'oval', 'retro'],
+    shortDescription: 'Slim oval sunglasses with softly rounded rims and simple arms, adding a subtle retro reference to everyday tailoring and relaxed summer looks.',
+    description: 'Arc offers a narrower alternative to a square frame, with an oval lens opening and softly rounded edges. The acetate construction keeps the shape defined without oversized temples, making the pair easy to combine with small earrings or a fine chain. Wear them with an open shirt and loose trousers for a summer outfit, or with a cropped jacket for a stronger contrast. Check the temple fit so the frame sits securely without pressure. Wipe the lenses with a microfiber cloth, avoid leaving them on hot surfaces and use a case between wears. Use both hands to remove the frame so the hinges are not pulled unevenly.',
+  },
+  {
+    name: 'Anchor Leather Everyday Belt', code: 'BLT', subcategory: 'Other Accessories', productType: 'Belts', price: 3400,
+    colors: ['Black', 'Chocolate'], sizes: ['30', '32', '34', '36', '38'], material: 'Leather strap; zinc alloy buckle', image: 'existing-accessories', tags: ['belt', 'leather', 'minimal'],
+    shortDescription: 'A smooth leather belt with a simple metal buckle and clean edges, designed to finish denim, chinos and understated tailored outfits.',
+    description: 'Anchor is a straightforward leather belt with a smooth face and a compact rectangular buckle. The strap has multiple fastening holes for adjustment, while a matching keeper holds the end neatly against the waist. Its restrained width works with everyday jeans and most casual trouser loops. Match black with darker footwear for a cleaner line, or add chocolate to stone chinos and a cream shirt. Sizes refer to the approximate fastening waist measurement in inches; choose based on where you wear the belt. Wipe with a dry cloth, condition sparingly and avoid sharply folding the leather during storage.',
+  },
+  {
+    name: 'Transit Adjustable Webbing Belt', code: 'BLT', subcategory: 'Other Accessories', productType: 'Belts', price: 2100,
+    colors: ['Black', 'Olive', 'Stone'], sizes: ['Adjustable'], material: 'Polyester webbing; metal clamp buckle', image: 'existing-accessories', tags: ['belt', 'webbing', 'utility'],
+    shortDescription: 'A woven utility belt with an adjustable clamp buckle, offering a flexible fit and a practical finishing detail for cargos and casual trousers.',
+    description: 'Transit replaces punched holes with a clamp-style fastening so you can adjust the waist more precisely. The woven webbing has a textured surface that sits naturally with canvas, denim and cotton twill, while the compact buckle keeps the hardware functional. Thread the strap through your trouser loops and secure it at the comfortable position rather than pulling it tight. Black works across most outfits, while olive and stone complement lighter utility clothing. Keep the strap flat through the belt loops for a cleaner line at the waist. Spot clean the strap, dry the metal hardware promptly and store loosely rolled.',
+  },
+  {
+    name: 'Link Minimal Curb Chain', code: 'NCK', subcategory: 'Jewelry & Watches', productType: 'Necklaces', price: 2900,
+    colors: ['Silver', 'Gunmetal'], sizes: ['50 cm', '55 cm'], material: 'Stainless steel', image: 'existing-accessories', tags: ['chain', 'necklace', 'steel'],
+    shortDescription: 'A simple stainless steel curb chain with flat interlocking links and a clasp fastening, sized to sit over a tee or beneath an open collar.',
+    description: 'Link brings a small amount of metal texture to a plain neckline through flat interlocking curb links. The chain lies close to the chest rather than standing away in a rounded profile, making it easy to wear on its own or beside a finer necklace. A clasp fastening secures the ends, with two lengths available to suit your preferred position. Silver gives a brighter accent to black cotton, while gunmetal blends more quietly into dark layers. Remove before swimming, exercising or applying fragrance. Wipe with a soft cloth after wear and store separately to reduce tangling and surface rubbing.',
+  },
+  {
+    name: 'Trace Bar Pendant Necklace', code: 'NCK', subcategory: 'Jewelry & Watches', productType: 'Necklaces', price: 2600,
+    colors: ['Silver', 'Gold'], sizes: ['Adjustable'], material: 'Stainless steel chain and pendant; coated gold-tone option', image: 'existing-accessories', tags: ['necklace', 'pendant', 'minimal'],
+    shortDescription: 'A slim bar pendant on a fine adjustable chain, offering a quiet geometric detail that layers neatly with simple everyday necklines.',
+    description: 'Trace focuses on one small geometric detail: a narrow bar suspended from a fine link chain. The simple pendant gives the necklace enough presence to wear alone, while its restrained scale makes it easy to combine with another chain at a different length. An extension at the clasp lets you adjust where it sits against a tee, blouse or knit. Choose silver for cooler palettes or gold tone beside chocolate and cream. Keep the necklace away from fragrance, harsh cleaners and prolonged moisture. Wipe gently after use and fasten the clasp before storing separately to help prevent knots.',
+  },
+  {
+    name: 'Axis Flat-Link Bracelet', code: 'BRC', subcategory: 'Jewelry & Watches', productType: 'Bracelets', price: 2500,
+    colors: ['Silver', 'Gunmetal'], sizes: ['Adjustable'], material: 'Stainless steel', image: 'existing-watch', tags: ['bracelet', 'steel', 'chain'],
+    shortDescription: 'A flat-link metal bracelet with an adjustable clasp section, adding a restrained wrist detail alongside a watch or worn on its own.',
+    description: 'The Axis bracelet uses smooth, flat links to create a consistent line around the wrist. A clasp and short adjustment section let you choose a fit with a little movement rather than a tight grip. Its simple metal finish works beside a watch without competing with a large pendant or decorative charm. Wear silver with a lighter shirt cuff or gunmetal with darker knitwear and tees. Check the fastening before wearing and remove the bracelet for sports, swimming or tasks that could catch the chain. Clean with a soft cloth and keep separate from harder jewelry pieces during storage.',
+  },
+  {
+    name: 'Plane Brushed Signet Ring', code: 'RNG', subcategory: 'Jewelry & Watches', productType: 'Rings', price: 2400,
+    colors: ['Silver', 'Gunmetal'], sizes: ['US 7', 'US 8', 'US 9', 'US 10'], material: 'Stainless steel', image: 'existing-accessories', tags: ['ring', 'signet', 'brushed metal'],
+    shortDescription: 'A compact signet ring with a brushed flat face and smooth band, bringing a clean geometric accent to a minimal jewelry rotation.',
+    description: 'Plane gives the traditional signet a quieter shape through a plain flat face and a softly brushed finish. The band narrows towards the underside of the finger, keeping the visible top more defined without making the whole ring equally broad. Wear it alone as a small accent or pair it with a simple chain in the same tone. Sizes use the US ring scale, so check an existing comfortable ring or a sizing guide before choosing. Remove before lifting, swimming or using strong cleaning products. A soft dry cloth is usually enough for everyday care and light surface marks.',
+  },
+  {
+    name: 'Fold Leather Bifold Wallet', code: 'WLT', subcategory: 'Bags & Backpacks', productType: 'Wallets', price: 3900,
+    colors: ['Black', 'Chocolate'], sizes: ['One Size'], material: 'Leather outer; polyester lining', image: 'existing-accessories', tags: ['wallet', 'bifold', 'leather'],
+    shortDescription: 'A compact leather bifold with card slots and a note compartment, keeping daily payment essentials organized without a bulky external fastening.',
+    description: 'Fold keeps a daily wallet straightforward with a two-panel design and a smooth leather exterior. Inside, card slots separate the cards you use most, while a longer compartment holds folded or full-length notes depending on their size. The unfastened bifold shape slips easily into a trouser or jacket pocket when kept lightly filled. Choose black for a quieter finish or chocolate for a warmer leather tone that develops character with wear. Avoid overloading the slots, which can stretch the edges. Wipe away dust with a soft cloth and keep the wallet away from prolonged moisture and strong direct heat.',
+  },
+  {
+    name: 'Slimline Leather Card Holder', code: 'WLT', subcategory: 'Bags & Backpacks', productType: 'Wallets', price: 2300,
+    colors: ['Black', 'Chocolate', 'Taupe'], sizes: ['One Size'], material: 'Leather outer; polyester-lined center pocket', image: 'existing-accessories', tags: ['card holder', 'wallet', 'minimal'],
+    shortDescription: 'A slim leather card holder with external slots and a central pocket, designed for lighter carry when you only need the essentials.',
+    description: 'Slimline pares the wallet back to a flat shape with accessible card slots on the outside and a small central pocket. The leather body has simple edge stitching and no bulky zip or fold, making it useful in a compact crossbody or a front trouser pocket. Carry your most-used cards and a small folded note rather than filling every opening beyond its natural shape. The neutral colors coordinate easily with belts and bags from the daily rotation. Wipe clean with a soft dry cloth, keep away from prolonged dampness and allow the leather to settle naturally around its contents.',
+  },
+  {
+    name: 'North Soft Fringe Scarf', code: 'SCF', subcategory: 'Other Accessories', productType: 'Scarves & Gloves', price: 3200,
+    colors: ['Charcoal', 'Cream', 'Taupe', 'Burgundy'], sizes: ['One Size'], material: '70% acrylic, 30% wool woven fabric', image: 'contour-ribbed-top', tags: ['scarf', 'winter', 'soft texture'],
+    shortDescription: 'A softly brushed scarf with short fringed ends and a generous rectangular shape, adding texture and an easy layer to cooler-weather outfits.',
+    description: 'North adds a soft woven layer around the neck without a busy print. The wool-blend fabric has a lightly brushed surface, with short fringe at each end giving the plain rectangle a little movement. Its generous shape can be folded into a narrower wrap or draped loosely over a coat and knit. Cream lightens a dark winter outfit, while burgundy brings a small color accent beside charcoal. Avoid catching the weave on zips or rough hardware when layering. Air between wears, clean gently according to the label and dry flat rather than hanging the scarf while it is heavy with water.',
+  },
+  {
+    name: 'Arc Everyday Hoop Earrings', code: 'EAR', subcategory: 'Jewelry & Watches', productType: 'Earrings', price: 2100,
+    colors: ['Silver', 'Gold'], sizes: ['One Size'], material: 'Stainless steel; coated gold-tone option', image: 'existing-accessories', tags: ['earrings', 'hoops', 'minimal'],
+    shortDescription: 'Small rounded hoop earrings with a simple hinged closure, offering an understated metal accent for everyday tees, shirts and evening layers.',
+    description: 'Arc keeps the hoop compact and rounded, with a smooth surface that catches a little light without elaborate decoration. A hinged closure makes the pair straightforward to put on and secure. Their restrained scale works with an open shirt collar, a high-neck knit or a plain cotton tee, and the two metal tones can be coordinated with your watch or necklace. Check that the fastening is fully closed before wearing. Remove before sleep, swimming and strenuous activity, and keep cosmetics or fragrance away from the finish. Clean gently with a soft cloth and store the pair separately from loose chains.',
+  },
+];
+
+export default accessories;

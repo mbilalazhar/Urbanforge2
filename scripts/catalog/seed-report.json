@@ -1,0 +1,22 @@
+{
+  "mode": "applied",
+  "version": "urbanforge-catalog-2026-10",
+  "inserted": 83,
+  "preserved": 0,
+  "catalog": {
+    "total": 88,
+    "categories": {
+      "Men": 22,
+      "Women": 22,
+      "Shoes": 22,
+      "Accessories": 22
+    },
+    "newArrival": 25,
+    "featured": 15,
+    "bestseller": 20,
+    "essentials": 26,
+    "sale": 32,
+    "variants": 1094,
+    "stock": 8372
+  }
+}

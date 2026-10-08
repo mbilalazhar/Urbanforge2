@@ -11,6 +11,7 @@ import ProductCard from "@/components/product/ProductCard";
 import { useCatalog } from "@/lib/catalog/client";
 import { toProductCard, productPrice, formatProductPrice } from "@/lib/products";
 import { catalogSections } from "@/lib/catalog-sections";
+import { matchesCatalogProduct } from "@/lib/catalog-search";
 import styles from "./search.module.css";
 
 const tabs = ["All", "Products", "Collections", "Categories"] as const;
@@ -44,7 +45,7 @@ export default function SearchPage({ query }: { query: string }) {
   const [showFilters, setShowFilters] = useState(false);
   const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const matches = (value: string) => terms.every(term => value.toLowerCase().includes(term));
-  const matchingProducts = products.filter(product => matches(`${product.name} ${product.category} ${product.tag ?? ""} ${product.colors?.map(color => color.name).join(" ")}`));
+  const matchingProducts = (catalog.data?.products ?? []).filter(product => matchesCatalogProduct(product, query)).map(toProductCard);
   const filteredProducts = matchingProducts.filter(product =>
     (!selectedCategories.length || selectedCategories.includes(product.category)) &&
     (!selectedSizes.length || selectedSizes.some(size => (product.sizes ?? []).includes(size))) &&

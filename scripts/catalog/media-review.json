@@ -1,0 +1,990 @@
+[
+  {
+    "sku": "UF-M-TS-001",
+    "name": "Foundry Heavyweight Box Tee",
+    "cover": "/products/catalog/foundry-heavyweight-tee.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-JK-002",
+    "name": "Rawline Denim Trucker Jacket",
+    "cover": "/products/catalog/rawline-denim-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-JK-003",
+    "name": "District Four-Pocket Utility Jacket",
+    "cover": "/products/catalog/district-utility-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-TS-004",
+    "name": "Baseline Contrast Collar Tee",
+    "cover": "/products/catalog/foundry-heavyweight-tee.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-PL-005",
+    "name": "Avenue Cotton Pique Polo",
+    "cover": "/products/catalog/foundry-heavyweight-tee.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-SH-006",
+    "name": "Coast Linen Blend Resort Shirt",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-SH-007",
+    "name": "Gridline Oxford Overshirt",
+    "cover": "/products/catalog/rawline-denim-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-SW-008",
+    "name": "Interval Loopback Crew Sweatshirt",
+    "cover": "/products/catalog/foundry-heavyweight-tee.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-KN-009",
+    "name": "Atelier Textured Button Cardigan",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-JK-010",
+    "name": "Terminal Minimal Bomber Jacket",
+    "cover": "/products/catalog/existing-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-CT-011",
+    "name": "Northline Relaxed City Coat",
+    "cover": "/products/catalog/existing-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-JN-012",
+    "name": "Rail Straight-Leg Denim Jeans",
+    "cover": "/products/catalog/existing-bottoms.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-TR-013",
+    "name": "Frame Tapered Cotton Chinos",
+    "cover": "/products/catalog/studio-wide-leg-trousers.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-TR-014",
+    "name": "Studio Relaxed Pleated Trousers",
+    "cover": "/products/catalog/studio-wide-leg-trousers.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-ST-015",
+    "name": "Weekend Drawstring Twill Shorts",
+    "cover": "/products/catalog/existing-bottoms.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-JG-016",
+    "name": "Motion Tapered Jersey Joggers",
+    "cover": "/products/catalog/existing-bottoms.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-M-SH-017",
+    "name": "Harbor Seersucker Camp Shirt",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-TR-001",
+    "name": "Studio Wide-Leg Tailored Trousers",
+    "cover": "/products/catalog/studio-wide-leg-trousers.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-TP-002",
+    "name": "Contour Long-Sleeve Ribbed Top",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-JK-003",
+    "name": "Afterhours Cropped Biker Jacket",
+    "cover": "/products/catalog/afterhours-cropped-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-TS-004",
+    "name": "Everyday Relaxed Cotton Tee",
+    "cover": "/products/catalog/foundry-heavyweight-tee.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-TP-005",
+    "name": "Form Square-Neck Rib Tank",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-TS-006",
+    "name": "Offbeat Boxy Crop Tee",
+    "cover": "/products/catalog/foundry-heavyweight-tee.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-SH-007",
+    "name": "Sunday Oversized Poplin Shirt",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-BL-008",
+    "name": "Drape Soft Collar Blouse",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-HD-009",
+    "name": "Downtime Relaxed Pullover Hoodie",
+    "cover": "/products/catalog/existing-hoodie.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-SW-010",
+    "name": "Ease Half-Zip Sweatshirt",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-KN-011",
+    "name": "Cloud Textured Knit Cardigan",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-JK-012",
+    "name": "Rework Relaxed Denim Jacket",
+    "cover": "/products/catalog/rawline-denim-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-JK-013",
+    "name": "Orbit Cropped Bomber Jacket",
+    "cover": "/products/catalog/existing-women.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-BZ-014",
+    "name": "Outline Relaxed Single-Breasted Blazer",
+    "cover": "/products/catalog/afterhours-cropped-jacket.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-CT-015",
+    "name": "Boulevard Belted Trench Coat",
+    "cover": "/products/catalog/existing-women.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-CP-016",
+    "name": "District Straight-Leg Cargo Trousers",
+    "cover": "/products/catalog/existing-women.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-JN-017",
+    "name": "Archive High-Rise Straight Jeans",
+    "cover": "/products/catalog/existing-bottoms.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-TR-018",
+    "name": "Metro Tapered Tailored Trousers",
+    "cover": "/products/catalog/studio-wide-leg-trousers.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-SK-019",
+    "name": "Line Satin Bias Midi Skirt",
+    "cover": "/products/catalog/studio-wide-leg-trousers.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-DR-020",
+    "name": "Daybreak Ribbed Midi Dress",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-DR-021",
+    "name": "Gallery Relaxed Shirt Dress",
+    "cover": "/products/catalog/existing-women.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-W-ST-022",
+    "name": "Roam Pleated Cotton Shorts",
+    "cover": "/products/catalog/existing-women.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-001",
+    "name": "Vector Chunky Street Runner",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-BOT-002",
+    "name": "Shift Lug-Sole Chelsea Boots",
+    "cover": "/products/catalog/shift-chelsea-boots.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Previously generated showcase cover",
+    "remaining": [
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-003",
+    "name": "Courtline Retro Low Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-004",
+    "name": "Mono Minimal Leather Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-005",
+    "name": "Pace Mesh Lifestyle Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-006",
+    "name": "Canvas High Street Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-007",
+    "name": "Dock Canvas Low Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-008",
+    "name": "Signal Panel Street Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-009",
+    "name": "Retro Suede Terrace Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-010",
+    "name": "Form Knit Slip-On Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SNK-011",
+    "name": "Platform Clean Court Sneakers",
+    "cover": "/products/catalog/vector-street-runner.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-BOT-012",
+    "name": "Foundry Lace-Up Utility Boots",
+    "cover": "/products/catalog/shift-chelsea-boots.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-BOT-013",
+    "name": "Nomad Suede Desert Boots",
+    "cover": "/products/catalog/shift-chelsea-boots.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-BOT-014",
+    "name": "Horizon Leather Ankle Boots",
+    "cover": "/products/catalog/shift-chelsea-boots.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-LOF-015",
+    "name": "Axis Leather Penny Loafers",
+    "cover": "/products/catalog/shift-chelsea-boots.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-LOF-016",
+    "name": "Block Chunky Sole Loafers",
+    "cover": "/products/catalog/shift-chelsea-boots.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-LOF-017",
+    "name": "Drift Suede Slip-On Loafers",
+    "cover": "/products/catalog/shift-chelsea-boots.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-FLT-018",
+    "name": "Fold Square-Toe Ballet Flats",
+    "cover": "/products/catalog/existing-women.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SLD-019",
+    "name": "Pause Moulded Everyday Slides",
+    "cover": "/products/catalog/existing-shoes.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SLD-020",
+    "name": "Form Wide-Strap Leather Slides",
+    "cover": "/products/catalog/existing-shoes.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-SDL-021",
+    "name": "Roam Adjustable Strap Sandals",
+    "cover": "/products/catalog/existing-shoes.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-S-HEL-022",
+    "name": "Evening Square-Toe Block Heels",
+    "cover": "/products/catalog/existing-women.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-WAT-001",
+    "name": "Axis Minimal Steel Watch",
+    "cover": "/products/catalog/existing-watch.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BAG-002",
+    "name": "Transit Utility Crossbody Bag",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BAG-003",
+    "name": "Structure Everyday Backpack",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-CAP-004",
+    "name": "District Six-Panel Cotton Cap",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-WAT-005",
+    "name": "Arc Slim Leather-Strap Watch",
+    "cover": "/products/catalog/existing-watch.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BAG-006",
+    "name": "Form Compact Shoulder Bag",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BAG-007",
+    "name": "Canvas Daily Carry Tote",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BAG-008",
+    "name": "Nomad Roll-Top Daypack",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-CAP-009",
+    "name": "Forge Low-Profile Dad Cap",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BEA-010",
+    "name": "North Ribbed Cuff Beanie",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-SUN-011",
+    "name": "Frame Square Acetate Sunglasses",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-SUN-012",
+    "name": "Arc Slim Oval Sunglasses",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BLT-013",
+    "name": "Anchor Leather Everyday Belt",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BLT-014",
+    "name": "Transit Adjustable Webbing Belt",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-NCK-015",
+    "name": "Link Minimal Curb Chain",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-NCK-016",
+    "name": "Trace Bar Pendant Necklace",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-BRC-017",
+    "name": "Axis Flat-Link Bracelet",
+    "cover": "/products/catalog/existing-watch.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-RNG-018",
+    "name": "Plane Brushed Signet Ring",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-WLT-019",
+    "name": "Fold Leather Bifold Wallet",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-WLT-020",
+    "name": "Slimline Leather Card Holder",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-SCF-021",
+    "name": "North Soft Fringe Scarf",
+    "cover": "/products/catalog/contour-ribbed-top.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  },
+  {
+    "sku": "UF-A-EAR-022",
+    "name": "Arc Everyday Hoop Earrings",
+    "cover": "/products/catalog/existing-accessories.webp",
+    "mediaStatus": "manual-review",
+    "coverSource": "Temporary reused project image",
+    "remaining": [
+      "Replace temporary cover",
+      "Add gallery images",
+      "Add product video if desired"
+    ]
+  }
+]

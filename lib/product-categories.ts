@@ -1,6 +1,7 @@
 /** Shared by the admin form and API. */
 const clothing = (women: boolean) => ({
   Tops: ["T-Shirts", "Shirts & Blouses", "Polos", "Sweaters & Cardigans", "Hoodies & Sweatshirts"],
+  ...(women ? { Dresses: ["Midi Dresses", "Shirt Dresses"] } : {}),
   Bottoms: ["Jeans", "Pants & Trousers", "Shorts", ...(women ? ["Skirts"] : []), "Leggings & Joggers"],
   Outerwear: ["Jackets", "Coats", "Blazers", "Vests"],
   Activewear: ["Gym Shorts", "Tracksuits"],

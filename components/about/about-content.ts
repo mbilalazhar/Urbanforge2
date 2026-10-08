@@ -28,4 +28,4 @@ export const testimonials = [
   { title: "A brand that feels like me", quote: "Simple pieces with real personality. I love being able to make every outfit my own, from a quiet weekend to a night in the city.", name: "Alex C.", image: testimonialImages["Alex C."] },
 ];
 
-export const pressNames = ["HYPEBEAST", "GQ", "COMPLEX", "Esquire.", "VOGUE", "FASHIONUNITED"];
+export const pressNames = ["HYPEBEAST", "GQ", "COMPLEX", "Esquire.", "VOGUE", "FASHIONUNITED", "Highsnobiety", "DAZED", "i-D"];

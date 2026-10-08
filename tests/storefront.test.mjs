@@ -8,7 +8,25 @@ async function load(path) {
   return import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
 }
 const { toProductCard } = await load('../lib/products.ts');
+const { collectionProducts } = await load('../lib/home-collections.ts');
 const { addCartItem, changeCartQuantity, formatCartPrice } = await load('../lib/cart-data.ts');
+
+test('home collections use product flags, essential tags, and real review rankings', () => {
+  const products = [
+    { id: 'new', newArrival: true, featured: true, tags: [' ESSENTIALS '], reviewCount: 0, ratingAverage: 0 },
+    { id: 'popular', bestseller: true, tags: [], reviewCount: 10, ratingAverage: 4 },
+    { id: 'rated', tags: ['essential'], reviewCount: 2, ratingAverage: 5 },
+    { id: 'rated-more', tags: ['nonessential'], reviewCount: 6, ratingAverage: 5 },
+    { id: 'unrated', tags: [] },
+  ];
+  const ids = collection => collectionProducts(products, collection).map(product => product.id);
+  assert.deepEqual(ids('new-arrivals'), ['new']);
+  assert.deepEqual(ids('featured'), ['new']);
+  assert.deepEqual(ids('bestsellers'), ['popular']);
+  assert.deepEqual(ids('essentials'), ['new', 'rated']);
+  assert.deepEqual(ids('top-rated'), ['rated-more', 'rated', 'popular']);
+  assert.deepEqual(products.map(product => product.id), ['new', 'popular', 'rated', 'rated-more', 'unrated'], 'ranking does not reorder the shared catalog');
+});
 
 test('catalog cards use actual product IDs, media, pricing and options', () => {
   const card = toProductCard({ id: 'real-id', name: 'Real shirt', category: 'Women', price: 2000, salePrice: 1500, images: ['/api/media/image-id'], colors: ['Blue'], sizes: ['M'], newArrival: true });

@@ -9,7 +9,7 @@ import { useAdminMutation, useAdminQuery } from "@/lib/admin/client";
 import type { AdminProduct } from "@/lib/admin/types";
 import { productCategories, subcategoriesFor, productTypesFor } from "@/lib/product-categories";
 import { IMAGE_TYPES, VIDEO_TYPES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, MAX_MEDIA_BYTES, isProductVideoUrl, VIDEO_URL_GUIDANCE } from "@/lib/product-media";
-import ProductMediaFiles from "./ProductMediaFiles";
+import ProductMediaFiles, { ProductVideoUrls } from "./ProductMediaFiles";
 import styles from "./catalog.module.css";
 
 type VariantDraft = { id: string; sku: string; color: string; size: string; stock: string };
@@ -135,6 +135,7 @@ function ProductEditor({ product, onClose, onSaved }: { product?: AdminProduct; 
               <Field label="Upload product videos (optional)" wide hint="MP4 (H.264) is recommended for broad browser support. WebM and MOV are also accepted. Up to 50 MB each; 10 videos total. All uploads combined: 100 MB."><input type="file" multiple accept={VIDEO_TYPES.join(",")} disabled={save.isPending} onChange={event => { addFiles("videos", event.target.files); event.target.value = ""; }} /></Field>
               <div className={styles.wide}><ProductMediaFiles files={videoFiles} disabled={save.isPending} onRemove={index => setVideoFiles(files => files.filter((_, i) => i !== index))} /></div>
               <Field label="Video URLs (optional)" wide hint="One direct .mp4, .webm or .mov file URL per line. For Magnific/Freepik video pages, download the video and upload the file above."><textarea rows={2} value={draft.videos} onChange={event => set("videos", event.target.value)} placeholder="https://example.com/product-video.mp4" /></Field>
+              <div className={styles.wide}><ProductVideoUrls urls={mediaList(draft.videos)} /></div>
             </div>
           </section>
           <section className={styles.card}>

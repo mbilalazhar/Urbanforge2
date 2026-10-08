@@ -1,0 +1,136 @@
+const women = [
+  {
+    name: 'Studio Wide-Leg Tailored Trousers', code: 'TR', subcategory: 'Bottoms', productType: 'Pants & Trousers', price: 6900,
+    colors: ['Black', 'Taupe', 'Stone'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '64% polyester, 33% viscose, 3% elastane', image: 'studio-wide-leg-trousers', tags: ['wide leg', 'tailored', 'pleated'],
+    shortDescription: 'High-waisted trousers with soft front pleats and a fluid wide leg, designed to bring relaxed tailoring into your everyday wardrobe.',
+    description: 'A defined high waist and full-length wide leg give these Studio trousers their elongated shape. Soft front pleats add room through the hip, while a smooth viscose-blend weave falls cleanly over loafers or sneakers. Side pockets sit discreetly in the seams, and a concealed front fastening keeps the waistband simple. Tuck in a ribbed top to show the pleats or add an oversized shirt for an easier silhouette. The fabric works well across mild seasons and layers comfortably under a longer coat. Steam lightly between wears and follow the care label to protect the drape and pressed details.',
+  },
+  {
+    name: 'Contour Long-Sleeve Ribbed Top', code: 'TP', subcategory: 'Tops', productType: 'T-Shirts', price: 3400,
+    colors: ['Bone', 'Black', 'Chocolate'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '95% cotton, 5% elastane rib jersey', image: 'contour-ribbed-top', tags: ['ribbed', 'fitted', 'layering'],
+    shortDescription: 'A fitted cotton rib top with long sleeves and a close round neckline, made to tuck neatly into high-rise denim and tailoring.',
+    description: 'Contour follows the body with a fine vertical rib and a small amount of stretch, creating a fitted layer that remains comfortable through the shoulders and arms. The round neckline sits close without a heavy collar, and the hip-length hem gives enough coverage to tuck into trousers. Narrow sleeves slide easily under blazers, overshirts and sleeveless knits. Wear the bone shade with dark denim for contrast, or pair chocolate with tonal trousers for a softer look. The cotton-rich fabric suits daily wear through changing seasons. Wash gently inside out, reshape while damp and avoid drying against direct heat.',
+  },
+  {
+    name: 'Afterhours Cropped Biker Jacket', code: 'JK', subcategory: 'Outerwear', productType: 'Jackets', price: 11900,
+    colors: ['Black', 'Chocolate'], sizes: ['XS', 'S', 'M', 'L'], material: 'Polyurethane-coated polyester; polyester lining', image: 'afterhours-cropped-jacket', tags: ['leather look', 'cropped', 'biker'],
+    shortDescription: 'A cropped leather-look jacket with an asymmetric zip and pointed lapels, bringing a compact, structured edge to dresses and wide-leg trousers.',
+    description: 'Afterhours uses a compact boxy shape to balance wide trousers, flowing skirts and high-rise denim. The leather-look shell has a smooth surface with a subtle sheen, while a soft lining makes it comfortable over thin knits and tees. An asymmetric metal zip and folded lapels reference the classic biker jacket without an overly heavy silhouette. Zipped pockets keep the front practical, and the cropped hem defines the waist when worn open. Layer it over a simple dress for the evening or a ribbed tank during the day. Wipe light marks with a damp cloth and keep it away from direct heat.',
+  },
+  {
+    name: 'Everyday Relaxed Cotton Tee', code: 'TS', subcategory: 'Tops', productType: 'T-Shirts', price: 2900,
+    colors: ['White', 'Black', 'Burgundy', 'Stone'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '100% cotton jersey', image: 'foundry-heavyweight-tee', tags: ['cotton', 'relaxed fit', 'minimal'],
+    shortDescription: 'A softly structured cotton crew tee with easy sleeves and a straight body, ready for denim, layered outfits and everyday tailoring.',
+    description: 'An easy shape and a clean neckline make this cotton tee useful across the week. The body has a relaxed fit without excessive volume, and the sleeves finish at a comfortable point on the upper arm. A narrow rib neck provides a tidy frame for a chain or an open shirt collar. Wear the straight hem loose with jeans, half-tucked into trousers or under a cardigan when the weather cools. The smooth cotton jersey is comfortable against the skin and folds neatly for travel. Wash with similar colors, turn inside out and line dry to help maintain its shape.',
+  },
+  {
+    name: 'Form Square-Neck Rib Tank', code: 'TP', subcategory: 'Tops', productType: 'T-Shirts', price: 2600,
+    colors: ['Black', 'Cream', 'Olive'], sizes: ['XS', 'S', 'M', 'L'], material: '94% cotton, 6% elastane rib jersey', image: 'contour-ribbed-top', tags: ['tank', 'ribbed', 'summer'],
+    shortDescription: 'A fitted ribbed tank with a square neckline and wider shoulder straps, offering a clean base for open shirts and summer layers.',
+    description: 'Form brings a more defined neckline to the simple everyday tank. Its square front and wider straps create clean lines, while cotton-rich rib jersey stretches gently through the body. The hem reaches the high hip so it stays tucked into jeans or a skirt without unnecessary bulk. Wear it beneath a relaxed linen shirt, pair it with cargo trousers or let it sit alone with tailored shorts in warm weather. The fitted cut also makes it a useful base under a blazer. Wash on a gentle cycle, avoid wringing and reshape the neckline before drying flat or on a line.',
+  },
+  {
+    name: 'Offbeat Boxy Crop Tee', code: 'TS', subcategory: 'Tops', productType: 'T-Shirts', price: 3100,
+    colors: ['Washed Black', 'Bone', 'Deep Red'], sizes: ['XS', 'S', 'M', 'L'], material: '100% cotton jersey', image: 'foundry-heavyweight-tee', tags: ['cropped', 'oversized', 'streetwear'],
+    shortDescription: 'A boxy cropped tee with dropped shoulders and a substantial neckline, cut to sit naturally with high-waisted trousers and relaxed denim.',
+    description: 'Offbeat pairs a shorter body with generous sleeves for a balanced oversized shape. The cotton jersey has enough weight to stand away slightly from the body, and the ribbed crew neckline adds a neat finish to the relaxed shoulders. A straight cropped hem meets high-rise trousers without needing a tuck, making it an easy choice with cargos, wide jeans or a long skirt. Add an open bomber on cooler days to keep the proportions visible. Choose your usual size for the intended boxy fit. Wash inside out with similar colors and avoid high heat when drying the garment.',
+  },
+  {
+    name: 'Sunday Oversized Poplin Shirt', code: 'SH', subcategory: 'Tops', productType: 'Shirts & Blouses', price: 4900,
+    colors: ['White', 'Light Blue', 'Stone'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '100% cotton poplin', image: 'contour-ribbed-top', tags: ['oversized', 'poplin', 'shirt'],
+    shortDescription: 'A crisp cotton poplin shirt with a generous fit, curved hem and button cuffs, made for loose layering or a relaxed front tuck.',
+    description: 'Sunday gives a classic button-through shirt more room through the shoulders and body. Cotton poplin has a smooth, crisp surface that holds the collar and cuffs neatly while the curved hem softens the outline. A chest pocket adds a practical detail without crowding the front. Wear it loose over a tank and straight jeans, tuck one side into wide trousers or roll the sleeves for an informal summer layer. The longer back offers comfortable coverage when left untucked. Wash gently, hang while damp to ease creasing and press the collar and placket for a sharper finish.',
+  },
+  {
+    name: 'Drape Soft Collar Blouse', code: 'BL', subcategory: 'Tops', productType: 'Shirts & Blouses', price: 5400,
+    colors: ['Cream', 'Burgundy', 'Chocolate'], sizes: ['XS', 'S', 'M', 'L'], material: '100% viscose woven fabric', image: 'contour-ribbed-top', tags: ['blouse', 'fluid', 'smart casual'],
+    shortDescription: 'A fluid long-sleeve blouse with a soft open collar and understated button front, bringing gentle movement to denim and tailored separates.',
+    description: 'A softly falling collar and a fluid woven fabric give Drape a less formal feel than a traditional office shirt. The viscose body moves easily, with enough room through the chest for a comfortable fit when tucked in. Button cuffs allow the sleeves to be worn long or folded back, and the uncomplicated front keeps the focus on the fabric. Pair it with tailored trousers for a weekday or use the burgundy shade to warm up dark denim. The lightweight weave layers neatly beneath a jacket. Wash gently according to the care label and smooth while damp rather than using high heat.',
+  },
+  {
+    name: 'Downtime Relaxed Pullover Hoodie', code: 'HD', subcategory: 'Tops', productType: 'Hoodies & Sweatshirts', price: 6400,
+    colors: ['Grey', 'Black', 'Taupe'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '80% cotton, 20% polyester brushed fleece', image: 'existing-hoodie', tags: ['hoodie', 'fleece', 'relaxed fit'],
+    shortDescription: 'A relaxed fleece hoodie with a roomy hood, dropped shoulders and a kangaroo pocket, built for comfortable layering on cooler days.',
+    description: 'Downtime is a generous pullover layer with a softly brushed inner face and a smooth outer surface. Dropped shoulders give the sleeves an easy line, while ribbed cuffs and hem keep the shape from feeling loose at the edges. A front kangaroo pocket provides a natural place for your hands, and the hood adds coverage when the temperature falls. Wear it with leggings for a relaxed morning or contrast its volume with a long tailored coat and straight jeans. The cotton-rich blend feels substantial without needing a separate lining. Wash inside out and air dry to keep the fleece finish comfortable.',
+  },
+  {
+    name: 'Ease Half-Zip Sweatshirt', code: 'SW', subcategory: 'Tops', productType: 'Hoodies & Sweatshirts', price: 5900,
+    colors: ['Bone', 'Navy', 'Grey'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '85% cotton, 15% polyester loopback terry', image: 'contour-ribbed-top', tags: ['half zip', 'sweatshirt', 'layering'],
+    shortDescription: 'A relaxed half-zip sweatshirt with a stand collar and soft loopback interior, offering an adjustable neckline for everyday transitional outfits.',
+    description: 'Ease uses a short front zip to give a familiar sweatshirt a more versatile neckline. Fasten it higher on a cool morning or leave it open over a tee to create a softer collar. The cotton-rich loopback fabric has a comfortable midweight feel, with relaxed shoulders and a gently gathered rib hem. Wide sleeves make layering simple, and the plain front keeps the styling flexible. Pair it with straight jeans, jersey trousers or a pleated skirt for contrast. Wash with the zip closed, reshape the collar while damp and avoid high heat to protect the ribbed edges.',
+  },
+  {
+    name: 'Cloud Textured Knit Cardigan', code: 'KN', subcategory: 'Tops', productType: 'Sweaters & Cardigans', price: 6500,
+    colors: ['Cream', 'Taupe', 'Charcoal'], sizes: ['XS', 'S', 'M', 'L'], material: '60% cotton, 40% acrylic knit', image: 'contour-ribbed-top', tags: ['cardigan', 'knitwear', 'soft texture'],
+    shortDescription: 'A softly textured button cardigan with a relaxed V-neck and easy sleeves, sized for layering over fitted tops without a bulky outline.',
+    description: 'Cloud adds texture to a simple outfit through an open, softly raised knit rather than a bold pattern. The cotton-blend yarn has a comfortable hand, with ribbing at the cuffs and hem to define the relaxed silhouette. A V-neck leaves space for a tank or fine tee, while tonal buttons make it easy to wear closed as a top. Try it with wide-leg denim or over a slip dress when the evening cools. Keep it folded between wears so the shoulders retain their shape. Hand wash or use the care-label setting, then reshape and dry flat away from heat.',
+  },
+  {
+    name: 'Rework Relaxed Denim Jacket', code: 'JK', subcategory: 'Outerwear', productType: 'Jackets', price: 8900,
+    colors: ['Light Blue', 'Vintage Indigo', 'Washed Black'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '100% cotton denim', image: 'rawline-denim-jacket', tags: ['denim', 'jacket', 'relaxed fit'],
+    shortDescription: 'A relaxed cotton denim jacket with classic panel seams, chest pockets and a slightly boxy body that layers easily over everyday tops.',
+    description: 'Rework keeps the practical details of a denim jacket and softens the proportions for daily layering. The cotton denim has a structured hand, with front panel seams and flap chest pockets giving the body definition. A slightly dropped shoulder leaves space for a light knit, while the hip-length hem works well with high-rise jeans and longer skirts. Button cuffs can be worn closed or rolled back to show a contrasting layer underneath. Choose light blue for an easy daytime outfit or washed black for a quieter finish. Wash sparingly inside out and line dry to maintain the denim texture.',
+  },
+  {
+    name: 'Orbit Cropped Bomber Jacket', code: 'JK', subcategory: 'Outerwear', productType: 'Jackets', price: 9200,
+    colors: ['Olive', 'Black', 'Taupe'], sizes: ['XS', 'S', 'M', 'L'], material: 'Nylon shell; polyester lining', image: 'existing-women', tags: ['bomber', 'cropped', 'urban'],
+    shortDescription: 'A cropped nylon bomber with rounded sleeves and ribbed edges, designed to balance high-waisted denim, skirts and full-length wide trousers.',
+    description: 'Orbit brings a compact outer layer to outfits with more volume below the waist. The lightly rounded sleeves and ribbed hem shape the smooth nylon shell, while a simple front zip keeps it easy to wear open or closed. Side pockets add space for small essentials, and the lining helps it slide over a long-sleeve top. Pair the cropped length with wide trousers or a midi skirt to keep the proportions clear. It works best as a light layer in mild conditions rather than a winter coat. Spot clean small marks and follow the care label for washing and drying.',
+  },
+  {
+    name: 'Outline Relaxed Single-Breasted Blazer', code: 'BZ', subcategory: 'Outerwear', productType: 'Blazers', price: 10500,
+    colors: ['Black', 'Stone', 'Charcoal'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '68% polyester, 30% viscose, 2% elastane; polyester lining', image: 'afterhours-cropped-jacket', tags: ['blazer', 'tailored', 'relaxed fit'],
+    shortDescription: 'A relaxed single-breasted blazer with notched lapels and light shoulder structure, giving tees, denim and tailored outfits a more considered finish.',
+    description: 'Outline is cut with enough room to layer comfortably while keeping a defined shoulder and clean front. The woven viscose blend drapes softly, with a smooth lining through the sleeves and body. Notched lapels, flap pockets and a simple button closure provide the familiar details of tailoring without a tightly fitted waist. Wear it with matching-tone trousers for a coordinated look or over a plain tank and straight jeans. A back vent gives the hem room when sitting or walking. Hang on a shaped hanger, steam gently between wears and use professional cleaning when the garment needs a full refresh.',
+  },
+  {
+    name: 'Boulevard Belted Trench Coat', code: 'CT', subcategory: 'Outerwear', productType: 'Coats', price: 13900,
+    colors: ['Stone', 'Taupe', 'Black'], sizes: ['XS', 'S', 'M', 'L'], material: '60% cotton, 40% polyester twill; polyester lining', image: 'existing-women', tags: ['trench', 'belted', 'transitional'],
+    shortDescription: 'A longline twill trench with a self-fabric belt, generous lapels and side pockets, made for relaxed layering through changing seasons.',
+    description: 'Boulevard gives everyday outfits a longer line through a softly structured twill shell and generous lapels. The removable self-fabric belt lets you define the waist or leave the coat open, and side pockets keep essentials close without disrupting the silhouette. A smooth lining helps it layer over shirts and lighter knitwear. Wear it with sneakers and loose denim for a casual commute, or tie the belt over tailored trousers for a more defined shape. The fabric is intended for transitional dressing rather than heavy rain protection. Hang after wearing and clean according to the care label to maintain the finish.',
+  },
+  {
+    name: 'District Straight-Leg Cargo Trousers', code: 'CP', subcategory: 'Bottoms', productType: 'Pants & Trousers', price: 6100,
+    colors: ['Olive', 'Stone', 'Black'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '100% cotton twill', image: 'existing-women', tags: ['cargo', 'utility', 'straight leg'],
+    shortDescription: 'Straight-leg cotton cargo trousers with roomy thigh pockets and a defined high waist, balancing practical workwear details with a clean everyday shape.',
+    description: 'These District cargos keep the leg straight and the pockets purposeful. Cotton twill gives the fabric a dry texture and a little structure, while the higher waist creates a comfortable anchor for cropped tops or tucked-in tees. Flap thigh pockets sit flat when empty, with side pockets available for smaller items. Belt loops and a front zip allow a familiar fit without a gathered waistband. Pair them with a close-fitting rib top to balance the volume or an open shirt for an easy summer outfit. Wash inside out, close the pocket flaps and line dry to preserve the shape.',
+  },
+  {
+    name: 'Archive High-Rise Straight Jeans', code: 'JN', subcategory: 'Bottoms', productType: 'Jeans', price: 5900,
+    colors: ['Vintage Indigo', 'Light Blue', 'Washed Black'], sizes: ['26', '28', '30', '32', '34'], material: '99% cotton, 1% elastane denim', image: 'existing-bottoms', tags: ['jeans', 'high rise', 'straight leg'],
+    shortDescription: 'High-rise straight jeans with classic five-pocket details and a small amount of stretch, offering a structured look with everyday ease.',
+    description: 'Archive combines a defined high waist with a straight leg that leaves comfortable room through the calf. Cotton-rich denim holds a clean outline, with a small stretch content for sitting and moving throughout the day. The five-pocket construction, belt loops and zip fly make it a familiar daily staple. Wear the full length over low sneakers, or turn the hem once with loafers and a tucked shirt. The darker washes pair neatly with a blazer, while light blue works well with a relaxed sweatshirt. Wash inside out in cool water and avoid high heat to protect the denim finish.',
+  },
+  {
+    name: 'Metro Tapered Tailored Trousers', code: 'TR', subcategory: 'Bottoms', productType: 'Pants & Trousers', price: 5800,
+    colors: ['Charcoal', 'Black', 'Taupe'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '65% polyester, 32% viscose, 3% elastane', image: 'studio-wide-leg-trousers', tags: ['tailored', 'tapered', 'workwear'],
+    shortDescription: 'Tapered ankle-length trousers with a smooth waistband and discreet side pockets, bringing an easy tailored option to busy weekdays and evenings.',
+    description: 'Metro narrows gently from a comfortable hip to a neat ankle-length hem, creating a tailored shape that works with flat shoes. The smooth woven fabric has a soft drape and a little stretch, while a clean waistband sits neatly beneath tucked tops. Side pockets and a concealed front fastening keep the details understated. Pair them with a blouse and loafers for work, or switch to a relaxed tee and sneakers for a less formal look. The shorter length makes them useful through warmer and transitional seasons. Follow the care label and press lightly along the leg for a sharper line.',
+  },
+  {
+    name: 'Line Satin Bias Midi Skirt', code: 'SK', subcategory: 'Bottoms', productType: 'Skirts', price: 5200,
+    colors: ['Chocolate', 'Black', 'Cream'], sizes: ['XS', 'S', 'M', 'L'], material: '100% polyester satin', image: 'studio-wide-leg-trousers', tags: ['midi skirt', 'satin', 'fluid'],
+    shortDescription: 'A fluid bias-cut midi skirt with a softly lustrous finish and a clean waist, ready to pair with fitted tops or relaxed knits.',
+    description: 'Line uses a bias cut to let the satin fall gently around the body rather than sit in a rigid shape. A simple waistband keeps the top edge clean, and the midi hem gives the fabric space to move as you walk. The subtle sheen adds contrast to cotton tees, ribbed tanks and textured cardigans without demanding a formal outfit. Wear it with sneakers during the day or a low heel in the evening. The lightweight weave is best handled gently around jewelry and rough surfaces. Wash as directed in a laundry bag and steam lightly from the reverse to refresh creases.',
+  },
+  {
+    name: 'Daybreak Ribbed Midi Dress', code: 'DR', subcategory: 'Dresses', productType: 'Midi Dresses', price: 6500,
+    colors: ['Black', 'Chocolate', 'Olive'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '93% cotton, 7% elastane rib jersey', image: 'contour-ribbed-top', tags: ['midi dress', 'ribbed', 'minimal'],
+    shortDescription: 'A sleeveless ribbed midi dress with a close fit and a simple round neckline, designed for easy layering and understated everyday outfits.',
+    description: 'Daybreak builds a complete outfit around a simple column shape. The cotton-rich rib jersey follows the body with gentle stretch, while a sleeveless top and round neckline keep the upper half clean. A side slit gives the midi hem room for walking without changing the close silhouette. Wear it alone with slides in warmer weather, or add an oversized shirt, cardigan or cropped jacket as the day cools. The fine rib texture also works well beside a canvas tote or smooth leather-look bag. Wash inside out on a gentle setting and reshape while damp before drying away from direct heat.',
+  },
+  {
+    name: 'Gallery Relaxed Shirt Dress', code: 'DR', subcategory: 'Dresses', productType: 'Shirt Dresses', price: 7200,
+    colors: ['Stone', 'Black', 'Light Blue'], sizes: ['XS', 'S', 'M', 'L'], material: '100% cotton poplin', image: 'existing-women', tags: ['shirt dress', 'poplin', 'belted'],
+    shortDescription: 'A relaxed cotton shirt dress with a button front, side pockets and a removable belt, offering an easy shape with optional waist definition.',
+    description: 'Gallery borrows the crisp collar and cuffs of a poplin shirt and extends them into a relaxed dress. The cotton fabric holds a clean line, while the generous body allows room through the waist and hips. A removable belt lets you adjust the silhouette, and side pockets add useful storage without interrupting the front. Wear it buttoned with loafers, roll the sleeves with sandals or leave it open over a tank and trousers as a light layer. It is an adaptable piece for warm and mild conditions. Hang after washing and press the collar, cuffs and button placket as needed.',
+  },
+  {
+    name: 'Roam Pleated Cotton Shorts', code: 'ST', subcategory: 'Bottoms', productType: 'Shorts', price: 4200,
+    colors: ['Stone', 'Black', 'Olive'], sizes: ['XS', 'S', 'M', 'L', 'XL'], material: '98% cotton, 2% elastane twill', image: 'existing-women', tags: ['shorts', 'pleated', 'summer'],
+    shortDescription: 'High-waisted cotton twill shorts with front pleats and a relaxed leg opening, combining the polish of tailoring with warm-weather comfort.',
+    description: 'Roam takes the neat waistband and front pleats of a tailored trouser into an easy above-knee short. The cotton twill has enough structure to keep the leg opening defined, with a little stretch for comfortable movement. Side pockets and belt loops make the details practical, while a simple front fastening keeps the waist smooth under a tucked shirt. Try them with a fitted tank and open poplin layer, or with a polo and flat sandals. The relaxed leg balances more compact tops without feeling oversized. Wash with similar colors, line dry and press lightly to restore the pleats.',
+  },
+];
+
+export default women;

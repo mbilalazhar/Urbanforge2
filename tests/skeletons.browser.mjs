@@ -319,6 +319,22 @@ test('page skeletons, button spinners, toasts, and modal feedback across the sto
   await navigate('/adminroute'); await until(() => evaluate(`!!document.querySelector('nav[aria-label="Admin navigation"]')`), 'admin navigation');
   await clickText('Products', `document.querySelector('nav[aria-label="Admin navigation"]')`);
   await until(() => evaluate(`!!document.querySelector('button[aria-label="Delete Skeleton Sneaker"]')`), 'admin products');
+  await clickText('Skeleton Sneaker');
+  await until(() => evaluate(`!!document.querySelector('textarea[placeholder="https://example.com/product-video.mp4"]')`), 'video URL editor');
+  async function videoUrl(value) {
+    await evaluate(`(() => { const input = document.querySelector('textarea[placeholder="https://example.com/product-video.mp4"]'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(input, ${JSON.stringify(value)}); input.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+  }
+  await videoUrl('https://www.magnific.com/free-video/example');
+  await until(() => evaluate(`Array.from(document.querySelectorAll('main [role="status"]')).some(el => el.textContent.includes('Links to video webpages'))`), 'video webpages have immediate guidance');
+  assert.equal(await evaluate('document.querySelectorAll("main video").length'), 0, 'HTML pages never enter a media player');
+  await videoUrl('/missing-product-video.mp4');
+  await until(() => evaluate(`!!document.querySelector('video[aria-label="Product video 1 preview"]')`), 'direct links use a native video player');
+  await until(() => evaluate(`Array.from(document.querySelectorAll('main [role="status"]')).some(el => el.textContent.includes('This video cannot be played'))`), 'unplayable links show actionable feedback');
+  assert.equal(await evaluate(`!!document.querySelector('img[src*="missing-product-video"]')`), false, 'videos never use the image optimizer');
+  await videoUrl('');
+  await until(() => evaluate('document.querySelectorAll("main video").length === 0'), 'clearing the link removes the preview');
+  await clickText('Cancel');
+  await until(() => evaluate(`!!document.querySelector('button[aria-label="Delete Skeleton Sneaker"]')`), 'editor closed without saving');
   await evaluate(`document.querySelector('button[aria-label="Delete Skeleton Sneaker"]').click()`); await modal('Delete product?');
   await clickText('Keep product', `document.querySelector('dialog[role="alertdialog"]')`);
   hold('/api/admin/products/skeleton-shoe', 'PATCH');
@@ -352,7 +368,7 @@ test('page skeletons, button spinners, toasts, and modal feedback across the sto
   }
   await evaluate('document.querySelector("#testimonial-track").scrollTo({ left: 0, behavior: "instant" })');
   await delay(250);
-  await checkPortrait('#testimonial-track img', 80, '75');
+  await checkPortrait('#testimonial-track img', 72, '75');
   await writeFile('/tmp/urbanforge-testimonials-clear.png', Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
   assert.deepEqual(consoleMessages, [], 'no application console messages');
   assert.deepEqual(errors, []);

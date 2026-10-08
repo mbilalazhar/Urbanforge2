@@ -470,7 +470,12 @@ export function promotionDelete(request: Request, id: string) { return adminRout
 export function catalog() { return apiRoute(async () => {
   const db = await database(), c = collections(db);
   const [products, promotions, count] = await Promise.all([c.products.find({ status: "active", deletedAt: { $exists: false } }).sort({ createdAt: -1 }).toArray(), activePromotions(db), c.products.countDocuments({})]);
-  return json({ managed: count > 0, products: products.map(product => { const price = effectivePrice(product, promotions); return { ...clean(product), salePrice: price < product.price ? price : product.salePrice }; }), promotions: promotions.map(publicPromotion) });
+  const ratings = products.length ? await db.collection("product_reviews").aggregate<{ _id: string; ratingAverage: number; reviewCount: number }>([
+    { $match: { productId: { $in: products.map(product => product.id) } } },
+    { $group: { _id: "$productId", ratingAverage: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
+  ]).toArray() : [];
+  const ratingsByProduct = new Map(ratings.map(({ _id, ...rating }) => [_id, rating]));
+  return json({ managed: count > 0, products: products.map(product => { const price = effectivePrice(product, promotions); return { ...clean(product), salePrice: price < product.price ? price : product.salePrice, ...(ratingsByProduct.get(product.id) ?? { ratingAverage: 0, reviewCount: 0 }) }; }), promotions: promotions.map(publicPromotion) });
 }); }
 export function catalogProduct(id: string) { return apiRoute(async () => {
   if (!identifier.safeParse(id).success) throw new AuthError("Product not found.", 404);

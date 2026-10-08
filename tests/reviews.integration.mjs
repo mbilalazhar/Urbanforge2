@@ -44,6 +44,8 @@ test('product reviews persist, validate input, and work in the browser', { timeo
   for (const id of ['first', 'second', 'browser', 'inactive', 'deleted']) {
     await db.collection('admin_products').insertOne({ ...product, _id: id, id, sku: id, skuKeys: [id], ...(id === 'inactive' ? { status: 'inactive' } : {}), ...(id === 'deleted' ? { deletedAt: new Date().toISOString() } : {}) });
   }
+  await db.collection('admin_products').updateOne({ id: 'first' }, { $set: { newArrival: true, featured: true, tags: ['essentials'] } });
+  await db.collection('admin_products').updateOne({ id: 'second' }, { $set: { bestseller: true } });
   const token = randomBytes(32).toString('hex'), userId = new ObjectId();
   await db.collection('users').insertOne({ _id: userId, name: 'Review Customer', email: 'review@example.com', sessions: [{ tokenHash: createHash('sha256').update(token).digest('hex'), expiresAt: new Date(Date.now() + 3_600_000) }] });
   const cookie = `urbanforge_user_session=${token}`;
@@ -110,6 +112,19 @@ test('product reviews persist, validate input, and work in the browser', { timeo
     assert.ok(first.reviews.every(item => item.productId === 'second'));
   });
 
+  await t.test('catalog includes review summaries for active products without exposing review identities', async () => {
+    const response = await fetch(`${base}/api/catalog`);
+    assert.equal(response.status, 200);
+    const { products } = await response.json();
+    assert.equal(products.length, 3);
+    assert.equal(products.find(item => item.id === 'first').ratingAverage, 4);
+    assert.equal(products.find(item => item.id === 'first').reviewCount, 2);
+    assert.equal(products.find(item => item.id === 'second').ratingAverage, 4.2);
+    assert.equal(products.find(item => item.id === 'second').reviewCount, 25);
+    assert.equal(products.find(item => item.id === 'browser').reviewCount, 0);
+    assert.ok(products.every(item => !('reviews' in item) && !('userId' in item)));
+  });
+
   const chrome = process.env.CHROME_PATH || '/usr/bin/google-chrome';
   await t.test('browser form validates, posts, recovers from failures, and survives reload', { skip: !existsSync(chrome) }, async t => {
     let browser, ws, profile;
@@ -146,6 +161,25 @@ test('product reviews persist, validate input, and work in the browser', { timeo
       await until(() => evaluate(`!!${section} && !${section}.querySelector('[data-skeleton]')`), 'reviews loaded');
     }
     await call('Page.enable'); await call('Network.enable');
+    await call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    await call('Page.navigate', { url: base + '/' });
+    await until(() => evaluate('!!document.querySelector("#home-collection-panel") && !document.querySelector("#home-tab-featured").disabled'), 'home collections hydrated');
+    const collectionIds = () => evaluate(`Array.from(document.querySelectorAll('#home-collection-panel a[aria-label^="View details for"]')).map(link => link.pathname.split('/').pop())`);
+    assert.deepEqual(await collectionIds(), ['first']);
+    for (const [collection, expected] of [['featured', ['first']], ['bestsellers', ['second']], ['top-rated', ['second', 'first']], ['essentials', ['first']]]) {
+      await evaluate(`document.querySelector('#home-tab-${collection}').click()`);
+      await until(() => evaluate(`document.querySelector('#home-tab-${collection}').getAttribute('aria-selected') === 'true'`), `selected ${collection}`);
+      assert.deepEqual(await collectionIds(), expected);
+    }
+    await evaluate('document.querySelector("#home-tab-essentials").focus()');
+    await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39 });
+    await until(() => evaluate('document.activeElement.id === "home-tab-new-arrivals" && document.querySelector("#home-tab-new-arrivals").getAttribute("aria-selected") === "true"'), 'keyboard wraps to New Arrivals');
+    assert.deepEqual(await collectionIds(), ['first']);
+    await writeFile('/tmp/urbanforge-home-collections-desktop.png', Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+    await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+    assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true, 'collection headings fit mobile');
+    await evaluate('document.querySelector("#new-arrivals").scrollIntoView()');
+    await writeFile('/tmp/urbanforge-home-collections-mobile.png', Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
     await call('Page.navigate', { url: base + '/products/browser' }); await openReviews();
     assert.equal(await evaluate(`${section}.textContent.includes('No reviews yet')`), true);
     await click('Add review');

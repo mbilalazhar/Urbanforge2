@@ -7,7 +7,9 @@ export function stockLabel(stock: number) {
 export function productPrice(product: Product) { return product.amount ?? Number(product.price.replace(/[^0-9.]/g, "")); }
 export function colorHex(name: string) {
   const colors: Record<string, string> = { black: "#171717", white: "#fafafa", red: "#c82032", blue: "#385f9b", green: "#496449", olive: "#737447", beige: "#d7c6a5", sand: "#d7c6a5", grey: "#929292", gray: "#929292", pink: "#df9dae", brown: "#795b47", navy: "#253247", cream: "#eee8d6", yellow: "#e6cd57", orange: "#d88745", purple: "#80628a" };
-  return /^#[0-9a-f]{3,8}$/i.test(name) ? name : colors[name.toLowerCase()] ?? "#b7b7b7";
+  const catalogColors: Record<string, string> = { "washed black": "#3b3b3b", charcoal: "#44464b", bone: "#e7e0d2", burgundy: "#722f3e", "deep red": "#9a2635", stone: "#c4b8a6", chocolate: "#5b3929", taupe: "#a28d7b", "vintage indigo": "#34465c", "light blue": "#9bbdd4", silver: "#bfc3c7", gunmetal: "#50565d", gold: "#c4a35a", gum: "#ab7c48", tortoiseshell: "#805334" };
+  const base = name.toLowerCase().split("/")[0].trim();
+  return /^#[0-9a-f]{3,8}$/i.test(name) ? name : catalogColors[base] ?? colors[base] ?? "#b7b7b7";
 }
 export function toProductCard(product: AdminProduct): Product {
   const amount = product.salePrice ?? product.price;

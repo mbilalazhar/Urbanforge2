@@ -1,0 +1,136 @@
+const shoes = [
+  {
+    name: 'Vector Chunky Street Runner', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 11900,
+    colors: ['Cream / Taupe', 'Grey / Silver', 'Black'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'], material: 'Mesh and suede upper; EVA midsole; rubber outsole', image: 'vector-street-runner', tags: ['sneakers', 'chunky', 'mesh'],
+    shortDescription: 'A layered mesh and suede lifestyle runner with a sculpted sole and padded collar, made to anchor relaxed trousers and everyday streetwear.',
+    description: 'Vector combines open mesh panels with soft suede overlays for a layered upper that has depth without a large logo. A sculpted midsole gives the shoe its chunky profile, while the padded collar and lace fastening help create a comfortable everyday fit. Rubber sections beneath the sole add a practical surface for ordinary city wear. Pair the cream and taupe colorway with wide trousers, cargos or straight denim to show the proportions. This is a lifestyle shoe rather than technical running footwear. Brush suede gently when dry, wipe the sole separately and let the pair air naturally between wears.',
+  },
+  {
+    name: 'Shift Lug-Sole Chelsea Boots', code: 'BOT', subcategory: 'Boots', price: 13900,
+    colors: ['Black', 'Chocolate'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'], material: 'Leather upper; textile lining; rubber outsole', image: 'shift-chelsea-boots', tags: ['chelsea', 'boots', 'leather'],
+    shortDescription: 'Clean leather Chelsea boots with elastic side panels and a substantial lug sole, bringing a grounded finish to denim, tailoring and longer layers.',
+    description: 'Shift balances a smooth leather upper with a more substantial sole, giving the familiar Chelsea shape a modern everyday edge. Elastic side panels and a rear pull tab make the ankle easy to slip into, while the rounded toe leaves a clean line beneath trousers. The rubber outsole has a visible tread that suits casual city outfits. Wear the black pair with dark denim or choose chocolate beside stone and cream layers. Allow leather to dry naturally after damp weather and wipe away surface dirt before conditioning. These boots are intended for daily fashion wear, without a waterproof performance claim.',
+  },
+  {
+    name: 'Courtline Retro Low Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 8900,
+    colors: ['White / Burgundy', 'White / Black', 'Cream / Taupe'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'], material: 'Synthetic leather upper; textile lining; rubber cupsole', image: 'vector-street-runner', tags: ['sneakers', 'retro', 'court'],
+    shortDescription: 'Low court-inspired sneakers with clean panel lines, a contrast heel detail and a flat rubber cupsole for an uncomplicated daily rotation.',
+    description: 'Courtline brings a restrained court reference to everyday footwear. The smooth synthetic leather upper is divided by simple stitched panels, with a small contrast at the heel giving the shoe a little color. Flat laces allow a close fit through the midfoot, and a padded collar softens the opening around the ankle. A rubber cupsole keeps the profile low and easy to pair with both cropped trousers and full-length jeans. Choose white and burgundy to add warmth to neutral outfits. Wipe the upper with a damp cloth, clean the sole separately and avoid soaking or machine washing the pair.',
+  },
+  {
+    name: 'Mono Minimal Leather Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 10900,
+    colors: ['White', 'Black', 'Bone'], sizes: ['37', '38', '39', '40', '41', '42', '43', '44'], material: 'Leather upper; textile lining; rubber outsole', image: 'vector-street-runner', tags: ['sneakers', 'minimal', 'leather'],
+    shortDescription: 'Minimal low-top leather sneakers with tonal stitching and a simple lace front, designed to sit neatly beneath denim and modern tailoring.',
+    description: 'Mono keeps the surface of the shoe deliberately simple, using tonal seams and a clean leather upper instead of busy overlays. The low ankle opening sits comfortably below trouser hems, while the lace front lets you adjust the fit through the instep. A flat rubber sole gives the silhouette a quiet, balanced finish. Wear the white pair with a relaxed suit or the black option with dark denim and an overshirt. The restrained design makes them useful across casual and smarter outfits. Wipe away dust after wearing, use leather care suited to the finish and dry naturally away from heaters.',
+  },
+  {
+    name: 'Pace Mesh Lifestyle Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 8400,
+    colors: ['Grey / Silver', 'Black', 'Cream / Taupe'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'], material: 'Mesh and synthetic upper; EVA and rubber sole', image: 'vector-street-runner', tags: ['sneakers', 'mesh', 'lifestyle'],
+    shortDescription: 'Light mesh lifestyle sneakers with supportive overlays and an easy lace fastening, offering a softer visual alternative to leather court shoes.',
+    description: 'Pace uses a mesh body and narrow synthetic overlays to create a lighter-looking everyday sneaker. A padded tongue and collar soften the points where the shoe meets the foot, and a traditional lace fastening allows adjustment over the instep. The shaped foam midsole gives the profile a gentle lift, with rubber beneath for ordinary pavement use. Style them with jersey trousers, straight jeans or a relaxed skirt for a casual finish. They are designed for lifestyle dressing rather than specialist sports training. Brush off loose dirt, spot clean the mesh carefully and let the shoes dry at room temperature.',
+  },
+  {
+    name: 'Canvas High Street Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 6900,
+    colors: ['Black / Gum', 'Bone', 'Navy'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'], material: 'Cotton canvas upper; textile lining; rubber sole', image: 'vector-street-runner', tags: ['sneakers', 'high top', 'canvas'],
+    shortDescription: 'High-top canvas sneakers with a plain side profile, metal eyelets and a rubber sole, adding an easy retro shape to relaxed daily outfits.',
+    description: 'Canvas High brings a simple high-top shape to the daily rotation. The cotton canvas upper has a soft woven texture, while metal eyelets and flat laces keep the fastening familiar and adjustable. A rubber sole and toe edge add definition to the otherwise plain silhouette. Wear the ankle higher with cropped trousers or let straight jeans fall naturally over the collar. The black and gum combination works especially well with washed denim and utility layers. Keep the canvas fresh with a soft brush and gentle spot cleaning. Avoid prolonged soaking and allow the pair to air dry fully before wearing again.',
+  },
+  {
+    name: 'Dock Canvas Low Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 6200,
+    colors: ['Bone', 'Black', 'Olive'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'], material: 'Cotton canvas upper; rubber outsole', image: 'vector-street-runner', tags: ['sneakers', 'low top', 'canvas'],
+    shortDescription: 'Low canvas sneakers with tonal laces and a clean rubber sole, made for warm-weather outfits, cuffed trousers and easy weekend dressing.',
+    description: 'Dock is a low-profile canvas shoe that keeps summer outfits simple. A plain woven upper, tonal laces and understated stitching create a quiet finish, while the rubber sole gives the shape a defined base. The low collar leaves the ankle clear under turned-up chinos, shorts or a midi skirt. Choose bone for lighter outfits, or olive to sit alongside washed black denim and utility shirts. The lightweight construction is suited to casual daily wear in dry conditions. Remove surface dirt with a soft brush, spot clean marks with mild soap and let the shoes dry naturally without direct heat.',
+  },
+  {
+    name: 'Signal Panel Street Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 9800,
+    colors: ['White / Black', 'White / Burgundy', 'Grey / Silver'], sizes: ['37', '38', '39', '40', '41', '42', '43', '44'], material: 'Synthetic leather and mesh upper; rubber outsole', image: 'vector-street-runner', tags: ['sneakers', 'panelled', 'streetwear'],
+    shortDescription: 'Panelled low-top sneakers with contrasting textures and a defined sole, bringing a stronger footwear accent to otherwise pared-back streetwear outfits.',
+    description: 'Signal uses a mix of smooth panels and mesh inserts to break up a clean low-top shape. Contrasting sections at the heel and sides create visual movement without an oversized graphic, and a padded tongue gives the laces a comfortable base. The substantial rubber outsole balances loose trousers and heavier outerwear. Wear them with a plain tee and cargo pants to let the panel work lead the outfit, or repeat one of the accent tones in a cap or bag. Wipe smooth sections gently and brush mesh with a soft tool. Dry away from direct sunlight and heat after cleaning.',
+  },
+  {
+    name: 'Retro Suede Terrace Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 9400,
+    colors: ['Chocolate / Gum', 'Navy / Gum', 'Olive / Gum'], sizes: ['38', '39', '40', '41', '42', '43', '44', '45'], material: 'Suede upper; textile lining; rubber outsole', image: 'vector-street-runner', tags: ['sneakers', 'suede', 'retro'],
+    shortDescription: 'Slim suede sneakers with a gum-tone sole and low ankle opening, offering a textured retro finish beneath straight denim and tailored trousers.',
+    description: 'The Retro terrace sneaker puts a softer material on a slim everyday shape. Suede gives the upper a visible nap that shifts slightly with the light, while a gum-tone rubber sole adds warmth at the base. Flat laces and a low collar keep the outline neat beneath straight-leg trousers. Pair chocolate with cream knitwear or olive with washed denim and a plain tee. The shoe is intended for casual use in mainly dry conditions. Use a suede brush once the surface is dry, avoid soaking and test any specialist suede-care product on a small hidden area first.',
+  },
+  {
+    name: 'Form Knit Slip-On Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 7900,
+    colors: ['Black', 'Grey', 'Bone'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'], material: 'Polyester knit upper; EVA and rubber sole', image: 'vector-street-runner', tags: ['sneakers', 'knit', 'slip on'],
+    shortDescription: 'Slip-on knit sneakers with a flexible textile opening and a simple shaped sole, designed for casual outfits and easy daily wear.',
+    description: 'Form replaces a traditional lace front with a knitted upper that keeps the shoe visually uncluttered. The textile opening and rear pull tab make dressing straightforward, while a shaped foam sole adds a little height without an exaggerated profile. Rubber sections underneath provide a practical base for everyday walking. Wear them with tapered jersey trousers, relaxed denim or a cotton dress for a simple casual finish. The knit is intended for normal lifestyle use, without claims of specialist athletic support. Remove loose dirt with a soft brush and spot clean rather than soaking. Let the interior dry fully between wears.',
+  },
+  {
+    name: 'Platform Clean Court Sneakers', code: 'SNK', subcategory: 'Sneakers & Athletic', price: 9200, gender: 'women',
+    colors: ['White', 'Bone', 'White / Black'], sizes: ['36', '37', '38', '39', '40', '41'], material: 'Synthetic leather upper; textile lining; rubber sole', image: 'vector-street-runner', tags: ['sneakers', 'platform', 'minimal'],
+    shortDescription: 'Clean low-top court sneakers on a raised flat sole, adding subtle height while keeping the upper minimal and easy to style.',
+    description: 'Platform Court combines a plain low-top upper with a thicker, flat-profile sole. Smooth synthetic leather and tonal stitching keep the body simple, allowing the raised base to define the silhouette. A lace fastening adjusts the fit over the instep, and a padded ankle opening softens the top edge. Wear them with wide jeans, ankle-length tailoring or a midi dress to add a little height to the outfit. The clean palette sits comfortably beside both colorful and neutral layers. Wipe the upper and sole separately with a soft cloth, avoid abrasive cleaners and leave the pair to dry at room temperature.',
+  },
+  {
+    name: 'Foundry Lace-Up Utility Boots', code: 'BOT', subcategory: 'Boots', price: 14900,
+    colors: ['Black', 'Chocolate'], sizes: ['37', '38', '39', '40', '41', '42', '43', '44', '45'], material: 'Leather upper; textile lining; rubber lug outsole', image: 'shift-chelsea-boots', tags: ['boots', 'lace up', 'utility'],
+    shortDescription: 'Leather lace-up boots with a rounded toe, padded ankle and substantial treaded sole, built to complement denim, cargos and layered city outfits.',
+    description: 'Foundry takes its visual cues from utility footwear with a lace-up front, a rounded toe and a clearly defined rubber tread. The leather upper has enough structure to hold its shape, while padding at the ankle softens the opening. Adjust the laces from the lower eyelets upward for a comfortable fit over thicker socks. They work well under straight denim or with cropped cargos that leave the ankle visible. These are fashion boots for daily wear rather than certified protective equipment. Brush away dirt, condition the leather as appropriate and let damp footwear dry naturally before the next outing.',
+  },
+  {
+    name: 'Nomad Suede Desert Boots', code: 'BOT', subcategory: 'Boots', price: 10900, gender: 'men',
+    colors: ['Taupe', 'Chocolate', 'Navy'], sizes: ['39', '40', '41', '42', '43', '44', '45'], material: 'Suede upper; textile lining; rubber sole', image: 'shift-chelsea-boots', tags: ['boots', 'desert', 'suede'],
+    shortDescription: 'Soft suede desert boots with a low ankle and simple lace fastening, giving chinos and denim a quieter alternative to heavier boots.',
+    description: 'Nomad keeps the desert boot close to its simple foundations: a soft suede upper, a low ankle opening and a short lace front. The rounded toe and flat rubber sole create a relaxed shape that sits naturally under chinos and straight jeans. The visible suede nap adds warmth to otherwise smooth cotton or wool layers. Wear taupe with light trousers in transitional weather or chocolate alongside dark denim. The unstructured look is intended for casual dressing in dry conditions. Brush suede gently after it dries, avoid immersing the upper in water and store the pair with enough space to retain its shape.',
+  },
+  {
+    name: 'Horizon Leather Ankle Boots', code: 'BOT', subcategory: 'Boots', price: 12900, gender: 'women',
+    colors: ['Black', 'Chocolate'], sizes: ['36', '37', '38', '39', '40', '41'], material: 'Leather upper; textile lining; rubber outsole', image: 'shift-chelsea-boots', tags: ['boots', 'ankle', 'low heel'],
+    shortDescription: 'Smooth leather ankle boots with a side zip and low block heel, creating a clean finish below cropped trousers, denim and midi skirts.',
+    description: 'Horizon offers a neat ankle shape with a practical side zip and a low block heel. The smooth leather upper keeps the design simple, with a gently rounded toe that works under both narrow and wider trouser hems. A textile lining softens the inside, while the rubber outsole gives the base a quiet finish. Wear them with a midi skirt and cardigan or beneath cropped denim with an oversized shirt. The restrained silhouette moves easily from daytime outfits to a casual evening. Wipe marks after wear, condition according to the leather finish and keep the boots away from strong drying heat.',
+  },
+  {
+    name: 'Axis Leather Penny Loafers', code: 'LOF', subcategory: 'Flats & Loafers', price: 9900,
+    colors: ['Black', 'Chocolate'], sizes: ['37', '38', '39', '40', '41', '42', '43', '44'], material: 'Leather upper; textile lining; rubber outsole', image: 'shift-chelsea-boots', tags: ['loafers', 'penny', 'smart casual'],
+    shortDescription: 'Classic leather penny loafers with a clean apron seam and low heel, adding an understated polished note to relaxed everyday tailoring.',
+    description: 'Axis uses the familiar penny strap and apron seam to give a slip-on shoe a considered finish. Smooth leather keeps the upper clean, while a low heel and rubber outsole maintain a compact profile beneath the foot. The open ankle works well with cropped trousers, straight jeans or a long skirt. Wear the black pair with tonal tailoring, or choose chocolate beside cream and stone separates. Allow room for your usual socks when selecting a size, and use a shoehorn to protect the heel. Wipe down after wear and use a suitable leather conditioner to maintain the surface.',
+  },
+  {
+    name: 'Block Chunky Sole Loafers', code: 'LOF', subcategory: 'Flats & Loafers', price: 10400, gender: 'women',
+    colors: ['Black', 'Burgundy'], sizes: ['36', '37', '38', '39', '40', '41'], material: 'Synthetic leather upper; textile lining; rubber sole', image: 'shift-chelsea-boots', tags: ['loafers', 'chunky', 'streetwear'],
+    shortDescription: 'Chunky loafers with a rounded apron toe and a substantial sole, designed to balance wide trousers, short hems and layered everyday outfits.',
+    description: 'Block places a familiar loafer upper on a thicker rubber sole for a stronger silhouette. The synthetic leather surface has a subtle sheen, with an apron seam and plain strap keeping the top half recognizable. A rounded toe leaves the design soft rather than pointed, making it easy to style with white socks and a skirt or wide trousers. The slip-on construction keeps dressing simple once you have found the right fit. Wipe the upper gently with a damp cloth and clean the sole separately. Avoid strong solvents, prolonged soaking or direct heat, which can affect the coated finish.',
+  },
+  {
+    name: 'Drift Suede Slip-On Loafers', code: 'LOF', subcategory: 'Flats & Loafers', price: 8700, gender: 'men',
+    colors: ['Taupe', 'Chocolate', 'Navy'], sizes: ['39', '40', '41', '42', '43', '44', '45'], material: 'Suede upper; textile lining; rubber outsole', image: 'shift-chelsea-boots', tags: ['loafers', 'suede', 'slip on'],
+    shortDescription: 'Soft suede slip-on loafers with a low profile and minimal stitching, offering a relaxed finish for linen trousers, chinos and summer denim.',
+    description: 'Drift is a softer alternative to a structured dress shoe, built around a simple suede upper and an easy slip-on opening. The low profile sits neatly beneath a turned-up chino or loose linen trouser, while the lightly textured surface adds depth to warm-weather outfits. A discreet rubber sole keeps the shoe visually light, and minimal stitching leaves the material in focus. Wear them with a resort shirt for a relaxed evening or a polo for a casual workday. Brush the suede once dry, avoid heavy rain where possible and use a shoehorn to help preserve the heel shape.',
+  },
+  {
+    name: 'Fold Square-Toe Ballet Flats', code: 'FLT', subcategory: 'Flats & Loafers', price: 6400, gender: 'women',
+    colors: ['Black', 'Taupe', 'Burgundy'], sizes: ['36', '37', '38', '39', '40', '41'], material: 'Synthetic leather upper and lining; rubber outsole', image: 'existing-women', tags: ['flats', 'square toe', 'minimal'],
+    shortDescription: 'Simple square-toe ballet flats with a softly shaped upper and low sole, designed to finish cropped denim, skirts and tailored everyday outfits.',
+    description: 'Fold updates the familiar ballet flat with a slightly squared toe and an otherwise clean upper. The low-cut opening gives the shoe a light look, while the plain surface lets it sit comfortably beside patterned or textured clothing. A thin rubber outsole keeps the profile close to the ground. Pair black with cropped trousers and an oversized shirt, or add burgundy to a neutral skirt outfit. The slip-on shape is most comfortable when the heel sits securely without squeezing the toes. Wipe clean with a soft damp cloth, allow to air dry and avoid folding or crushing during storage.',
+  },
+  {
+    name: 'Pause Moulded Everyday Slides', code: 'SLD', subcategory: 'Sandals & Slides', price: 3500,
+    colors: ['Black', 'Bone', 'Olive'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'], material: 'Moulded EVA upper and sole', image: 'existing-shoes', tags: ['slides', 'minimal', 'summer'],
+    shortDescription: 'Lightweight moulded slides with a broad upper strap and contoured footbed, made for casual summer outfits and easy moments between plans.',
+    description: 'Pause keeps things simple with a single moulded shape, a broad strap and an open toe. The contoured footbed follows the outline of the foot without adding separate hardware or adjustable parts. A lightly textured sole finishes the understated profile, making these an easy match for jersey shorts, loose trousers or poolside cover-ups. Choose a size that leaves a little space at the toe and heel rather than gripping the edges. Rinse away dust with cool water and a mild cleaner, then dry in the shade. Avoid leaving moulded footwear in a hot car or against a heater.',
+  },
+  {
+    name: 'Form Wide-Strap Leather Slides', code: 'SLD', subcategory: 'Sandals & Slides', price: 5900,
+    colors: ['Black', 'Chocolate', 'Taupe'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'], material: 'Leather strap; synthetic footbed; rubber outsole', image: 'existing-shoes', tags: ['slides', 'leather', 'minimal'],
+    shortDescription: 'Minimal leather slides with a broad smooth strap and a flat footbed, bringing a cleaner finish to warm-weather trousers, dresses and shorts.',
+    description: 'A wide leather strap gives Form slides a more considered look than a basic pool slide. The smooth upper sits across the instep, leaving the toe and heel open, while a flat footbed and rubber outsole keep the profile quiet. They work well with linen trousers, a cotton shirt dress or tailored shorts when the weather is warm. The simple shape lets you repeat the leather tone in a belt or small bag without adding extra detail. Wipe the strap gently after wear and condition as appropriate. Keep leather slides out of prolonged water exposure and dry them naturally in shade.',
+  },
+  {
+    name: 'Roam Adjustable Strap Sandals', code: 'SDL', subcategory: 'Sandals & Slides', price: 6500,
+    colors: ['Black', 'Olive', 'Stone'], sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'], material: 'Polyester webbing straps; EVA footbed; rubber outsole', image: 'existing-shoes', tags: ['sandals', 'webbing', 'adjustable'],
+    shortDescription: 'Webbing sandals with adjustable straps and a defined footbed, offering a practical casual option for warm days and relaxed city outfits.',
+    description: 'Roam uses woven straps and simple adjustable fastenings to let you tune the fit across the foot and around the heel. The open design keeps the silhouette light, while a shaped footbed and rubber outsole give it a more substantial base than a thin slide. Pair them with cargo shorts, loose cotton trousers or a simple summer dress. The webbing brings a utility reference to otherwise minimal outfits without heavy metal hardware. These sandals are intended for everyday casual use. Brush away dry dirt, clean the straps gently with mild soap and leave the pair to dry fully before storage.',
+  },
+  {
+    name: 'Evening Square-Toe Block Heels', code: 'HEL', subcategory: 'Heels & Wedges (Women)', price: 7900, gender: 'women',
+    colors: ['Black', 'Taupe', 'Chocolate'], sizes: ['36', '37', '38', '39', '40', '41'], material: 'Synthetic leather straps; synthetic lining; rubber outsole', image: 'existing-women', tags: ['heels', 'square toe', 'evening'],
+    shortDescription: 'Square-toe sandals with slim straps and a mid-height block heel, designed to complement fluid skirts, dresses and relaxed evening tailoring.',
+    description: 'Evening keeps the upper light with slim straps and an open square toe, balanced by a broader block heel. An adjustable ankle fastening lets you secure the fit without changing the clean front view. The smooth synthetic leather finish works with satin, cotton and tailored fabrics, making the pair easy to style beyond a single occasion. Wear them with a bias-cut skirt or let wide trousers fall close to the toe. Check that the straps sit comfortably before extended wear. Wipe gently after use, avoid abrasive surfaces against the finish and store with enough space to protect the heel and straps.',
+  },
+];
+
+export default shoes;
