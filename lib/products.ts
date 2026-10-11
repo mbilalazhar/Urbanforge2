@@ -1,6 +1,7 @@
 import type { Product } from "@/components/product/ProductCard";
 import type { AdminProduct } from "@/lib/admin/types";
-export const formatProductPrice = (value: number) => `Rs. ${new Intl.NumberFormat("en-PK", { maximumFractionDigits: 2 }).format(value)}`;
+const priceFormatter = new Intl.NumberFormat("en-PK", { maximumFractionDigits: 2 });
+export const formatProductPrice = (value: number) => `Rs. ${priceFormatter.format(value)}`;
 export function stockLabel(stock: number) {
   return stock <= 0 ? "Out of stock" : stock <= 5 ? "Low in stock" : "In stock";
 }
@@ -11,7 +12,10 @@ export function colorHex(name: string) {
   const base = name.toLowerCase().split("/")[0].trim();
   return /^#[0-9a-f]{3,8}$/i.test(name) ? name : catalogColors[base] ?? colors[base] ?? "#b7b7b7";
 }
-export function toProductCard(product: AdminProduct): Product {
+type CardSource = Pick<AdminProduct, "id" | "name" | "category" | "price" | "salePrice" | "images" | "colors" | "sizes" | "newArrival" | "bestseller"> & {
+  variants?: Pick<AdminProduct["variants"][number], "color" | "size">[];
+};
+export function toProductCard(product: CardSource): Product {
   const amount = product.salePrice ?? product.price;
   return { id: product.id, name: product.name, category: product.category, price: formatProductPrice(amount), amount,
     image: product.images[0] ?? "", href: `/products/${encodeURIComponent(product.id)}`,

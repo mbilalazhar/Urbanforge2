@@ -236,6 +236,14 @@
   .drop { top: calc(90px + env(safe-area-inset-top, 0px)); }
 }
 @media (max-width: 599px) {
+  .mobileComposed { filter: none; }
+  .backdrop {
+    /* The mobile source keeps the original height and only the central wall. */
+    left: 50%;
+    right: auto;
+    width: 100cqw;
+    transform: translateX(-50%);
+  }
   .scene {
     --background-ratio: var(--mobile-background-ratio);
     --background-x: var(--mobile-background-x);

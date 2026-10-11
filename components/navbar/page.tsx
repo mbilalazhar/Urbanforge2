@@ -36,7 +36,7 @@ export default function Navbar() {
         <Link href="/" className={styles.mobileLogo} aria-label="UrbanForge home">
           <Image src="/logo.svg" alt="UrbanForge" width={160} height={40} />
         </Link>
-        <Link href="/cart" className={styles.mobileCart} aria-label={`${itemCount} ${itemCount === 1 ? "item" : "items"} in cart`} aria-current={isCart ? "page" : undefined}>
+        <Link href="/cart" prefetch={false} className={styles.mobileCart} aria-label={`${itemCount} ${itemCount === 1 ? "item" : "items"} in cart`} aria-current={isCart ? "page" : undefined}>
           <ShoppingBag size={22} strokeWidth={1.75} />
           <span aria-hidden="true">{isLoading ? <Skeleton width={8} height={8} /> : itemCount}</span>
         </Link>

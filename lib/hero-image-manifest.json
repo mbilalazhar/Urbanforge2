@@ -6,6 +6,13 @@
     "webp": "/optimized/hero/hero-bg.92407c197986.360.webp 360w, /optimized/hero/hero-bg.92407c197986.640.webp 640w, /optimized/hero/hero-bg.92407c197986.800.webp 800w, /optimized/hero/hero-bg.92407c197986.960.webp 960w, /optimized/hero/hero-bg.92407c197986.1280.webp 1280w, /optimized/hero/hero-bg.92407c197986.1440.webp 1440w, /optimized/hero/hero-bg.92407c197986.1672.webp 1672w",
     "src": "/optimized/hero/hero-bg.92407c197986.1672.webp"
   },
+  "hero-bg-mobile": {
+    "width": 960,
+    "height": 941,
+    "avif": "/optimized/hero/hero-bg-mobile.6c2748d700df.360.avif 360w, /optimized/hero/hero-bg-mobile.6c2748d700df.640.avif 640w, /optimized/hero/hero-bg-mobile.6c2748d700df.800.avif 800w, /optimized/hero/hero-bg-mobile.6c2748d700df.960.avif 960w",
+    "webp": "/optimized/hero/hero-bg-mobile.6c2748d700df.360.webp 360w, /optimized/hero/hero-bg-mobile.6c2748d700df.640.webp 640w, /optimized/hero/hero-bg-mobile.6c2748d700df.800.webp 800w, /optimized/hero/hero-bg-mobile.6c2748d700df.960.webp 960w",
+    "src": "/optimized/hero/hero-bg-mobile.6c2748d700df.960.webp"
+  },
   "home-models": {
     "width": 1086,
     "height": 1448,

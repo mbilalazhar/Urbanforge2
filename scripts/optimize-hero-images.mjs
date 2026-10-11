@@ -9,8 +9,15 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const output = join(root, 'public/optimized/hero');
 await mkdir(output, { recursive: true });
 const manifest = {};
-for (const name of ['hero-bg', 'home-models', 'women', 'MenSection', 'newIn', 'shoes', 'accessories', 'sales']) {
-  const source = await readFile(join(root, `public/${name}.png`));
+for (const name of ['hero-bg', 'hero-bg-mobile', 'home-models', 'women', 'MenSection', 'newIn', 'shoes', 'accessories', 'sales']) {
+  let source = await readFile(join(root, `public/${name === 'hero-bg-mobile' ? 'hero-bg' : name}.png`));
+  if (name === 'hero-bg-mobile') {
+    // Retain the full source height and center: this matches the existing mobile
+    // cover crop without downloading the wall far outside the viewport.
+    const { width, height } = await sharp(source).metadata();
+    const cropWidth = Math.min(width, Math.ceil(height * 1.02));
+    source = await sharp(source).extract({ left: Math.floor((width - cropWidth) / 2), top: 0, width: cropWidth, height }).png().toBuffer();
+  }
   const { width, height } = await sharp(source).metadata();
   const revision = createHash('sha256').update(source).update('avif60-webp85-v1').digest('hex').slice(0, 12);
   const widths = [...new Set([360, 640, 800, 960, 1280, 1440, width].filter(value => value <= width))].sort((a,b) => a-b);
