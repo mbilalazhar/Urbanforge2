@@ -1,0 +1,30 @@
+# UrbanForge
+
+> UrbanForge is an online store for streetwear, clothing, footwear and accessories.
+
+Browse the collections below and follow product links for current prices, available sizes, colors and stock. Product availability and promotions can change; use the live product page and checkout for current details. All links are relative to this website's origin.
+
+## Shop
+
+- [Home](/): Featured products and store collections.
+- [Women](/women): Women's clothing and streetwear.
+- [Men](/men): Men's clothing and streetwear.
+- [New arrivals](/new-in): Newly added products.
+- [Shoes](/shoes): Footwear collection.
+- [Accessories](/accessories): Accessories collection.
+- [Sale](/sale): Products currently on sale.
+- [Product search](/search): Search and filter the store's product selection.
+
+## Store information
+
+- [About UrbanForge](/about): Information about the brand.
+- [Contact](/contact): Customer support and contact information.
+- [Frequently asked questions](/faqs): Shopping and order assistance.
+- [Terms and conditions](/terms): Store terms and purchase conditions.
+- [Privacy policy](/privacy-policy): How personal information is handled.
+- [Cookie policy](/cookie-policy): Cookie use and preferences.
+
+## Product discovery
+
+- [Sitemap](/sitemap.xml): Public information pages and active product URLs.
+- [Crawl rules](/robots.txt): Crawler access rules.
