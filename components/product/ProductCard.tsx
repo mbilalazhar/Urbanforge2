@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import Image from "@/components/product/ProductImage";
 import Link from "next/link";
 import { ArrowRight, Eye, Package } from "lucide-react";
@@ -22,14 +22,14 @@ export default function ProductCard({ product, showTag = true, showColors = true
   const [isOpen, setIsOpen] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closedAt = useRef(0);
-  function cancelHover() {
+  const cancelHover = useCallback(() => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     hoverTimer.current = null;
-  }
+    window.removeEventListener("scroll", cancelHover, true);
+  }, []);
   useEffect(() => {
-    window.addEventListener("scroll", cancelHover, { passive: true, capture: true });
-    return () => { cancelHover(); window.removeEventListener("scroll", cancelHover, true); };
-  }, [product.id]);
+    return () => cancelHover();
+  }, [product.id, cancelHover]);
   function openPreview() {
     cancelHover();
     if (!document.querySelector("dialog[open]")) setIsOpen(true);
@@ -38,12 +38,13 @@ export default function ProductCard({ product, showTag = true, showColors = true
     cancelHover();
     if (event.pointerType !== "mouse" || isOpen || Date.now() - closedAt.current < 1200) return;
     hoverTimer.current = setTimeout(openPreview, QUICK_VIEW_DELAY);
+    window.addEventListener("scroll", cancelHover, { passive: true, capture: true });
   }
   function closePreview() {
     cancelHover(); closedAt.current = Date.now(); setIsOpen(false);
   }
   return <><article className="group relative w-full" onPointerEnter={startHover} onPointerLeave={cancelHover} onPointerDown={cancelHover}>
-    <Link onClick={cancelHover} href={product.href ?? `/products/${encodeURIComponent(product.id)}`} aria-label={`View details for ${product.name}`} className="block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c8202d]">
+    <Link prefetch={false} onClick={cancelHover} href={product.href ?? `/products/${encodeURIComponent(product.id)}`} aria-label={`View details for ${product.name}`} className="block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c8202d]">
       <span className="relative block aspect-[4/5] w-full overflow-hidden rounded-md bg-neutral-100">
         {product.image ? <Image src={product.image} alt={product.name} fill sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none" /> : <Package className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-neutral-400" size={32} />}
         {showTag && product.tag && <span className="absolute left-3 top-3 bg-[#c8202d] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white">{product.tag}</span>}
