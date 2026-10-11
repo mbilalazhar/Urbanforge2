@@ -9,7 +9,29 @@ async function load(path) {
 }
 const { toProductCard } = await load('../lib/products.ts');
 const { collectionProducts } = await load('../lib/home-collections.ts');
+const { toCatalogListing } = await load('../lib/catalog/listing.ts');
+const { matchesCatalogProduct } = await load('../lib/catalog-search.ts');
 const { addCartItem, changeCartQuantity, formatCartPrice } = await load('../lib/cart-data.ts');
+
+test('compact listing data preserves cards and search while omitting full inventory records', () => {
+  const original = { id: 'listing', name: 'Utility Jacket', category: 'Men', subcategory: 'Jackets',
+    productType: 'Outerwear', brand: 'UrbanForge', gender: 'unisex', material: 'Cotton', tags: ['essential'],
+    price: 5000, salePrice: 4500, images: ['/cover.webp', '/detail.webp'], colors: ['Black'], sizes: ['M'],
+    variants: [{ id: 'variant-1', sku: 'PRIVATE-SKU', color: 'Olive', size: 'L', stock: 20 }],
+    newArrival: true, featured: true, bestseller: true, ratingAverage: 4.5, reviewCount: 3,
+    description: 'Full detail text', stock: 20, views: 300 };
+  const listing = toCatalogListing(original);
+  assert.deepEqual(toProductCard(listing), toProductCard(original));
+  for (const query of ['olive jacket', 'cotton', 'essential', 'sale', 'bestseller', 'black', 'nonexistent']) {
+    assert.equal(matchesCatalogProduct(listing, query), matchesCatalogProduct(original, query));
+  }
+  assert.deepEqual(listing.images, ['/cover.webp']);
+  assert.deepEqual(listing.variants, [{ color: 'Olive', size: 'L' }]);
+  assert.equal(listing.reviewCount, 3);
+  assert.equal('description' in listing, false);
+  assert.equal('stock' in listing, false);
+  assert.equal(original.images.length, 2);
+});
 
 test('home collections use product flags, essential tags, and real review rankings', () => {
   const products = [

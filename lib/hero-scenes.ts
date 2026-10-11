@@ -3,6 +3,7 @@ import background from "@/public/hero-bg.png";
 import shoes from "@/public/shoes.png";
 import sale from "@/public/sales.png";
 import optimized from "./hero-image-manifest.json";
+import mobileHome from "./mobile-hero-manifest.json";
 
 export type HeroImageAsset = {
   src: string | StaticImageData;
@@ -14,6 +15,9 @@ export type HeroImageAsset = {
 
 export type HeroSceneFrame = {
   background: HeroImageAsset;
+  precomposed?: boolean;
+  /** Preserve model coordinates when the mobile background omits offscreen pixels. */
+  backgroundCanvasRatio?: number;
   /** null supports a pre-composed photograph with no separate model layer. */
   model: HeroImageAsset | null;
   foreground?: HeroImageAsset | null;
@@ -47,6 +51,12 @@ export function resolveHeroScene(config: HeroSceneConfig) {
 
 const environment: HeroImageAsset = {
   src: background, width: background.width, height: background.height, optimized: optimized["hero-bg"],
+};
+const mobileEnvironment: HeroImageAsset = {
+  src: optimized["hero-bg-mobile"].src,
+  width: optimized["hero-bg-mobile"].width,
+  height: optimized["hero-bg-mobile"].height,
+  optimized: optimized["hero-bg-mobile"],
 };
 
 const models = {
@@ -94,6 +104,8 @@ function standingScene(model: HeroImageAsset, bottomPadding: number, desktop = d
       modelSizes: "80vw",
     },
     mobile: {
+      background: mobileEnvironment,
+      backgroundCanvasRatio: environment.width / environment.height,
       modelLeft: left,
       modelHeight: "86%",
       modelSizes: "120vw",
@@ -113,6 +125,8 @@ function croppedScene(model: HeroImageAsset, desktop: HeroSceneFrame): HeroScene
       modelSizes: "85vw",
     },
     mobile: {
+      background: mobileEnvironment,
+      backgroundCanvasRatio: environment.width / environment.height,
       modelLeft: "50%",
       modelBottom: "-3%",
       modelHeight: "100%",
@@ -121,8 +135,10 @@ function croppedScene(model: HeroImageAsset, desktop: HeroSceneFrame): HeroScene
   };
 }
 
+const homeScene = standingScene(models.home, 15);
 export const heroScenes = {
-  home: standingScene(models.home, 15),
+  home: { ...homeScene, mobile: { ...homeScene.mobile, precomposed: true, model: null,
+    background: { src: mobileHome.src, width: mobileHome.width, height: mobileHome.height, optimized: mobileHome } } },
   women: standingScene(models.women, 12),
   men: standingScene(models.men, 20),
   newIn: standingScene(models.newIn, 18),

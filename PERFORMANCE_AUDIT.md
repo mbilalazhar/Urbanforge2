@@ -1,3 +1,108 @@
+# Agentic browsing follow-up — October 11, 2026
+
+Added `public/llms.txt`, a plain-text Markdown guide to the public collections,
+store information, sitemap and crawl rules. Root-relative links work on both
+local previews and the deployed domain without a hard-coded hostname.
+
+The baseline mobile audit reproduced **2/3**: requesting `/llms.txt` returned
+the Next.js not-found HTML with HTTP 200, so Lighthouse flagged its missing
+Markdown heading and links. Accessibility-tree and layout-stability checks
+already passed.
+
+Fresh Lighthouse 13.5.0 audits using headless Chrome 155 against the production
+home page at `http://127.0.0.1:3100/` now pass **3/3 on mobile and desktop**:
+
+| Check | Mobile | Desktop |
+| --- | --- | --- |
+| Accessibility tree | Pass | Pass |
+| Cumulative layout shift | Pass | Pass |
+| llms.txt | Pass | Pass |
+
+Accessibility, best practices and SEO remain 100 on both profiles. Performance
+was 88 mobile and 99 desktop in these single local lab runs; these are not
+deployed-site measurements. Optional WebMCP and ARD checks are not applicable.
+
+Production build (including TypeScript) and whitespace checks passed.
+Verified `/llms.txt` returns HTTP 200 with `text/plain` and the exact file
+contents; all 16 linked URLs return HTTP 200 without a Next.js not-found fallback.
+
+Reports (HTML and matching JSON, outside the repository):
+
+- `/tmp/urbanforge-agentic-mobile-before.report.html`
+- `/tmp/urbanforge-agentic-mobile-after.report.html`
+- `/tmp/urbanforge-agentic-desktop-after.report.html`
+
+Changes are local, not deployed. Recheck the public URL after deployment.
+
+---
+
+# Mobile performance and search follow-up — October 11, 2026
+
+Changes are local, not deployed. Search displays at most eight unique products
+from the bestseller and featured selections, alternating between them when
+available. Query/filter matching happens before selection, sorting is preserved,
+and smaller result sets are not padded with unrelated products.
+
+## Final production measurements
+
+Lighthouse 13.5.0, headless Chrome, simulated throttling, localhost production
+build using the existing catalog. These are single lab runs, not field results
+or a guarantee of a deployed score.
+
+| Device | Performance | Accessibility | Best practices | SEO | LCP | TBT |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Mobile | 87 | 100 | 100 | 100 | 3.2 s | 280 ms |
+| Desktop | 99 | 100 | 100 | 100 | 0.9 s | 10 ms |
+
+The initial local runs scored 74 mobile (4.2 s LCP, 430 ms TBT) and 99 desktop.
+The mobile baseline also fetched the catalog client-side, whereas the final run
+used server hydration, so the timings are observations rather than a controlled
+isolation of individual optimizations. The supplied Vercel screenshot's 82 is
+from a different environment and is not the baseline for these local results.
+
+## Implemented changes
+
+- Mobile hero background variants retain the original center and full source
+  height while omitting offscreen wall pixels. Model positions and desktop
+  artwork are preserved. The audited background fell from 70,531 to 35,978 bytes.
+  The existing image script regenerates all variants and the manifest.
+- Home and category grids initially render 20 cards; Load more adds batches of
+  20 until the complete catalog is visible. Loading placeholders reserve the
+  same batch layout, keeping footer images away from the initial viewport.
+- Catalog hydration includes only listing/search fields and color/size variant
+  data. Full descriptions, inventory and other details still come from the live
+  product endpoint when opening quick view or a product page. The public catalog
+  API contract is unchanged; its browser download is not server-paginated yet.
+- A shared price formatter replaces one formatter per card. Scroll cancellation
+  listeners exist only during pending mouse previews. Product cards, the mobile
+  cart link and the cookie-policy link no longer automatically prefetch routes.
+  See [Next.js Link prefetch](https://nextjs.org/docs/app/api-reference/components/link#prefetch).
+- No experimental Next.js configuration is enabled by this change.
+
+## Verification
+
+Production build and TypeScript passed. All 17 checks passed:
+
+```sh
+node --test --test-concurrency=1 tests/catalog-search.test.mjs tests/storefront.test.mjs tests/catalog.integration.mjs tests/product-preview.browser.mjs tests/seo.integration.mjs
+```
+
+Coverage includes selection overlap and small results, listing/card/search
+equivalence, browser search limits and sorting, loading all 84 fixture products,
+mobile layout, quick view, wishlist persistence and SEO. Browser polling now
+waits for sorting to complete and tolerates the brief absence of a document body
+during navigation. Mobile hero and search screenshots were visually inspected.
+
+Final reports (outside the repository):
+
+- `/tmp/urbanforge-mobile-optimized.report.html` and `.report.json`
+- `/tmp/urbanforge-desktop-optimized.report.html` and `.report.json`
+
+Recheck the deployed URL after publishing; mobile LCP remains the main remaining
+opportunity. No deployment was performed in this pass.
+
+---
+
 # Lighthouse follow-up — October 7, 2026
 
 The supplied screenshots showed desktop scores of 85 performance, 100

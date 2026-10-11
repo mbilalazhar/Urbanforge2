@@ -1,6 +1,5 @@
-import type { AdminProduct } from "@/lib/admin/types";
-
-export type CatalogProduct = AdminProduct & { ratingAverage?: number; reviewCount?: number };
+import type { CatalogProduct } from "@/lib/catalog/listing";
+export type { CatalogProduct } from "@/lib/catalog/listing";
 export const homeCollections = [
   { id: "new-arrivals", label: "New Arrivals", description: "Fresh drops. Bold fits. Built for what's next." },
   { id: "featured", label: "Featured", description: "Standout pieces from the UrbanForge collection." },

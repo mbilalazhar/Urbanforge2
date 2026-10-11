@@ -11,7 +11,7 @@ import ProductCard from "@/components/product/ProductCard";
 import { useCatalog } from "@/lib/catalog/client";
 import { toProductCard, productPrice, formatProductPrice } from "@/lib/products";
 import { catalogSections } from "@/lib/catalog-sections";
-import { matchesCatalogProduct } from "@/lib/catalog-search";
+import { matchesCatalogProduct, selectSearchProducts, SEARCH_PRODUCT_LIMIT } from "@/lib/catalog-search";
 import styles from "./search.module.css";
 
 const tabs = ["All", "Products", "Collections", "Categories"] as const;
@@ -29,7 +29,8 @@ const collectionImages: Record<string, string> = {
 export default function SearchPage({ query }: { query: string }) {
   const router = useRouter();
   const catalog = useCatalog();
-  const products = (catalog.data?.products ?? []).map(toProductCard);
+  const searchProducts = (catalog.data?.products ?? []).filter(product => product.bestseller || product.featured);
+  const products = searchProducts.map(toProductCard);
   const categories = [...new Set(products.map(product => product.category))];
   const colors = [...new Map(products.flatMap(product => product.colors ?? []).map(color => [color.name, color])).values()];
   const sizes = [...new Set(products.flatMap(product => product.sizes ?? []))];
@@ -45,13 +46,14 @@ export default function SearchPage({ query }: { query: string }) {
   const [showFilters, setShowFilters] = useState(false);
   const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const matches = (value: string) => terms.every(term => value.toLowerCase().includes(term));
-  const matchingProducts = (catalog.data?.products ?? []).filter(product => matchesCatalogProduct(product, query)).map(toProductCard);
-  const filteredProducts = matchingProducts.filter(product =>
+  const matchingProducts = searchProducts.filter(product => matchesCatalogProduct(product, query)).map(product => ({ ...toProductCard(product), id: product.id, bestseller: product.bestseller, featured: product.featured }));
+  const sortProducts = (a: typeof matchingProducts[number], b: typeof matchingProducts[number]) => sort === "price-low" ? productPrice(a) - productPrice(b) : sort === "price-high" ? productPrice(b) - productPrice(a) : sort === "newest" ? Number(b.tag === "NEW") - Number(a.tag === "NEW") : 0;
+  const filteredProducts = selectSearchProducts(matchingProducts.filter(product =>
     (!selectedCategories.length || selectedCategories.includes(product.category)) &&
     (!selectedSizes.length || selectedSizes.some(size => (product.sizes ?? []).includes(size))) &&
     (!selectedColors.length || product.colors?.some(color => selectedColors.includes(color.name))) &&
     productPrice(product) <= maxPrice
-  ).sort((a, b) => sort === "price-low" ? productPrice(a) - productPrice(b) : sort === "price-high" ? productPrice(b) - productPrice(a) : sort === "newest" ? Number(b.tag === "NEW") - Number(a.tag === "NEW") : 0);
+  ).sort(sortProducts)).sort(sortProducts);
   const matchingCollections = catalogSections.filter(section => matches(`${section.label} ${section.hero.description.join(" ")}`));
   const matchingCategories = categories.filter(category => matches(category) || matchingProducts.some(product => product.category === category));
   const counts = { All: filteredProducts.length + matchingCollections.length + matchingCategories.length, Products: filteredProducts.length, Collections: matchingCollections.length, Categories: matchingCategories.length };
@@ -72,7 +74,7 @@ export default function SearchPage({ query }: { query: string }) {
     <main className={styles.page}>
       <div className={styles.main}>
         <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><span aria-current="page">Search</span></nav>
-        <header className={styles.heading}><h1>Search <span>Results</span></h1><p>Find what moves you.</p></header>
+        <header className={styles.heading}><h1>Search <span>Results</span></h1><p>Explore our bestsellers and featured pieces.</p></header>
         <div className={styles.searchRow}>
           <form role="search" onSubmit={submitSearch} className={styles.searchBox}>
             <label htmlFor="product-search" className={styles.srOnly}>Search products</label>
@@ -114,7 +116,7 @@ export default function SearchPage({ query }: { query: string }) {
           <div id="search-results" role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0} className={`${styles.results} ${tab === "Collections" || tab === "Categories" ? styles.fullWidth : ""}`}>
             {(tab === "All" || tab === "Products") && <>
               {activeFilters > 0 && <div className={styles.activeFilters}><span>{filteredProducts.length} matching products</span><button type="button" onClick={clearFilters}>Reset filters<X size={12} /></button></div>}
-              {catalog.isPending ? <ProductGridSkeleton className={styles.grid} /> : catalog.error ? <FeedbackNotice><p>{catalog.error.message}</p><button type="button" onClick={() => catalog.refetch()}>Try again</button></FeedbackNotice> : filteredProducts.length ? <div className={styles.grid}>{filteredProducts.map(product => <ProductCard key={product.id} product={product} showArrow={false} />)}</div> : <div className={styles.empty}><Search size={32} strokeWidth={1} /><h2>No products found.</h2><p>Try a different search or adjust your filters.</p><button type="button" onClick={() => { clearFilters(); setDraft(""); router.push("/search"); }}>Explore all products<ArrowRight size={16} /></button></div>}
+              {catalog.isPending ? <ProductGridSkeleton count={SEARCH_PRODUCT_LIMIT} className={styles.grid} /> : catalog.error ? <FeedbackNotice><p>{catalog.error.message}</p><button type="button" onClick={() => catalog.refetch()}>Try again</button></FeedbackNotice> : filteredProducts.length ? <div className={styles.grid}>{filteredProducts.map(product => <ProductCard key={product.id} product={product} showArrow={false} />)}</div> : <div className={styles.empty}><Search size={32} strokeWidth={1} /><h2>No products found.</h2><p>Try a different search or adjust your filters.</p><button type="button" onClick={() => { clearFilters(); setDraft(""); router.push("/search"); }}>Explore all products<ArrowRight size={16} /></button></div>}
             </>}
             {(tab === "All" || tab === "Collections") && matchingCollections.length > 0 && <section className={styles.related}><h2>Explore collections <span>({matchingCollections.length})</span></h2><div className={styles.collectionGrid}>{matchingCollections.map(section => <Link href={`/${section.slug}`} key={section.slug} className={styles.collection}><Image src={collectionImages[section.slug]} alt={section.label} fill sizes="(max-width: 767px) 45vw, 20vw" /><span>{section.label}<ArrowRight size={17} /></span></Link>)}</div></section>}
             {(tab === "All" || tab === "Categories") && matchingCategories.length > 0 && <section className={styles.related}><h2>Shop by category <span>({matchingCategories.length})</span></h2><div className={styles.categoryLinks}>{matchingCategories.map(category => <Link key={category} href={`/search?q=${encodeURIComponent(category)}`}>{category}<ArrowRight size={15} /></Link>)}</div></section>}

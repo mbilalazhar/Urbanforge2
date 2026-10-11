@@ -179,7 +179,7 @@ test('product preview, persisted user wishlists, and guest account prompts', { s
   await evaluate("fetch('/api/auth/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})");
   await signup('wishlist-b@example.com');
   await call('Page.navigate', { url: base + '/wishlist' });
-  await until(() => evaluate("document.body.innerText.includes('Your wishlist is empty')"), 'another account has its own wishlist');
+  await until(() => evaluate("document.body?.innerText.includes('Your wishlist is empty')"), 'another account has its own wishlist');
   assert.deepEqual((await client.db('preview_browser_test').collection('users').findOne({email:firstAccount.email})).wishlistProductIds, ['preview-shoe']);
   const beforePolicy = wishlistGets.length;
   assert.equal(await evaluate("document.querySelectorAll('header a[href=\"/wishlist\"]').length"), 0, 'wishlist removed from navbar');

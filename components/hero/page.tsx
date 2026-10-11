@@ -22,7 +22,7 @@ type SceneVariables = CSSProperties & { [key: `--${string}`]: string | number };
 function frameVariables(frame: HeroSceneFrame, prefix: string): SceneVariables {
   const aligned = frame.modelMode === "scene";
   return {
-    [`--${prefix}-background-ratio`]: frame.background.width / frame.background.height,
+    [`--${prefix}-background-ratio`]: frame.backgroundCanvasRatio ?? frame.background.width / frame.background.height,
     [`--${prefix}-background-x`]: frame.backgroundX,
     [`--${prefix}-background-y`]: frame.backgroundY,
     [`--${prefix}-model-display`]: frame.model ? "block" : "none",
@@ -48,14 +48,14 @@ export default function HeroSection({ content = homeHero }: { content?: HeroCont
   const environmentSizes = {
     desktop: "100vw",
     tablet: "(max-width: 767px) calc(clamp(620px, 100svh, 900px) * 1.777), calc(clamp(720px, 100svh - 100px, 880px) * 1.777)",
-    mobile: "calc(clamp(620px, 100svh, 900px) * 1.777)",
+    mobile: mobile.precomposed ? "calc(clamp(620px, 100svh, 900px) * 1.02)" : "100vw",
   };
   const modelSizes = { desktop: desktop.modelSizes, tablet: tablet.modelSizes, mobile: mobile.modelSizes };
 
   return (
     <section className={`${styles.hero} ${inter.variable}`} aria-labelledby="hero-heading">
       <div className={styles.scene} style={sceneStyle}>
-        <div className={styles.artwork}>
+        <div className={`${styles.artwork} ${mobile.precomposed ? styles.mobileComposed : ""}`}>
           <SceneImage desktop={desktop.background} tablet={tablet.background} mobile={mobile.background}
             sizes={environmentSizes} className={styles.backdrop} decorative priority="mobile" eager />
           <div className={styles.models}>

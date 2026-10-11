@@ -140,22 +140,33 @@ test('catalog seed preserves data and remains editable through real admin/storef
       await until(async () => { try { return await evaluate(`document.readyState === "complete" && location.href === ${JSON.stringify(base + path)} && ${cards} >= ${expected}`); } catch { return false; } }, path);
     };
     await call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
-    await navigate('/', 24);
-    await delay(500); // Allow hydration before dispatching synthetic button clicks.
-    for (const [id, count] of [['featured', 12], ['bestsellers', 16], ['essentials', 24]]) {
-      await evaluate(`document.getElementById('home-tab-${id}').click()`);
-      await until(async () => await evaluate(`${cards} >= ${count} && document.getElementById('home-tab-${id}').getAttribute('aria-selected') === 'true'`), id);
+    await navigate('/', 20);
+    await delay(500);
+    assert.equal(await evaluate(cards), 20, 'initial catalog hydration is bounded');
+    while (await evaluate(cards) < 84) {
+      await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent === 'Load more products').click()`);
+      await delay(100);
     }
-    for (const [path, count] of [['/men', 18], ['/women', 22], ['/shoes', 22], ['/accessories', 22], ['/new-in', 24], ['/sale', 27]]) await navigate(path, count);
-    for (const term of ['hoodie', 'black jacket', 'cargo', 'women trousers', 'sneakers', 'watch', 'bag', 'essential']) await navigate(`/search?q=${encodeURIComponent(term)}`, 1);
-    await navigate('/search', 84);
+    assert.equal(await evaluate(cards), 84, 'load more keeps the complete catalog available');
+    for (const [path, count] of [['/men', 18], ['/women', 20], ['/shoes', 20], ['/accessories', 20], ['/new-in', 20], ['/sale', 20]]) await navigate(path, count);
+    for (const term of ['hoodie', 'black jacket', 'cargo', 'women trousers', 'sneakers', 'watch', 'bag', 'essential']) {
+      await navigate(`/search?q=${encodeURIComponent(term)}`, 0);
+      await until(async () => await evaluate(`!document.querySelector('[aria-label="Products pending"]') && document.querySelector('#tab-Products')?.innerText.includes('(')`), 'search loaded');
+      assert((await evaluate(cards)) <= 8, 'queries never exceed eight products');
+    }
+    await navigate('/search', 8);
+    assert.equal(await evaluate(cards), 8);
+    const selectedIds = await evaluate(`[...document.querySelectorAll('a[aria-label^="View details for"]')].map(a => a.getAttribute('href').split('/').pop())`);
+    const selectedProducts = selectedIds.map(id => products.find(p => 'catalog-' + p.sku.toLowerCase() === id));
+    assert(selectedProducts.every(p => p && (p.featured || p.bestseller)));
+    assert(selectedProducts.some(p => p.featured));
+    assert(selectedProducts.some(p => p.bestseller));
     await evaluate(`document.querySelector('select[aria-label="Sort products"]').value='price-low'; document.querySelector('select[aria-label="Sort products"]').dispatchEvent(new Event('change',{bubbles:true}))`);
-    await delay(200);
-    assert(await evaluate(String.raw`(() => { const prices = [...document.querySelectorAll('a[aria-label^="View details for"]')].map(a => Number(a.innerText.match(/Rs\.\s*([\d,]+)/)?.[1].replaceAll(',',''))); return prices.every((p,i) => !i || p >= prices[i-1]); })()`));
+    await until(() => evaluate(String.raw`(() => { const prices = [...document.querySelectorAll('a[aria-label^="View details for"]')].map(a => Number(a.innerText.match(/Rs\.\s*([\d,]+)/)?.[1].replaceAll(',',''))); return prices.length === 8 && prices.every((p,i) => !i || p >= prices[i-1]); })()`), 'search prices sorted');
     await evaluate(`document.querySelector('#search-filters input[type=checkbox]').click()`);
-    await delay(200); assert((await evaluate(cards)) < 84);
+    await delay(200); assert((await evaluate(cards)) <= 8);
     await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
-    await navigate('/women', 22);
+    await navigate('/women', 20);
     assert(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), 'mobile layout should fit viewport');
     await evaluate(`document.querySelector('a[aria-label^="View details for"]').scrollIntoView()`);
     await until(async () => await evaluate(`(() => { const img=document.querySelector('a[aria-label^="View details for"] img'); return img?.complete && img.naturalWidth > 0; })()`), 'cover image');
